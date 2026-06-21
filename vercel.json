@@ -2,6 +2,7 @@
   "version": 2,
   "buildCommand": null,
   "outputDirectory": ".",
+  "public": true,
   "functions": {
     "api/upload.js": {
       "memory": 256,
@@ -11,12 +12,7 @@
   "routes": [
     { "src": "/api/upload", "dest": "/api/upload.js" },
     { "src": "/superadmin.html", "dest": "/superadmin.html" },
-    { "src": "/index.html", "dest": "/betongphuongbac.com/index.html" },
-    { "src": "/css/(.*)", "dest": "/betongphuongbac.com/css/$1" },
-    { "src": "/images/(.*)", "dest": "/betongphuongbac.com/images/$1" },
-    { "src": "/assets/(.*)", "dest": "/betongphuongbac.com/assets/$1" },
-    { "src": "/font/(.*)", "dest": "/betongphuongbac.com/font/$1" },
-    { "src": "/hpm/(.*)", "dest": "/betongphuongbac.com/hpm/$1" },
+    { "src": "/uploads/(.*)", "dest": "/uploads/$1" },
     { "src": "/", "dest": "/betongphuongbac.com/index.html" },
     { "src": "/(.*)", "dest": "/betongphuongbac.com/$1" }
   ],
@@ -29,7 +25,7 @@
       ]
     },
     {
-      "source": "/(.*)",
+      "source": "/(.*\\.(jpg|jpeg|png|gif|webp|svg|ico|css|js|woff|woff2))",
       "headers": [
         { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
       ]
