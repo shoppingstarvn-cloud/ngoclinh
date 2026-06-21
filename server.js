@@ -619,6 +619,23 @@ app.get('/api/public/products', async (req, res) => {
 });
 
 // ================================================================
+// SPA FALLBACK: Mọi route không phải API, không phải file tĩnh
+// đều trả về betongphuongbac.com/index.html
+// ================================================================
+app.get('*', (req, res) => {
+    // Bỏ qua các route API, tránh ghi đè
+    if (req.path.startsWith('/api/')) {
+        return res.status(404).json({ error: 'API not found' });
+    }
+    // Bỏ qua các file có đuôi (file tĩnh đã được express.static xử lý)
+    const ext = path.extname(req.path);
+    if (ext && ['.html', '.css', '.js', '.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg', '.ico', '.woff', '.woff2', '.ttf', '.eot', '.json', '.xml', '.txt'].includes(ext.toLowerCase())) {
+        return res.status(404).send('Not found');
+    }
+    res.sendFile(path.join(__dirname, 'betongphuongbac.com', 'index.html'));
+});
+
+// ================================================================
 // START
 // ================================================================
 app.listen(PORT, () => {
