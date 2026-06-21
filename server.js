@@ -16,7 +16,14 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 app.use(express.json({ limit: '100mb' }));
 app.use(express.urlencoded({ extended: true, limit: '100mb' }));
+// Serve static files: ưu tiên betongphuongbac.com (website chính), fallback ra thư mục gốc (superadmin, uploads)
+app.use(express.static(path.join(__dirname, 'betongphuongbac.com')));
 app.use(express.static(__dirname));
+
+// Route gốc: hiển thị trang chủ từ betongphuongbac.com/index.html
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'betongphuongbac.com', 'index.html'));
+});
 
 // ================================================================
 // AUTH MIDDLEWARE
