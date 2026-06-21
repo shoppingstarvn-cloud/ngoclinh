@@ -1,0 +1,51 @@
+@charset "utf-8";
+/* CSS Document */
+
+.contact_page {padding-top: 15px;}
+.contact_page .item {padding: 0 10px}
+.contact_page form ul li {margin: 6px 0;}
+.contact_page form ul li input[type=text], .contact_page form ul li textarea {
+	width: 100%; border: 1px solid #cbcbcb;	padding: 4px; font-family:Tahoma, Geneva, sans-serif;
+
+	box-sizing: border-box;
+	-webkit-box-sizing: border-box;
+	-moz-box-sizing: border-box;
+
+	border-radius: 3px;
+	-webkit-border-radius: 3px;
+	-moz-border-radius: 3px;
+	-ms-border-radius: 3px;
+	-o-border-radius: 3px;
+	
+	box-shadow: inset 0 0 8px 0 #ddd;
+	-webkit-box-shadow: inset 0 0 8px 0 #ddd;
+	-moz-box-shadow: inset 0 0 8px 0 #ddd;
+	-ms-box-shadow: inset 0 0 8px 0 #ddd;
+	-o-box-shadow: inset 0 0 8px 0 #ddd;
+	}
+
+.contact_page form ul li input:focus, .contact_page form ul li textarea:focus {	outline: 1px solid #ffb172;}
+.contact_page form ul li textarea {height:140px;}
+.contact_page form ul li input[type=submit], .contact_page form ul li input[type=reset] { padding:6px 20px;background: #00A651;font-size: 12px;border: none;color: #fff;cursor: pointer;text-transform: uppercase;font-family:Tahoma, Geneva, sans-serif;
+	border-radius: 3px;
+	-webkit-border-radius: 3px;
+	-moz-border-radius: 3px;
+	-ms-border-radius: 3px;
+	-o-border-radius: 3px;
+	}
+
+.contact_page form ul li input[type=reset] {background: #004000;}
+.detail_contact h1 {font-size: 18px;color: #444;font-weight: normal;text-transform: uppercase;}
+.detail_contact p {margin: 5px 0; padding-left: 23px;color: #444; position: relative; line-height: 20px;}
+.detail_contact p i {position: absolute; top: 0; left: 0; width: 20px; line-height: 20px; text-align: center;}
+.detail_contact p strong {font-weight: 600;}
+.detail_contact p a {color: #000; text-decoration: none;}
+
+#mapcont {width: 100%; height: 300px;margin-bottom: 30px;}
+
+.contact_page>h2 {
+	text-transform: uppercase;
+	margin-bottom: 15px;
+	font-size: 20px;
+	font-family: 'Roboto Condensed', sans-serif;
+}

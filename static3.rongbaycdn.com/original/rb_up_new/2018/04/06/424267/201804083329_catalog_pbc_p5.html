@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="robots" content="noindex, nofollow"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>501 Not Implemented</title>
+    <link rel="shortcut icon" href="//sentry.mediacdn.vn/vccloud.png">
+    <style type="text/css">
+      html {
+        font: 16px/22px "HelveticaNeue", "Helvetica Neue", Helvetica, Arial, sans-serif;
+        color: rgba(0, 0, 0, 0.5);
+        -webkit-font-smoothing: antialiased;
+        -webkit-text-size-adjust: 100%;
+      }
+
+      div {
+        position: absolute;
+        min-width: 300px;
+        width: 95%;
+        padding: 10px 0 60px;
+        text-align: center;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -60%);
+      }
+
+      h1 {
+        font-size: 20px;
+        font-weight: normal;
+        line-height: 28px;
+        margin: 15px 0 10px 0;
+      }
+
+      p {
+        font-size: 16px;
+        margin: 10px 0 10px;
+      }
+
+      h1 a, p a {
+        color: inherit;
+        text-decoration: none;
+      }
+
+      h1 a:hover, p a:hover {
+        border-bottom: 1px solid;
+      }
+
+      h1 a:active, p a:active {
+        color: #0082F1;
+      }
+
+      p span {
+        display: inline-block;
+      }
+
+      br {
+        line-height: 28px;
+      }
+
+      footer {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        font-size: 13px;
+      }
+
+      footer h1 a, p a {
+        text-decoration: none;
+      }
+
+      footer img {
+        vertical-align: bottom;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="content">
+      <img src="https://sentry.mediacdn.vn/sad_cloud.png" width="125" height="125">
+      <h1>You're looking for something that doesn't actually exist.</h1>
+      <p>
+        Be sure to check your spelling.
+      </p>
+      <footer>
+        <a href="http://www.vccloud.vn/" target="_blank" title="VCCloud">
+          <img src="https://sentry.mediacdn.vn/vccloud.png" height="24" width="24">
+        </a>
+        Error Code: 501
+      </footer>
+    </div>
+    <script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+      ga('create', 'UA-54995047-4', 'auto');
+      ga('send', 'pageview');
+    </script>
+    <script src="https://cdn.ravenjs.com/3.18.1/raven.min.js" crossorigin="anonymous"></script>
+    <script>
+      Raven.config('https://e485baa259174861bca94b58c311b394@sentry.k8s.vn/6?verify_ssl=0').install();
+
+      var serverName = '172.17.5.68';
+      var statusCode = 501;
+      var hostName = window.location.hostname;
+
+      Raven.setTagsContext({'server': serverName});
+      Raven.captureMessage('HTTP ' + statusCode + ' - ' + hostName, {level: 'error'});
+    </script>
+  </body>
+</html>

@@ -1,0 +1,1492 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SUPER ADMIN ULTIMATE - ĐẾ CHẾ VẬN HÀNH TOÀN DIỆN</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background: #0f0f1a; font-family: 'Segoe UI', Tahoma, sans-serif; overflow-x: hidden; color: #fff; }
+        
+        /* LOGIN */
+        #login-screen { position: fixed; top:0; left:0; width:100%; height:100vh; background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%); z-index: 99999; display:flex; justify-content:center; align-items:center; }
+        .login-box { background: rgba(255,255,255,0.05); padding: 50px; border-radius: 20px; backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.1); width: 420px; text-align: center; box-shadow: 0 25px 60px rgba(0,0,0,0.5); }
+        .login-box h3 { color: #fff; font-size: 28px; margin-bottom: 5px; }
+        .login-box p { color: rgba(255,255,255,0.6); margin-bottom: 30px; }
+        .login-box input { width: 100%; padding: 16px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.1); color: #fff; font-size: 16px; outline: none; transition: 0.3s; }
+        .login-box input:focus { border-color: #0d6efd; box-shadow: 0 0 20px rgba(13,110,253,0.3); }
+        .login-box input::placeholder { color: rgba(255,255,255,0.4); }
+        .login-box .input-group-custom { position: relative; margin-bottom: 20px; }
+        .login-box .input-group-custom .eye-icon { position: absolute; right: 16px; top: 50%; transform: translateY(-50%); cursor: pointer; color: rgba(255,255,255,0.4); font-size: 18px; z-index: 2; transition: 0.3s; }
+        .login-box .input-group-custom .eye-icon:hover { color: #0d6efd; }
+        
+        /* ADMIN */
+        .wrapper { display: none; }
+        .sidebar { width: 260px; background: linear-gradient(180deg, #0a0a0a, #16162a); color: #fff; min-height: 100vh; position: fixed; z-index: 1000; overflow-y: auto; transition: all 0.3s; border-right: 1px solid rgba(255,255,255,0.05); }
+        .sidebar::-webkit-scrollbar { width: 3px; }
+        .sidebar::-webkit-scrollbar-thumb { background: #0d6efd; border-radius: 2px; }
+        .sidebar .brand { padding: 20px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .sidebar .brand h5 { color: #ffd700; font-weight: 800; }
+        .sidebar .brand small { color: rgba(255,255,255,0.3); font-size: 10px; text-transform: uppercase; letter-spacing: 2px; }
+        .nav-section-title { padding: 15px 20px 5px; font-size: 10px; text-transform: uppercase; color: rgba(255,255,255,0.2); letter-spacing: 2px; font-weight: 700; }
+        .nav-link { color: rgba(255,255,255,0.6); cursor: pointer; padding: 11px 20px; display: flex; align-items: center; gap: 12px; transition: all 0.3s; border-left: 3px solid transparent; font-size: 13px; text-decoration: none; }
+        .nav-link:hover { background: rgba(255,255,255,0.04); color: #fff; padding-left: 25px; }
+        .nav-link.active { background: rgba(13,110,253,0.12); color: #0d6efd; border-left-color: #0d6efd; font-weight: 600; }
+        .nav-link i { width: 18px; text-align: center; }
+        .nav-link .badge { margin-left: auto; font-size: 10px; }
+        
+        .main-content { margin-left: 260px; width: calc(100% - 260px); min-height: 100vh; padding: 20px; }
+        .top-bar { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: 12px; padding: 15px 25px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
+        .top-bar h4 { margin: 0; font-size: 18px; font-weight: 700; color: #fff; }
+        
+        .tab-section { display: none; animation: fadeIn 0.3s; }
+        .tab-section.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .card { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: 14px; margin-bottom: 20px; overflow: hidden; }
+        .card .card-header { background: rgba(255,255,255,0.03); border-bottom: 1px solid rgba(255,255,255,0.06); padding: 16px 20px; font-weight: 600; font-size: 14px; color: #fff; }
+        .card .card-body { padding: 20px; }
+        .card .card-label { color: rgba(255,255,255,0.5); font-size: 12px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; font-weight: 600; }
+        
+        .form-control, .form-select { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: #fff; padding: 11px 14px; outline: none; transition: 0.3s; }
+        .form-control:focus, .form-select:focus { border-color: #0d6efd; box-shadow: 0 0 0 3px rgba(13,110,253,0.15); background: rgba(255,255,255,0.08); color: #fff; }
+        .form-control::placeholder, .form-select::placeholder { color: rgba(255,255,255,0.2); }
+        .form-select option { background: #16162a; color: #fff; }
+        textarea.form-control { min-height: 100px; resize: vertical; }
+        .form-text { color: rgba(255,255,255,0.25); font-size: 11px; margin-top: 4px; }
+        
+        .btn { border-radius: 8px; font-weight: 600; padding: 10px 24px; transition: 0.3s; font-size: 13px; border: none; }
+        .btn:hover { transform: translateY(-1px); }
+        .btn-primary { background: linear-gradient(135deg, #0d6efd, #0a58ca); }
+        .btn-success { background: linear-gradient(135deg, #198754, #157347); }
+        .btn-danger { background: linear-gradient(135deg, #dc3545, #bb2d3b); }
+        .btn-warning { background: linear-gradient(135deg, #ffc107, #d39e00); color: #000; }
+        .btn-info { background: linear-gradient(135deg, #0dcaf0, #0aa2c0); color: #000; }
+        .btn-sm { padding: 6px 14px; font-size: 12px; }
+        
+        .table { color: rgba(255,255,255,0.8); font-size: 13px; margin: 0; }
+        .table thead th { background: rgba(255,255,255,0.03); color: rgba(255,255,255,0.4); font-size: 11px; text-transform: uppercase; letter-spacing: 1px; border: none; padding: 12px 14px; font-weight: 600; }
+        .table tbody td { border-color: rgba(255,255,255,0.04); padding: 12px 14px; vertical-align: middle; }
+        .table tbody tr:hover { background: rgba(255,255,255,0.02); }
+        
+        .thumbnail-img { width: 70px; height: 45px; object-fit: cover; border-radius: 6px; border: 1px solid rgba(255,255,255,0.08); }
+        .thumb-circle { width: 42px; height: 42px; border-radius: 50%; object-fit: cover; border: 2px solid rgba(255,255,255,0.08); }
+        
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; margin-bottom: 20px; }
+        .stat-card { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: 14px; padding: 18px; transition: 0.3s; }
+        .stat-card:hover { border-color: rgba(255,255,255,0.12); transform: translateY(-2px); }
+        .stat-card .icon { width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px; margin-bottom: 10px; }
+        .stat-card .number { font-size: 26px; font-weight: 800; color: #fff; margin: 0; }
+        .stat-card .label { color: rgba(255,255,255,0.4); margin: 0; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+        
+        .empty-state { text-align: center; padding: 40px 20px; color: rgba(255,255,255,0.3); }
+        .empty-state i { font-size: 48px; margin-bottom: 12px; opacity: 0.4; }
+        
+        .badge-status { padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+        
+        .log-item { border-left: 3px solid #0d6efd; padding: 10px 14px; margin-bottom: 6px; border-radius: 0 6px 6px 0; background: rgba(255,255,255,0.02); }
+        .log-item .log-time { color: rgba(255,255,255,0.25); font-size: 11px; }
+        .log-item .log-action { font-weight: 600; font-size: 13px; }
+        .log-item .log-detail { color: rgba(255,255,255,0.4); font-size: 11px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        
+        .btn-icon { width: 32px; height: 32px; border-radius: 6px; border: none; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.3s; font-size: 13px; }
+        .btn-icon:hover { transform: scale(1.1); }
+        
+        .wysiwyg-toolbar { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px 8px 0 0; padding: 8px; display: flex; gap: 4px; flex-wrap: wrap; }
+        .wysiwyg-toolbar button { background: transparent; border: 1px solid rgba(255,255,255,0.1); color: rgba(255,255,255,0.7); border-radius: 4px; padding: 5px 10px; cursor: pointer; font-size: 12px; transition: 0.2s; }
+        .wysiwyg-toolbar button:hover { background: rgba(255,255,255,0.1); color: #fff; }
+        .wysiwyg-content { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-top: none; border-radius: 0 0 8px 8px; padding: 14px; min-height: 200px; color: #fff; outline: none; overflow-y: auto; }
+        .wysiwyg-content:focus { border-color: #0d6efd; }
+        
+        @media (max-width: 768px) { .sidebar { width: 60px; } .sidebar .brand h5, .sidebar .brand small, .sidebar .nav-section-title, .sidebar .nav-link span { display: none; } .sidebar .nav-link { justify-content: center; padding: 15px; } .main-content { margin-left: 60px; width: calc(100% - 60px); padding: 12px; } .stats-grid { grid-template-columns: repeat(2, 1fr); } }
+        
+        .modal-custom { background: rgba(0,0,0,0.7); backdrop-filter: blur(10px); }
+        .modal-custom .modal-content { background: #1a1a2e; border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; color: #fff; }
+        .modal-custom .modal-header { border-bottom: 1px solid rgba(255,255,255,0.06); }
+        .modal-custom .modal-footer { border-top: 1px solid rgba(255,255,255,0.06); }
+        .modal-custom .btn-close { filter: invert(1); }
+    </style>
+</head>
+<body>
+
+<!-- ==================== LOGIN SCREEN ==================== -->
+<div id="login-screen">
+    <div class="login-box">
+        <div class="mb-3"><i class="fas fa-crown" style="font-size: 60px; color: #ffd700;"></i></div>
+        <h3>SUPER ADMIN</h3>
+        <p>Hệ thống quản trị tối cao • Đồng bộ toàn diện</p>
+        <div class="input-group-custom">
+            <input type="password" id="master_password" placeholder="Nhập mật khẩu..." onkeydown="if(event.key==='Enter') doLogin()">
+            <i class="fas fa-eye eye-icon" id="togglePassword" onclick="togglePwdVisibility()"></i>
+        </div>
+        <button class="btn btn-primary w-100 py-3 fw-bold" onclick="doLogin()">
+            <i class="fas fa-rocket"></i> KHỞI ĐỘNG HỆ THỐNG
+        </button>
+        <p class="mt-3" style="color: rgba(255,255,255,0.2); font-size: 11px;"><i class="fas fa-shield-alt"></i> Kết nối Supabase • Realtime Sync</p>
+    </div>
+</div>
+
+<!-- ==================== ADMIN WRAPPER ==================== -->
+<div class="wrapper" id="admin-wrapper">
+    <!-- SIDEBAR -->
+    <nav class="sidebar" id="sidebar">
+        <div class="brand">
+            <h5><i class="fas fa-crown"></i> ADMIN</h5>
+            <small>Bê Tông Phương Bắc</small>
+        </div>
+        <div class="nav-section-title">Tổng Quan</div>
+        <a class="nav-link active" onclick="showTab('dashboard', this)"><i class="fas fa-tachometer-alt"></i> <span>Dashboard</span></a>
+        
+        <div class="nav-section-title">Cấu Hình Gốc</div>
+        <a class="nav-link" onclick="showTab('config', this)"><i class="fas fa-cog"></i> <span>Cấu Hình Website</span></a>
+        <a class="nav-link" onclick="showTab('logo', this)"><i class="fas fa-image"></i> <span>Logo & Favicon</span></a>
+        <a class="nav-link" onclick="showTab('social', this)"><i class="fas fa-share-alt"></i> <span>Social Links</span></a>
+        
+        <div class="nav-section-title">Nội Dung</div>
+        <a class="nav-link" onclick="showTab('pages', this)"><i class="fas fa-file-alt"></i> <span>Trang Nội Dung</span></a>
+        <a class="nav-link" onclick="showTab('slides', this)"><i class="fas fa-images"></i> <span>Slide Ảnh</span></a>
+        <a class="nav-link" onclick="showTab('products', this)"><i class="fas fa-box"></i> <span>Sản Phẩm</span></a>
+        <a class="nav-link" onclick="showTab('projects', this)"><i class="fas fa-hard-hat"></i> <span>Dự Án</span></a>
+        <a class="nav-link" onclick="showTab('news', this)"><i class="fas fa-newspaper"></i> <span>Tin Tức</span></a>
+        <a class="nav-link" onclick="showTab('partners', this)"><i class="fas fa-handshake"></i> <span>Đối Tác / Logo</span></a>
+        <a class="nav-link" onclick="showTab('videos', this)"><i class="fas fa-video"></i> <span>Video</span></a>
+        <a class="nav-link" onclick="showTab('categories', this)"><i class="fas fa-sitemap"></i> <span>Danh Mục</span></a>
+        
+        <div class="nav-section-title">Nhân Sự & KH</div>
+        <a class="nav-link" onclick="showTab('staff', this)"><i class="fas fa-users"></i> <span>Nhân Sự</span></a>
+        <a class="nav-link" onclick="showTab('testimonials', this)"><i class="fas fa-comment-dots"></i> <span>Đánh Giá</span></a>
+        
+        <div class="nav-section-title">Liên Hệ</div>
+        <a class="nav-link" onclick="showTab('contacts', this)"><i class="fas fa-inbox"></i> <span>Liên Hệ</span> <span class="badge bg-danger rounded-pill" id="unread-badge">0</span></a>
+        
+        <div class="nav-section-title">Hệ Thống</div>
+        <a class="nav-link" onclick="showTab('navigation', this)"><i class="fas fa-bars"></i> <span>Menu</span></a>
+        <a class="nav-link" onclick="showTab('media', this)"><i class="fas fa-photo-video"></i> <span>Thư Viện Media</span></a>
+        <a class="nav-link" onclick="showTab('sync', this)"><i class="fas fa-sync"></i> <span>Đồng Bộ</span></a>
+        <a class="nav-link" onclick="logoutAdmin()" style="color:#dc3545;"><i class="fas fa-sign-out-alt"></i> <span>Đăng Xuất</span></a>
+    </nav>
+
+    <!-- MAIN CONTENT -->
+    <div class="main-content">
+        <div class="top-bar">
+            <h4 id="page-title"><i class="fas fa-tachometer-alt text-primary"></i> Dashboard</h4>
+            <div>
+                <span class="badge bg-success me-2" id="live-status"><i class="fas fa-circle"></i> LIVE</span>
+                <span class="badge bg-secondary me-2" id="user-role">Super Admin</span>
+                <button class="btn btn-primary btn-sm" onclick="syncAllData()"><i class="fas fa-sync"></i> Đồng bộ</button>
+            </div>
+        </div>
+
+        <!-- ============== DASHBOARD ============== -->
+        <div id="dashboard" class="tab-section active">
+            <div class="stats-grid" id="dashboard-stats">
+                <div class="stat-card"><div class="icon" style="background:rgba(13,110,253,0.15);color:#0d6efd;"><i class="fas fa-images"></i></div><p class="number" id="stat-slides">0</p><p class="label">Slide Ảnh</p></div>
+                <div class="stat-card"><div class="icon" style="background:rgba(25,135,84,0.15);color:#198754;"><i class="fas fa-box"></i></div><p class="number" id="stat-products">0</p><p class="label">Sản Phẩm</p></div>
+                <div class="stat-card"><div class="icon" style="background:rgba(13,202,240,0.15);color:#0dcaf0;"><i class="fas fa-hard-hat"></i></div><p class="number" id="stat-projects">0</p><p class="label">Dự Án</p></div>
+                <div class="stat-card"><div class="icon" style="background:rgba(255,193,7,0.15);color:#ffc107;"><i class="fas fa-newspaper"></i></div><p class="number" id="stat-news">0</p><p class="label">Tin Tức</p></div>
+                <div class="stat-card"><div class="icon" style="background:rgba(111,66,193,0.15);color:#6f42c1;"><i class="fas fa-handshake"></i></div><p class="number" id="stat-partners">0</p><p class="label">Đối Tác</p></div>
+                <div class="stat-card"><div class="icon" style="background:rgba(220,53,69,0.15);color:#dc3545;"><i class="fas fa-video"></i></div><p class="number" id="stat-videos">0</p><p class="label">Video</p></div>
+                <div class="stat-card"><div class="icon" style="background:rgba(253,126,20,0.15);color:#fd7e14;"><i class="fas fa-users"></i></div><p class="number" id="stat-staff">0</p><p class="label">Nhân Sự</p></div>
+                <div class="stat-card"><div class="icon" style="background:rgba(23,162,184,0.15);color:#17a2b8;"><i class="fas fa-inbox"></i></div><p class="number" id="stat-contacts">0</p><p class="label">Liên Hệ</p></div>
+            </div>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <div class="card"><div class="card-header"><i class="fas fa-bolt text-warning"></i> Hành động nhanh</div>
+                    <div class="card-body"><div class="d-grid gap-2">
+                        <button class="btn btn-primary" onclick="showTab('slides', document.querySelector('.nav-link[data-tab=slides]'))"><i class="fas fa-images"></i> Thêm Slide Ảnh</button>
+                        <button class="btn btn-success" onclick="showTab('products', document.querySelector('.nav-link[data-tab=products]'))"><i class="fas fa-box"></i> Thêm Sản Phẩm</button>
+                        <button class="btn btn-info" onclick="showTab('projects', document.querySelector('.nav-link[data-tab=projects]'))"><i class="fas fa-hard-hat"></i> Thêm Dự Án</button>
+                        <button class="btn btn-warning" onclick="showTab('news', document.querySelector('.nav-link[data-tab=news]'))"><i class="fas fa-newspaper"></i> Thêm Tin Tức</button>
+                        <button class="btn btn-secondary" onclick="showTab('partners', document.querySelector('.nav-link[data-tab=partners]'))"><i class="fas fa-handshake"></i> Thêm Đối Tác</button>
+                        <button class="btn btn-danger" onclick="showTab('videos', document.querySelector('.nav-link[data-tab=videos]'))"><i class="fas fa-video"></i> Thêm Video</button>
+                    </div></div></div>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <div class="card"><div class="card-header"><i class="fas fa-info-circle text-info"></i> Trạng thái hệ thống</div>
+                    <div class="card-body">
+                        <p><strong>Supabase:</strong> <span class="text-success"><i class="fas fa-circle"></i> Đã kết nối</span></p>
+                        <p><strong>Realtime:</strong> <span class="text-success"><i class="fas fa-circle"></i> Đang lắng nghe</span></p>
+                        <p><strong>Phiên bản:</strong> Ultimate v3.0</p>
+                        <hr>
+                        <p class="small text-muted">Mọi thay đổi từ Admin đều được đồng bộ ngay lập tức lên Supabase và website.</p>
+                    </div></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============== CONFIG ============== -->
+        <div id="config" class="tab-section">
+            <div class="card"><div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="fas fa-cog text-primary"></i> Cấu Hình Gốc Website</span>
+                <button class="btn btn-primary btn-sm" onclick="saveConfig()"><i class="fas fa-save"></i> Lưu tất cả</button>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6 mb-3"><label class="form-label">Tên Website / Công Ty</label><input class="form-control" id="site_name" placeholder="Tên công ty"></div>
+                    <div class="col-md-6 mb-3"><label class="form-label">Tên Rút Gọn</label><input class="form-control" id="site_name_short" placeholder="VD: CỬA ÂU"></div>
+                    <div class="col-md-4 mb-3"><label class="form-label">Hotline 1</label><input class="form-control" id="hotline" placeholder="0947881181"></div>
+                    <div class="col-md-4 mb-3"><label class="form-label">Hotline 2</label><input class="form-control" id="hotline_2" placeholder="0934640601"></div>
+                    <div class="col-md-4 mb-3"><label class="form-label">Zalo Phone</label><input class="form-control" id="zalo_phone" placeholder="0947881181"></div>
+                    <div class="col-md-6 mb-3"><label class="form-label">Email 1</label><input class="form-control" id="email" placeholder="congtycuaau8386@gmail.com"></div>
+                    <div class="col-md-6 mb-3"><label class="form-label">Email 2</label><input class="form-control" id="email_2" placeholder="Email phụ"></div>
+                    <div class="col-md-12 mb-3"><label class="form-label">Địa Chỉ</label><input class="form-control" id="address" placeholder="Thôn 6, Pháp Cổ, Xã Việt Khê, Hải Phòng"></div>
+                    <div class="col-md-6 mb-3"><label class="form-label">Copyright Footer</label><input class="form-control" id="footer_copyright" placeholder="BẢN QUYỀN THUỘC VỀ..."></div>
+                    <div class="col-md-3 mb-3"><label class="form-label">Màu Chủ Đạo</label><input type="color" class="form-control form-control-color" id="primary_color" value="#004d00"></div>
+                    <div class="col-md-3 mb-3"><label class="form-label">Màu Phụ</label><input type="color" class="form-control form-control-color" id="secondary_color" value="#dc3545"></div>
+                    <div class="col-md-12 mb-3"><label class="form-label">Meta Keywords (SEO)</label><input class="form-control" id="meta_keywords" placeholder="cống bê tông, cống hộp, cống tròn"></div>
+                    <div class="col-md-12 mb-3"><label class="form-label">Meta Description (SEO)</label><textarea class="form-control" id="meta_description" rows="2" placeholder="Mô tả website cho SEO"></textarea></div>
+                </div>
+            </div></div>
+        </div>
+
+        <!-- ============== LOGO & FAVICON ============== -->
+        <div id="logo" class="tab-section">
+            <div class="card"><div class="card-header"><i class="fas fa-image text-primary"></i> Logo & Favicon</div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6 mb-3"><label class="form-label">Logo URL</label><div class="input-group"><input class="form-control image-url-input" id="logo_url" placeholder="images/contact/4174logo_bt.png"><button class="btn btn-outline-primary" type="button" onclick="document.getElementById('file_logo_url').click()"><i class="fas fa-upload"></i></button><input type="file" id="file_logo_url" style="display:none" accept="image/*" onchange="uploadFile(this, 'logo_url')"></div></div>
+                    <div class="col-md-6 mb-3"><label class="form-label">Favicon URL</label><div class="input-group"><input class="form-control image-url-input" id="favicon_url" placeholder="images/favicon/8446logo_bt.png"><button class="btn btn-outline-primary" type="button" onclick="document.getElementById('file_favicon_url').click()"><i class="fas fa-upload"></i></button><input type="file" id="file_favicon_url" style="display:none" accept="image/*" onchange="uploadFile(this, 'favicon_url')"></div></div>
+                    <div class="col-md-6 mb-3"><label class="form-label">Logo Website (URL)</label><input class="form-control" id="website_url" placeholder="https://betongphuongbac.com"></div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3 text-center">
+                        <p class="form-label">Xem trước Logo</p>
+                        <img id="logo-preview" src="" style="max-width:200px;max-height:80px;border-radius:8px;border:1px solid rgba(255,255,255,0.1);padding:10px;background:rgba(255,255,255,0.05);">
+                    </div>
+                    <div class="col-md-6 mb-3 text-center">
+                        <p class="form-label">Xem trước Favicon</p>
+                        <img id="favicon-preview" src="" style="width:48px;height:48px;border-radius:8px;border:1px solid rgba(255,255,255,0.1);padding:5px;background:rgba(255,255,255,0.05);">
+                    </div>
+                </div>
+                <button class="btn btn-primary" onclick="saveConfig()"><i class="fas fa-save"></i> Lưu Logo & Favicon</button>
+            </div></div>
+        </div>
+
+        <!-- ============== SOCIAL ============== -->
+        <div id="social" class="tab-section">
+            <div class="card"><div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="fas fa-share-alt text-primary"></i> Social Links</span>
+                <button class="btn btn-primary btn-sm" onclick="saveSocialLinks()"><i class="fas fa-save"></i> Lưu</button>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6 mb-3"><label class="form-label"><i class="fab fa-facebook"></i> Facebook URL</label><input class="form-control" id="facebook_url" placeholder="https://www.facebook.com/..."></div>
+                    <div class="col-md-6 mb-3"><label class="form-label"><i class="fab fa-twitter"></i> Twitter URL</label><input class="form-control" id="twitter_url" placeholder="#"></div>
+                    <div class="col-md-6 mb-3"><label class="form-label"><i class="fab fa-youtube"></i> Youtube URL</label><input class="form-control" id="youtube_url" placeholder="https://youtube.com/..."></div>
+                    <div class="col-md-6 mb-3"><label class="form-label"><i class="fab fa-instagram"></i> Instagram URL</label><input class="form-control" id="instagram_url" placeholder="#"></div>
+                </div>
+            </div></div>
+        </div>
+
+        <!-- ============== PAGES ============== -->
+        <div id="pages" class="tab-section">
+            <div class="card"><div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="fas fa-file-alt text-primary"></i> Quản lý Trang Nội Dung</span>
+                <button class="btn btn-primary btn-sm" onclick="savePage()"><i class="fas fa-save"></i> Lưu trang</button>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label">Chọn trang</label>
+                        <select class="form-select" id="page-select" onchange="loadPage(this.value)"></select>
+                    </div>
+                    <div class="col-md-9 mb-3">
+                        <label class="form-label">Tiêu đề trang</label>
+                        <input class="form-control" id="page_title" placeholder="Tiêu đề...">
+                    </div>
+                    <div class="col-md-12 mb-3">
+                        <label class="form-label">Nội dung (Soạn thảo trực quan)</label>
+                        <div class="wysiwyg-toolbar">
+                            <button onclick="execCmd('bold')"><i class="fas fa-bold"></i></button>
+                            <button onclick="execCmd('italic')"><i class="fas fa-italic"></i></button>
+                            <button onclick="execCmd('underline')"><i class="fas fa-underline"></i></button>
+                            <button onclick="execCmd('insertUnorderedList')"><i class="fas fa-list-ul"></i></button>
+                            <button onclick="execCmd('insertOrderedList')"><i class="fas fa-list-ol"></i></button>
+                            <button onclick="execCmd('justifyLeft')"><i class="fas fa-align-left"></i></button>
+                            <button onclick="execCmd('justifyCenter')"><i class="fas fa-align-center"></i></button>
+                            <button onclick="execCmd('justifyRight')"><i class="fas fa-align-right"></i></button>
+                            <button onclick="insertLink()"><i class="fas fa-link"></i></button>
+                            <button onclick="insertImage()"><i class="fas fa-image"></i></button>
+                        </div>
+                        <div class="wysiwyg-content" id="page_content_editor" contenteditable="true"></div>
+                    </div>
+                </div>
+            </div></div>
+        </div>
+
+        <!-- ============== SLIDES ============== -->
+        <div id="slides" class="tab-section">
+            <div class="card"><div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="fas fa-images text-primary"></i> Quản lý Slide Ảnh</span>
+                <button class="btn btn-primary btn-sm" onclick="showSlideForm()"><i class="fas fa-plus"></i> Thêm Slide</button>
+            </div>
+            <div class="card-body"><div id="slides-table-container"></div></div></div>
+            <!-- Slide Modal -->
+            <div class="modal fade modal-custom" id="slideModal"><div class="modal-dialog"><div class="modal-content">
+                <div class="modal-header"><h5 class="modal-title" id="slideModalTitle">Thêm Slide</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+                <div class="modal-body">
+                    <input type="hidden" id="edit_slide_id">
+                    <div class="mb-3"><label class="form-label">Tiêu đề</label><input class="form-control" id="slide_title"></div>
+                    <div class="mb-3"><label class="form-label">Phụ đề</label><input class="form-control" id="slide_subtitle"></div>
+                    <div class="mb-3"><label class="form-label">URL Hình ảnh</label><div class="input-group"><input class="form-control image-url-input" id="slide_image" placeholder="images/slide/..."><button class="btn btn-outline-primary" type="button" onclick="document.getElementById('file_slide_image').click()"><i class="fas fa-upload"></i></button><input type="file" id="file_slide_image" style="display:none" accept="image/*" onchange="uploadFile(this, 'slide_image')"></div></div>
+                    <div class="mb-3"><label class="form-label">Link (nếu có)</label><input class="form-control" id="slide_link" placeholder="#"></div>
+                    <div class="mb-3"><label class="form-label">Thứ tự</label><input type="number" class="form-control" id="slide_sort" value="0"></div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button class="btn btn-primary" onclick="saveSlide()">Lưu</button>
+                </div>
+            </div></div></div>
+        </div>
+
+        <!-- ============== PRODUCTS ============== -->
+        <div id="products" class="tab-section">
+            <div class="card"><div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="fas fa-box text-primary"></i> Quản lý Sản Phẩm</span>
+                <button class="btn btn-primary btn-sm" onclick="showProductForm()"><i class="fas fa-plus"></i> Thêm SP</button>
+            </div>
+            <div class="card-body"><div id="products-table-container"></div></div></div>
+            <div class="modal fade modal-custom" id="productModal"><div class="modal-dialog modal-lg"><div class="modal-content">
+                <div class="modal-header"><h5 class="modal-title" id="productModalTitle">Thêm Sản Phẩm</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+                <div class="modal-body">
+                    <input type="hidden" id="edit_product_id">
+                    <div class="row">
+                        <div class="col-md-6 mb-3"><label class="form-label">Tên sản phẩm</label><input class="form-control" id="product_name"></div>
+                        <div class="col-md-6 mb-3"><label class="form-label">Danh mục</label><input class="form-control" id="product_category"></div>
+                        <div class="col-md-6 mb-3"><label class="form-label">Ảnh</label><div class="input-group"><input class="form-control image-url-input" id="product_thumbnail" placeholder="URL ảnh sản phẩm"><button class="btn btn-outline-primary" type="button" onclick="document.getElementById('file_product_thumbnail').click()"><i class="fas fa-upload"></i></button><input type="file" id="file_product_thumbnail" style="display:none" accept="image/*" onchange="uploadFile(this, 'product_thumbnail')"></div></div>
+                        <div class="col-md-3 mb-3"><label class="form-label">Giá</label><input class="form-control" id="product_price" placeholder="Liên hệ"></div>
+                        <div class="col-md-3 mb-3"><label class="form-label">Thứ tự</label><input type="number" class="form-control" id="product_sort" value="0"></div>
+                        <div class="col-md-12 mb-3"><label class="form-label">Mô tả</label><textarea class="form-control" id="product_desc" rows="3"></textarea></div>
+                        <div class="col-md-12 mb-3"><label class="form-label">Thông số kỹ thuật</label><textarea class="form-control" id="product_specs" rows="3"></textarea></div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button class="btn btn-primary" onclick="saveProduct()">Lưu</button>
+                </div>
+            </div></div></div>
+        </div>
+
+        <!-- ============== PROJECTS ============== -->
+        <div id="projects" class="tab-section">
+            <div class="card"><div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="fas fa-hard-hat text-info"></i> Quản lý Dự Án</span>
+                <button class="btn btn-primary btn-sm" onclick="showProjectForm()"><i class="fas fa-plus"></i> Thêm Dự Án</button>
+            </div>
+            <div class="card-body"><div id="projects-table-container"></div></div></div>
+            <div class="modal fade modal-custom" id="projectModal"><div class="modal-dialog modal-lg"><div class="modal-content">
+                <div class="modal-header"><h5 class="modal-title" id="projectModalTitle">Thêm Dự Án</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+                <div class="modal-body">
+                    <input type="hidden" id="edit_project_id">
+                    <div class="row">
+                        <div class="col-md-8 mb-3"><label class="form-label">Tên dự án</label><input class="form-control" id="project_title"></div>
+                        <div class="col-md-4 mb-3"><label class="form-label">Link URL</label><input class="form-control" id="project_link"></div>
+                        <div class="col-md-6 mb-3"><label class="form-label">Ảnh thumbnail</label><div class="input-group"><input class="form-control image-url-input" id="project_thumbnail" placeholder="URL ảnh dự án"><button class="btn btn-outline-primary" type="button" onclick="document.getElementById('file_project_thumbnail').click()"><i class="fas fa-upload"></i></button><input type="file" id="file_project_thumbnail" style="display:none" accept="image/*" onchange="uploadFile(this, 'project_thumbnail')"></div></div>
+                        <div class="col-md-6 mb-3"><label class="form-label">Thứ tự</label><input type="number" class="form-control" id="project_sort" value="0"></div>
+                        <div class="col-md-12 mb-3"><label class="form-label">Mô tả / Nội dung</label><textarea class="form-control" id="project_content" rows="5"></textarea></div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button class="btn btn-primary" onclick="saveProject()">Lưu</button>
+                </div>
+            </div></div></div>
+        </div>
+
+        <!-- ============== NEWS ============== -->
+        <div id="news" class="tab-section">
+            <div class="card"><div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="fas fa-newspaper text-warning"></i> Quản lý Tin Tức</span>
+                <button class="btn btn-primary btn-sm" onclick="showNewsForm()"><i class="fas fa-plus"></i> Thêm Tin</button>
+            </div>
+            <div class="card-body"><div id="news-table-container"></div></div></div>
+            <div class="modal fade modal-custom" id="newsModal"><div class="modal-dialog modal-lg"><div class="modal-content">
+                <div class="modal-header"><h5 class="modal-title" id="newsModalTitle">Thêm Tin Tức</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+                <div class="modal-body">
+                    <input type="hidden" id="edit_news_id">
+                    <div class="row">
+                        <div class="col-md-8 mb-3"><label class="form-label">Tiêu đề</label><input class="form-control" id="news_title"></div>
+                        <div class="col-md-4 mb-3"><label class="form-label">Link URL</label><input class="form-control" id="news_link"></div>
+                        <div class="col-md-6 mb-3"><label class="form-label">Ảnh thumbnail</label><div class="input-group"><input class="form-control image-url-input" id="news_thumbnail" placeholder="URL ảnh tin tức"><button class="btn btn-outline-primary" type="button" onclick="document.getElementById('file_news_thumbnail').click()"><i class="fas fa-upload"></i></button><input type="file" id="file_news_thumbnail" style="display:none" accept="image/*" onchange="uploadFile(this, 'news_thumbnail')"></div></div>
+                        <div class="col-md-6 mb-3"><label class="form-label">Thứ tự</label><input type="number" class="form-control" id="news_sort" value="0"></div>
+                        <div class="col-md-12 mb-3"><label class="form-label">Nội dung</label><textarea class="form-control" id="news_content" rows="5"></textarea></div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button class="btn btn-primary" onclick="saveNews()">Lưu</button>
+                </div>
+            </div></div></div>
+        </div>
+
+        <!-- ============== PARTNERS ============== -->
+        <div id="partners" class="tab-section">
+            <div class="card"><div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="fas fa-handshake text-secondary"></i> Quản lý Đối Tác / Logo</span>
+                <button class="btn btn-primary btn-sm" onclick="showPartnerForm()"><i class="fas fa-plus"></i> Thêm ĐT</button>
+            </div>
+            <div class="card-body"><div id="partners-table-container"></div></div></div>
+            <div class="modal fade modal-custom" id="partnerModal"><div class="modal-dialog"><div class="modal-content">
+                <div class="modal-header"><h5 class="modal-title" id="partnerModalTitle">Thêm Đối Tác</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+                <div class="modal-body">
+                    <input type="hidden" id="edit_partner_id">
+                    <div class="mb-3"><label class="form-label">Tên đối tác</label><input class="form-control" id="partner_name"></div>
+                    <div class="mb-3"><label class="form-label">Logo URL</label><div class="input-group"><input class="form-control image-url-input" id="partner_logo" placeholder="URL logo"><button class="btn btn-outline-primary" type="button" onclick="document.getElementById('file_partner_logo').click()"><i class="fas fa-upload"></i></button><input type="file" id="file_partner_logo" style="display:none" accept="image/*" onchange="uploadFile(this, 'partner_logo')"></div></div>
+                    <div class="mb-3"><label class="form-label">Website</label><input class="form-control" id="partner_website"></div>
+                    <div class="mb-3"><label class="form-label">Thứ tự</label><input type="number" class="form-control" id="partner_sort" value="0"></div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button class="btn btn-primary" onclick="savePartner()">Lưu</button>
+                </div>
+            </div></div></div>
+        </div>
+
+        <!-- ============== VIDEOS ============== -->
+        <div id="videos" class="tab-section">
+            <div class="card"><div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="fas fa-video text-danger"></i> Quản lý Video</span>
+                <button class="btn btn-primary btn-sm" onclick="showVideoForm()"><i class="fas fa-plus"></i> Thêm Video</button>
+            </div>
+            <div class="card-body"><div id="videos-table-container"></div></div></div>
+            <div class="modal fade modal-custom" id="videoModal"><div class="modal-dialog"><div class="modal-content">
+                <div class="modal-header"><h5 class="modal-title" id="videoModalTitle">Thêm Video</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+                <div class="modal-body">
+                    <input type="hidden" id="edit_video_id">
+                    <div class="mb-3"><label class="form-label">Tiêu đề</label><input class="form-control" id="video_title"></div>
+                    <div class="mb-3"><label class="form-label">URL (Youtube embed)</label><input class="form-control" id="video_url" placeholder="https://www.youtube.com/embed/..."></div>
+                    <div class="mb-3"><label class="form-label">Thumbnail</label><div class="input-group"><input class="form-control image-url-input" id="video_thumbnail" placeholder="URL thumbnail"><button class="btn btn-outline-primary" type="button" onclick="document.getElementById('file_video_thumbnail').click()"><i class="fas fa-upload"></i></button><input type="file" id="file_video_thumbnail" style="display:none" accept="image/*" onchange="uploadFile(this, 'video_thumbnail')"></div></div>
+                    <div class="mb-3"><label class="form-label">Mô tả</label><textarea class="form-control" id="video_desc" rows="3"></textarea></div>
+                    <div class="mb-3"><label class="form-label">Thứ tự</label><input type="number" class="form-control" id="video_sort" value="0"></div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button class="btn btn-primary" onclick="saveVideo()">Lưu</button>
+                </div>
+            </div></div></div>
+        </div>
+
+        <!-- ============== CATEGORIES ============== -->
+        <div id="categories" class="tab-section">
+            <div class="card"><div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="fas fa-sitemap text-primary"></i> Quản lý Danh Mục</span>
+                <button class="btn btn-primary btn-sm" onclick="showCategoryForm()"><i class="fas fa-plus"></i> Thêm DM</button>
+            </div>
+            <div class="card-body"><div id="categories-table-container"></div></div></div>
+            <div class="modal fade modal-custom" id="categoryModal"><div class="modal-dialog"><div class="modal-content">
+                <div class="modal-header"><h5 class="modal-title" id="categoryModalTitle">Thêm Danh Mục</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+                <div class="modal-body">
+                    <input type="hidden" id="edit_category_id">
+                    <div class="mb-3"><label class="form-label">Tên danh mục</label><input class="form-control" id="category_name"></div>
+                    <div class="mb-3"><label class="form-label">Slug</label><input class="form-control" id="category_slug"></div>
+                    <div class="mb-3"><label class="form-label">Mô tả</label><textarea class="form-control" id="category_desc" rows="2"></textarea></div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button class="btn btn-primary" onclick="saveCategory()">Lưu</button>
+                </div>
+            </div></div></div>
+        </div>
+
+        <!-- ============== STAFF ============== -->
+        <div id="staff" class="tab-section">
+            <div class="card"><div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="fas fa-users text-primary"></i> Quản lý Nhân Sự</span>
+                <button class="btn btn-primary btn-sm" onclick="showStaffForm()"><i class="fas fa-plus"></i> Thêm NS</button>
+            </div>
+            <div class="card-body"><div id="staff-table-container"></div></div></div>
+            <div class="modal fade modal-custom" id="staffModal"><div class="modal-dialog"><div class="modal-content">
+                <div class="modal-header"><h5 class="modal-title" id="staffModalTitle">Thêm Nhân Sự</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+                <div class="modal-body">
+                    <input type="hidden" id="edit_staff_id">
+                    <div class="row">
+                        <div class="col-md-6 mb-3"><label class="form-label">Họ và tên</label><input class="form-control" id="staff_name"></div>
+                        <div class="col-md-6 mb-3"><label class="form-label">Chức vụ</label><input class="form-control" id="staff_position"></div>
+                        <div class="col-md-6 mb-3"><label class="form-label">Số điện thoại</label><input class="form-control" id="staff_phone"></div>
+                        <div class="col-md-6 mb-3"><label class="form-label">Email</label><input class="form-control" id="staff_email"></div>
+                        <div class="col-md-12 mb-3"><label class="form-label">Avatar URL</label><div class="input-group"><input class="form-control image-url-input" id="staff_avatar" placeholder="URL avatar"><button class="btn btn-outline-primary" type="button" onclick="document.getElementById('file_staff_avatar').click()"><i class="fas fa-upload"></i></button><input type="file" id="file_staff_avatar" style="display:none" accept="image/*" onchange="uploadFile(this, 'staff_avatar')"></div></div>
+                        <div class="col-md-12 mb-3"><label class="form-label">Mô tả</label><textarea class="form-control" id="staff_desc" rows="2"></textarea></div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button class="btn btn-primary" onclick="saveStaff()">Lưu</button>
+                </div>
+            </div></div></div>
+        </div>
+
+        <!-- ============== TESTIMONIALS ============== -->
+        <div id="testimonials" class="tab-section">
+            <div class="card"><div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="fas fa-comment-dots text-primary"></i> Quản lý Đánh Giá Khách Hàng</span>
+                <button class="btn btn-primary btn-sm" onclick="showTestimonialForm()"><i class="fas fa-plus"></i> Thêm ĐG</button>
+            </div>
+            <div class="card-body"><div id="testimonials-table-container"></div></div></div>
+            <div class="modal fade modal-custom" id="testimonialModal"><div class="modal-dialog"><div class="modal-content">
+                <div class="modal-header"><h5 class="modal-title" id="testimonialModalTitle">Thêm Đánh Giá</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+                <div class="modal-body">
+                    <input type="hidden" id="edit_testimonial_id">
+                    <div class="mb-3"><label class="form-label">Tên khách hàng</label><input class="form-control" id="testimonial_name"></div>
+                    <div class="mb-3"><label class="form-label">Chức vụ</label><input class="form-control" id="testimonial_position"></div>
+                    <div class="mb-3"><label class="form-label">Công ty</label><input class="form-control" id="testimonial_company"></div>
+                    <div class="mb-3"><label class="form-label">Avatar URL</label><div class="input-group"><input class="form-control image-url-input" id="testimonial_avatar" placeholder="URL avatar"><button class="btn btn-outline-primary" type="button" onclick="document.getElementById('file_testimonial_avatar').click()"><i class="fas fa-upload"></i></button><input type="file" id="file_testimonial_avatar" style="display:none" accept="image/*" onchange="uploadFile(this, 'testimonial_avatar')"></div></div>
+                    <div class="mb-3"><label class="form-label">Nội dung</label><textarea class="form-control" id="testimonial_content" rows="3"></textarea></div>
+                    <div class="mb-3"><label class="form-label">Thứ tự</label><input type="number" class="form-control" id="testimonial_sort" value="0"></div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button class="btn btn-primary" onclick="saveTestimonial()">Lưu</button>
+                </div>
+            </div></div></div>
+        </div>
+
+        <!-- ============== CONTACTS ============== -->
+        <div id="contacts" class="tab-section">
+            <div class="card"><div class="card-header"><i class="fas fa-inbox text-primary"></i> Liên Hệ Từ Khách Hàng</div>
+            <div class="card-body"><div id="contacts-table-container"></div></div></div>
+        </div>
+
+        <!-- ============== NAVIGATION ============== -->
+        <div id="navigation" class="tab-section">
+            <div class="card"><div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="fas fa-bars text-primary"></i> Quản lý Menu</span>
+                <button class="btn btn-primary btn-sm" onclick="showNavForm()"><i class="fas fa-plus"></i> Thêm Menu</button>
+            </div>
+            <div class="card-body"><div id="nav-table-container"></div></div></div>
+            <div class="modal fade modal-custom" id="navModal"><div class="modal-dialog"><div class="modal-content">
+                <div class="modal-header"><h5 class="modal-title" id="navModalTitle">Thêm Menu</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+                <div class="modal-body">
+                    <input type="hidden" id="edit_nav_id">
+                    <div class="mb-3"><label class="form-label">Tên menu</label><input class="form-control" id="nav_label"></div>
+                    <div class="mb-3"><label class="form-label">Đường dẫn URL</label><input class="form-control" id="nav_url" placeholder="index.html"></div>
+                    <div class="mb-3"><label class="form-label">Icon class</label><input class="form-control" id="nav_icon" placeholder="fa fa-home"></div>
+                    <div class="mb-3"><label class="form-label">Menu cha (ID)</label><input type="number" class="form-control" id="nav_parent" value="0"></div>
+                    <div class="mb-3"><label class="form-label">Thứ tự</label><input type="number" class="form-control" id="nav_sort" value="0"></div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button class="btn btn-primary" onclick="saveNav()">Lưu</button>
+                </div>
+            </div></div></div>
+        </div>
+
+        <!-- ============== MEDIA ============== -->
+        <div id="media" class="tab-section">
+            <div class="card"><div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="fas fa-photo-video text-primary"></i> Thư Viện Media</span>
+                <button class="btn btn-primary btn-sm" onclick="showMediaForm()"><i class="fas fa-plus"></i> Thêm Media</button>
+            </div>
+            <div class="card-body"><div id="media-table-container"></div></div></div>
+            <div class="modal fade modal-custom" id="mediaModal"><div class="modal-dialog"><div class="modal-content">
+                <div class="modal-header"><h5 class="modal-title" id="mediaModalTitle">Thêm Media</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+                <div class="modal-body">
+                    <input type="hidden" id="edit_media_id">
+                    <div class="mb-3"><label class="form-label">Tiêu đề</label><input class="form-control" id="media_title"></div>
+                    <div class="mb-3"><label class="form-label">URL</label><div class="input-group"><input class="form-control image-url-input" id="media_url" placeholder="URL media"><button class="btn btn-outline-primary" type="button" onclick="document.getElementById('file_media_url').click()"><i class="fas fa-upload"></i></button><input type="file" id="file_media_url" style="display:none" accept="image/*" onchange="uploadFile(this, 'media_url')"></div></div>
+                    <div class="mb-3"><label class="form-label">Loại (image/video/file)</label><select class="form-select" id="media_type"><option value="image">Image</option><option value="video">Video</option><option value="file">File</option><option value="logo">Logo</option></select></div>
+                    <div class="mb-3"><label class="form-label">Alt text</label><input class="form-control" id="media_alt"></div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button class="btn btn-primary" onclick="saveMedia()">Lưu</button>
+                </div>
+            </div></div></div>
+        </div>
+
+        <!-- ============== SYNC ============== -->
+        <div id="sync" class="tab-section">
+            <div class="card"><div class="card-header"><i class="fas fa-sync text-primary"></i> Đồng Bộ Dữ Liệu</div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <div class="card p-3 h-100" style="background:rgba(13,110,253,0.05);border-color:rgba(13,110,253,0.15);">
+                            <h6><i class="fas fa-arrow-up text-primary"></i> Quét HTML → Supabase</h6>
+                            <p class="small text-muted">Đọc tất cả file HTML trên website, cập nhật vào Supabase</p>
+                            <button class="btn btn-primary w-100" onclick="syncFilesToSupabase()"><i class="fas fa-play"></i> Quét</button>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <div class="card p-3 h-100" style="background:rgba(25,135,84,0.05);border-color:rgba(25,135,84,0.15);">
+                            <h6><i class="fas fa-arrow-down text-success"></i> Supabase → HTML</h6>
+                            <p class="small text-muted">Cập nhật file HTML từ dữ liệu Supabase (cấu hình, slides)</p>
+                            <button class="btn btn-success w-100" onclick="syncSupabaseToFiles()"><i class="fas fa-play"></i> Tạo HTML</button>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <div class="card p-3 h-100" style="background:rgba(255,193,7,0.05);border-color:rgba(255,193,7,0.15);">
+                            <h6><i class="fas fa-sync-alt text-warning"></i> Tải lại toàn bộ dữ liệu</h6>
+                            <p class="small text-muted">Tải lại tất cả dữ liệu từ Supabase về Admin Panel</p>
+                            <button class="btn btn-warning w-100" onclick="syncAllData()"><i class="fas fa-sync"></i> Tải lại</button>
+                        </div>
+                    </div>
+                </div>
+            </div></div>
+            <div class="card"><div class="card-header"><i class="fas fa-history text-info"></i> Lịch sử đồng bộ</div>
+            <div class="card-body"><div id="sync-log-container" style="max-height:400px;overflow-y:auto;"></div></div></div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+// ======================== SUPABASE CONFIG ========================
+const SUPABASE_URL = "https://bfruxinvvvaqufghtigw.supabase.co";
+const SUPABASE_KEY = "sb_publishable_QUYv4qEJntioJJ-XWtHkdA_haHovSml";
+const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+let authToken = null;
+let currentUser = null;
+let allData = {};
+
+// ======================== LOGIN ========================
+function togglePwdVisibility() {
+    const pwdInput = document.getElementById('master_password');
+    const eyeIcon = document.getElementById('togglePassword');
+    if (pwdInput.type === 'password') { pwdInput.type = 'text'; eyeIcon.classList.replace('fa-eye', 'fa-eye-slash'); }
+    else { pwdInput.type = 'password'; eyeIcon.classList.replace('fa-eye-slash', 'fa-eye'); }
+}
+
+async function doLogin() {
+    const pwd = document.getElementById('master_password').value;
+    if (!pwd) { Swal.fire({icon:'warning',title:'Nhập mật khẩu!',background:'#1a1a2e',color:'#fff'}); return; }
+    
+    // Try server auth first
+    try {
+        const resp = await fetch('/api/auth/login', {
+            method: 'POST', headers: {'Content-Type':'application/json'},
+            body: JSON.stringify({password: pwd})
+        });
+        const result = await resp.json();
+        if (result.success) {
+            authToken = 'Bearer ' + result.token;
+            currentUser = result.user || {username:'admin',role:'superadmin',full_name:'Super Admin'};
+            enterAdmin();
+            return;
+        }
+    } catch(e) {}
+    
+    // Fallback: direct Supabase check
+    try {
+        const { data } = await _supabase.from('admin_users').select('*').eq('password_hash', pwd).eq('is_active', true).single();
+        if (data) {
+            authToken = 'Bearer direct';
+            currentUser = data;
+            await _supabase.from('admin_users').update({ last_login: new Date().toISOString() }).eq('id', data.id);
+            enterAdmin();
+            return;
+        }
+    } catch(e) {}
+    
+    Swal.fire({icon:'error',title:'Sai mật khẩu!',text:'Vui lòng thử lại',background:'#1a1a2e',color:'#fff'});
+}
+
+function enterAdmin() {
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('admin-wrapper').style.display = 'flex';
+    document.getElementById('user-role').textContent = (currentUser?.role || 'admin').toUpperCase();
+    Swal.fire({icon:'success',title:'Chào mừng!',text:'Hệ thống đã sẵn sàng',timer:1500,showConfirmButton:false,background:'#1a1a2e',color:'#fff'});
+    loadAllData();
+    subscribeRealtime();
+}
+
+function logoutAdmin() {
+    authToken = null;
+    document.getElementById('admin-wrapper').style.display = 'none';
+    document.getElementById('login-screen').style.display = 'flex';
+    document.getElementById('master_password').value = '';
+}
+
+// ======================== TAB NAVIGATION ========================
+function showTab(id, el) {
+    document.querySelectorAll('.tab-section').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.nav-link').forEach(n => n.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    if (el) el.classList.add('active');
+    
+    const titles = {
+        'dashboard':'Dashboard','config':'Cấu Hình Website','logo':'Logo & Favicon','social':'Social Links',
+        'pages':'Trang Nội Dung','slides':'Slide Ảnh','products':'Sản Phẩm','projects':'Dự Án',
+        'news':'Tin Tức','partners':'Đối Tác','videos':'Video','categories':'Danh Mục',
+        'staff':'Nhân Sự','testimonials':'Đánh Giá','contacts':'Liên Hệ','navigation':'Menu',
+        'media':'Thư Viện Media','sync':'Đồng Bộ'
+    };
+    document.getElementById('page-title').innerHTML = `<i class="fas fa-${id==='dashboard'?'tachometer-alt':id==='config'?'cog':id==='logo'?'image':id==='social'?'share-alt':id==='pages'?'file-alt':id==='slides'?'images':id==='products'?'box':id==='projects'?'hard-hat':id==='news'?'newspaper':id==='partners'?'handshake':id==='videos'?'video':id==='categories'?'sitemap':id==='staff'?'users':id==='testimonials'?'comment-dots':id==='contacts'?'inbox':id==='navigation'?'bars':id==='media'?'photo-video':'sync'}"></i> ${titles[id]||id}`;
+    
+    // Load table data if needed
+    if (id==='slides') renderSlidesTable();
+    else if (id==='products') renderProductsTable();
+    else if (id==='projects') renderProjectsTable();
+    else if (id==='news') renderNewsTable();
+    else if (id==='partners') renderPartnersTable();
+    else if (id==='videos') renderVideosTable();
+    else if (id==='categories') renderCategoriesTable();
+    else if (id==='staff') renderStaffTable();
+    else if (id==='testimonials') renderTestimonialsTable();
+    else if (id==='contacts') renderContactsTable();
+    else if (id==='navigation') renderNavTable();
+    else if (id==='media') renderMediaTable();
+}
+
+// ======================== API HELPER ========================
+async function apiPost(endpoint, data) {
+    try {
+        const resp = await fetch(endpoint, {
+            method: 'POST', headers: {'Content-Type':'application/json','Authorization': authToken || 'Bearer local'},
+            body: JSON.stringify(data)
+        });
+        return await resp.json();
+    } catch(e) { return {success:false, error:e.message}; }
+}
+
+async function apiGet(endpoint) {
+    try {
+        const resp = await fetch(endpoint, {headers: {'Authorization': authToken || 'Bearer local'}});
+        return await resp.json();
+    } catch(e) { return {success:false, error:e.message}; }
+}
+
+// ======================== LOAD ALL DATA ========================
+async function loadAllData() {
+    try {
+        const resp = await apiGet('/api/website/data');
+        if (resp.success) {
+            allData = resp.data;
+            updateStats();
+            populateConfig();
+            loadPageSelect();
+            renderSlidesTable();
+            renderProductsTable();
+            renderProjectsTable();
+            renderNewsTable();
+            renderPartnersTable();
+            renderVideosTable();
+            renderCategoriesTable();
+            renderStaffTable();
+            renderTestimonialsTable();
+            renderContactsTable();
+            renderNavTable();
+            renderMediaTable();
+            loadSyncLog();
+        }
+    } catch(e) { console.error('Load error:', e); }
+    // Fallback: load directly from Supabase
+    if (!allData || Object.keys(allData).length === 0) {
+        loadDirectFromSupabase();
+    }
+}
+
+async function loadDirectFromSupabase() {
+    const tables = ['website_config','pages_content','categories','categories_and_posts','navigation','site_media','social_links','staff','testimonials','contact_submissions','slides','partners','products','videos','menus'];
+    allData = {};
+    for (const t of tables) {
+        try {
+            const { data } = await _supabase.from(t).select('*').order('id', { ascending: false });
+            allData[t] = data || [];
+        } catch(e) { allData[t] = []; }
+    }
+    updateStats();
+    populateConfig();
+    loadPageSelect();
+    renderSlidesTable();
+    renderProductsTable();
+    renderProjectsTable();
+    renderNewsTable();
+    renderPartnersTable();
+    renderVideosTable();
+    renderCategoriesTable();
+    renderStaffTable();
+    renderTestimonialsTable();
+    renderContactsTable();
+    renderNavTable();
+    renderMediaTable();
+    loadSyncLog();
+}
+
+function updateStats() {
+    document.getElementById('stat-slides').textContent = (allData.slides || []).length;
+    document.getElementById('stat-products').textContent = (allData.products || []).length;
+    document.getElementById('stat-projects').textContent = (allData.categories_and_posts || []).filter(p => p.category === 'du-an-thicong').length;
+    document.getElementById('stat-news').textContent = (allData.categories_and_posts || []).filter(p => p.category === 'tin-tuc').length;
+    document.getElementById('stat-partners').textContent = (allData.partners || []).length;
+    document.getElementById('stat-videos').textContent = (allData.videos || []).length;
+    document.getElementById('stat-staff').textContent = (allData.staff || []).length;
+    document.getElementById('stat-contacts').textContent = (allData.contact_submissions || []).length;
+    const unread = (allData.contact_submissions || []).filter(c => c.status === 'pending' || c.is_read === false).length;
+    document.getElementById('unread-badge').textContent = unread;
+}
+
+// ======================== POPULATE CONFIG ========================
+function populateConfig() {
+    const configs = allData.website_config || [];
+    configs.forEach(c => {
+        const el = document.getElementById(c.key);
+        if (el) el.value = c.value;
+    });
+    updateLogoPreview();
+}
+
+function updateLogoPreview() {
+    document.getElementById('logo-preview').src = document.getElementById('logo_url')?.value || '';
+    document.getElementById('favicon-preview').src = document.getElementById('favicon_url')?.value || '';
+}
+
+['logo_url','favicon_url'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('input', updateLogoPreview);
+});
+
+// ======================== SAVE CONFIG ========================
+async function saveConfig() {
+    const keys = ['site_name','site_name_short','logo_url','favicon_url','hotline','hotline_2','zalo_phone','email','email_2','address','website_url','footer_copyright','primary_color','secondary_color','meta_keywords','meta_description','facebook_url','twitter_url','youtube_url','instagram_url'];
+    Swal.fire({title:'Đang lưu cấu hình...',allowOutsideClick:false,didOpen:()=>Swal.showLoading(),background:'#1a1a2e',color:'#fff'});
+    let success = 0;
+    for (const k of keys) {
+        const val = document.getElementById(k)?.value || '';
+        const resp = await apiPost('/api/website/config', { key: k, value: val });
+        if (resp.success) success++;
+    }
+    Swal.fire({icon:'success',title:'Đã lưu!',text:`${success} cấu hình đã được đồng bộ`,background:'#1a1a2e',color:'#fff'});
+    updateLogoPreview();
+}
+
+// ======================== SOCIAL LINKS ========================
+async function saveSocialLinks() {
+    const keys = ['facebook_url','twitter_url','youtube_url','instagram_url'];
+    for (const k of keys) {
+        const val = document.getElementById(k)?.value || '';
+        await apiPost('/api/website/config', { key: k, value: val });
+    }
+    Swal.fire({icon:'success',title:'Đã lưu Social Links!',background:'#1a1a2e',color:'#fff'});
+}
+
+// ======================== PAGES ========================
+function loadPageSelect() {
+    const sel = document.getElementById('page-select');
+    sel.innerHTML = '';
+    const pages = allData.pages_content || [];
+    pages.forEach(p => {
+        const opt = document.createElement('option');
+        opt.value = p.page_slug;
+        opt.textContent = p.title || p.page_slug;
+        sel.appendChild(opt);
+    });
+    if (pages.length > 0) loadPage(pages[0].page_slug);
+}
+
+function execCmd(cmd) {
+    document.getElementById('page_content_editor').focus();
+    document.execCommand(cmd, false, null);
+}
+
+function insertLink() {
+    const url = prompt('Nhập URL:');
+    if (url) document.execCommand('createLink', false, url);
+}
+
+function insertImage() {
+    const url = prompt('Nhập URL ảnh:');
+    if (url) document.execCommand('insertImage', false, url);
+}
+
+function loadPage(slug) {
+    const pages = allData.pages_content || [];
+    const page = pages.find(p => p.page_slug === slug);
+    document.getElementById('page_title').value = page?.title || '';
+    document.getElementById('page_content_editor').innerHTML = page?.content || '';
+}
+
+async function savePage() {
+    const slug = document.getElementById('page-select').value;
+    if (!slug) return;
+    const title = document.getElementById('page_title').value;
+    const content = document.getElementById('page_content_editor').innerHTML;
+    Swal.fire({title:'Đang lưu...',allowOutsideClick:false,didOpen:()=>Swal.showLoading(),background:'#1a1a2e',color:'#fff'});
+    const resp = await apiPost('/api/website/page', { page_slug: slug, title, content });
+    if (resp.success) {
+        Swal.fire({icon:'success',title:'Đã lưu trang!',background:'#1a1a2e',color:'#fff'});
+    } else {
+        Swal.fire({icon:'error',title:'Lỗi',text:resp.error,background:'#1a1a2e',color:'#fff'});
+    }
+}
+
+// ======================== GENERIC: RENDER TABLE ========================
+function renderTable(containerId, data, columns, actions) {
+    const container = document.getElementById(containerId);
+    if (!data || data.length === 0) {
+        container.innerHTML = `<div class="empty-state"><i class="fas fa-database"></i><p>Chưa có dữ liệu</p></div>`;
+        return;
+    }
+    let html = `<div style="overflow-x:auto;"><table class="table"><thead><tr>`;
+    columns.forEach(c => { html += `<th>${c.label}</th>`; });
+    html += `<th style="width:100px;text-align:center;">Thao tác</th>`;
+    html += `</tr></thead><tbody>`;
+    data.forEach((row, idx) => {
+        html += `<tr>`;
+        columns.forEach(c => {
+            let val = '';
+            if (c.type === 'image') val = `<img src="${row[c.field] || ''}" class="thumbnail-img" onerror="this.src='https://via.placeholder.com/70x45?text=No'">`;
+            else if (c.type === 'text') val = row[c.field] || '';
+            else if (c.type === 'truncate') val = (row[c.field] || '').substring(0, c.max || 80);
+            else val = row[c.field] || '';
+            html += `<td>${val}</td>`;
+        });
+        html += `<td style="text-align:center;white-space:nowrap;">`;
+        html += `<button class="btn-icon me-1" style="background:rgba(13,110,253,0.15);color:#0d6efd;" onclick="${actions.edit}(${row.id})"><i class="fas fa-edit"></i></button>`;
+        html += `<button class="btn-icon" style="background:rgba(220,53,69,0.15);color:#dc3545;" onclick="${actions.delete}(${row.id})"><i class="fas fa-trash"></i></button>`;
+        html += `</td></tr>`;
+    });
+    html += `</tbody></table></div>`;
+    container.innerHTML = html;
+}
+
+// ======================== SLIDES ========================
+function renderSlidesTable() {
+    renderTable('slides-table-container', allData.slides || [], 
+        [{label:'Ảnh',field:'slide_image_url',type:'image'},{label:'Tiêu đề',field:'slide_title',type:'text'},{label:'Phụ đề',field:'slide_subtitle',type:'text'},{label:'Thứ tự',field:'sort_order',type:'text'}],
+        {edit:'editSlide',delete:'deleteSlide'});
+}
+
+function showSlideForm() { document.getElementById('edit_slide_id').value = ''; ['slide_title','slide_subtitle','slide_link','slide_image','slide_sort'].forEach(id => document.getElementById(id).value = id==='slide_sort'?'0':''); document.getElementById('slideModalTitle').textContent = 'Thêm Slide'; new bootstrap.Modal(document.getElementById('slideModal')).show(); }
+
+function editSlide(id) {
+    const item = (allData.slides || []).find(i => i.id === id);
+    if (!item) return;
+    document.getElementById('edit_slide_id').value = id;
+    document.getElementById('slide_title').value = item.slide_title || '';
+    document.getElementById('slide_subtitle').value = item.slide_subtitle || '';
+    document.getElementById('slide_image').value = item.slide_image_url || '';
+    document.getElementById('slide_link').value = item.link_url || '';
+    document.getElementById('slide_sort').value = item.sort_order || 0;
+    document.getElementById('slideModalTitle').textContent = 'Sửa Slide';
+    new bootstrap.Modal(document.getElementById('slideModal')).show();
+}
+
+async function saveSlide() {
+    const id = document.getElementById('edit_slide_id').value;
+    const data = { id: id || undefined, slide_title: document.getElementById('slide_title').value, slide_subtitle: document.getElementById('slide_subtitle').value, slide_image_url: document.getElementById('slide_image').value, link_url: document.getElementById('slide_link').value, sort_order: parseInt(document.getElementById('slide_sort').value) || 0 };
+    Swal.fire({title:'Đang lưu...',allowOutsideClick:false,didOpen:()=>Swal.showLoading(),background:'#1a1a2e',color:'#fff'});
+    const resp = await apiPost('/api/website/slide', data);
+    if (resp.success) { Swal.fire({icon:'success',title:'Đã lưu!',background:'#1a1a2e',color:'#fff'}); bootstrap.Modal.getInstance(document.getElementById('slideModal')).hide(); loadAllData(); }
+    else { Swal.fire({icon:'error',title:'Lỗi',text:resp.error,background:'#1a1a2e',color:'#fff'}); }
+}
+
+async function deleteSlide(id) {
+    const r = await Swal.fire({icon:'warning',title:'Xóa slide?',showCancelButton:true,confirmButtonText:'XÓA',background:'#1a1a2e',color:'#fff'});
+    if (r.isConfirmed) { await apiPost('/api/website/slide', {id, is_active: false}); await _supabase.from('slides').delete().eq('id', id); loadAllData(); }
+}
+
+// ======================== PRODUCTS ========================
+function renderProductsTable() {
+    renderTable('products-table-container', allData.products || [],
+        [{label:'Ảnh',field:'thumbnail',type:'image'},{label:'Tên SP',field:'product_name',type:'text'},{label:'Danh mục',field:'product_category',type:'text'},{label:'Giá',field:'price',type:'text'}],
+        {edit:'editProduct',delete:'deleteProduct'});
+}
+
+function showProductForm() { document.getElementById('edit_product_id').value = ''; ['product_name','product_category','product_thumbnail','product_price','product_desc','product_specs'].forEach(id => document.getElementById(id).value = ''); document.getElementById('product_sort').value = '0'; document.getElementById('productModalTitle').textContent = 'Thêm Sản Phẩm'; new bootstrap.Modal(document.getElementById('productModal')).show(); }
+
+function editProduct(id) {
+    const item = (allData.products || []).find(i => i.id === id);
+    if (!item) return;
+    document.getElementById('edit_product_id').value = id;
+    document.getElementById('product_name').value = item.product_name || '';
+    document.getElementById('product_category').value = item.product_category || '';
+    document.getElementById('product_thumbnail').value = item.thumbnail || '';
+    document.getElementById('product_price').value = item.price || '';
+    document.getElementById('product_desc').value = item.description || '';
+    document.getElementById('product_specs').value = item.specifications || '';
+    document.getElementById('product_sort').value = item.sort_order || 0;
+    document.getElementById('productModalTitle').textContent = 'Sửa Sản Phẩm';
+    new bootstrap.Modal(document.getElementById('productModal')).show();
+}
+
+async function saveProduct() {
+    const id = document.getElementById('edit_product_id').value;
+    const data = { id: id || undefined, product_name: document.getElementById('product_name').value, product_category: document.getElementById('product_category').value, thumbnail: document.getElementById('product_thumbnail').value, description: document.getElementById('product_desc').value, price: document.getElementById('product_price').value, specifications: document.getElementById('product_specs').value, sort_order: parseInt(document.getElementById('product_sort').value) || 0 };
+    Swal.fire({title:'Đang lưu...',allowOutsideClick:false,didOpen:()=>Swal.showLoading(),background:'#1a1a2e',color:'#fff'});
+    const resp = await apiPost('/api/website/product', data);
+    if (resp.success) { Swal.fire({icon:'success',title:'Đã lưu!',background:'#1a1a2e',color:'#fff'}); bootstrap.Modal.getInstance(document.getElementById('productModal')).hide(); loadAllData(); }
+    else { Swal.fire({icon:'error',title:'Lỗi',text:resp.error,background:'#1a1a2e',color:'#fff'}); }
+}
+
+async function deleteProduct(id) {
+    const r = await Swal.fire({icon:'warning',title:'Xóa sản phẩm?',showCancelButton:true,confirmButtonText:'XÓA',background:'#1a1a2e',color:'#fff'});
+    if (r.isConfirmed) { await _supabase.from('products').delete().eq('id', id); loadAllData(); }
+}
+
+// ======================== PROJECTS ========================
+function renderProjectsTable() {
+    const projects = (allData.categories_and_posts || []).filter(p => p.category === 'du-an-thicong');
+    renderTable('projects-table-container', projects,
+        [{label:'Ảnh',field:'thumbnail',type:'image'},{label:'Tên dự án',field:'post_title',type:'text'},{label:'Mô tả',field:'post_content',type:'truncate',max:60}],
+        {edit:'editProject',delete:'deleteProject'});
+}
+
+function showProjectForm() { document.getElementById('edit_project_id').value = ''; ['project_title','project_link','project_thumbnail','project_content'].forEach(id => document.getElementById(id).value = ''); document.getElementById('project_sort').value = '0'; document.getElementById('projectModalTitle').textContent = 'Thêm Dự Án'; new bootstrap.Modal(document.getElementById('projectModal')).show(); }
+
+function editProject(id) {
+    const item = (allData.categories_and_posts || []).find(i => i.id === id);
+    if (!item) return;
+    document.getElementById('edit_project_id').value = id;
+    document.getElementById('project_title').value = item.post_title || '';
+    document.getElementById('project_link').value = item.url_link || '';
+    document.getElementById('project_thumbnail').value = item.thumbnail || '';
+    document.getElementById('project_content').value = item.post_content || '';
+    document.getElementById('project_sort').value = item.sort_order || 0;
+    document.getElementById('projectModalTitle').textContent = 'Sửa Dự Án';
+    new bootstrap.Modal(document.getElementById('projectModal')).show();
+}
+
+async function saveProject() {
+    const id = document.getElementById('edit_project_id').value;
+    const data = { id: id || undefined, category: 'du-an-thicong', post_title: document.getElementById('project_title').value, thumbnail: document.getElementById('project_thumbnail').value, post_content: document.getElementById('project_content').value, url_link: document.getElementById('project_link').value, sort_order: parseInt(document.getElementById('project_sort').value) || 0 };
+    Swal.fire({title:'Đang lưu...',allowOutsideClick:false,didOpen:()=>Swal.showLoading(),background:'#1a1a2e',color:'#fff'});
+    const resp = await apiPost('/api/website/post', data);
+    if (resp.success) { Swal.fire({icon:'success',title:'Đã lưu!',background:'#1a1a2e',color:'#fff'}); bootstrap.Modal.getInstance(document.getElementById('projectModal')).hide(); loadAllData(); }
+    else { Swal.fire({icon:'error',title:'Lỗi',text:resp.error,background:'#1a1a2e',color:'#fff'}); }
+}
+
+async function deleteProject(id) {
+    const r = await Swal.fire({icon:'warning',title:'Xóa dự án?',showCancelButton:true,confirmButtonText:'XÓA',background:'#1a1a2e',color:'#fff'});
+    if (r.isConfirmed) { await apiPost('/api/website/delete-item', {table:'categories_and_posts', id}); loadAllData(); }
+}
+
+// ======================== NEWS ========================
+function renderNewsTable() {
+    const news = (allData.categories_and_posts || []).filter(p => p.category === 'tin-tuc');
+    renderTable('news-table-container', news,
+        [{label:'Ảnh',field:'thumbnail',type:'image'},{label:'Tiêu đề',field:'post_title',type:'text'},{label:'Nội dung',field:'post_content',type:'truncate',max:60}],
+        {edit:'editNews',delete:'deleteNews'});
+}
+
+function showNewsForm() { document.getElementById('edit_news_id').value = ''; ['news_title','news_link','news_thumbnail','news_content'].forEach(id => document.getElementById(id).value = ''); document.getElementById('news_sort').value = '0'; document.getElementById('newsModalTitle').textContent = 'Thêm Tin Tức'; new bootstrap.Modal(document.getElementById('newsModal')).show(); }
+
+function editNews(id) {
+    const item = (allData.categories_and_posts || []).find(i => i.id === id);
+    if (!item) return;
+    document.getElementById('edit_news_id').value = id;
+    document.getElementById('news_title').value = item.post_title || '';
+    document.getElementById('news_link').value = item.url_link || '';
+    document.getElementById('news_thumbnail').value = item.thumbnail || '';
+    document.getElementById('news_content').value = item.post_content || '';
+    document.getElementById('news_sort').value = item.sort_order || 0;
+    document.getElementById('newsModalTitle').textContent = 'Sửa Tin Tức';
+    new bootstrap.Modal(document.getElementById('newsModal')).show();
+}
+
+async function saveNews() {
+    const id = document.getElementById('edit_news_id').value;
+    const data = { id: id || undefined, category: 'tin-tuc', post_title: document.getElementById('news_title').value, thumbnail: document.getElementById('news_thumbnail').value, post_content: document.getElementById('news_content').value, url_link: document.getElementById('news_link').value, sort_order: parseInt(document.getElementById('news_sort').value) || 0 };
+    Swal.fire({title:'Đang lưu...',allowOutsideClick:false,didOpen:()=>Swal.showLoading(),background:'#1a1a2e',color:'#fff'});
+    const resp = await apiPost('/api/website/post', data);
+    if (resp.success) { Swal.fire({icon:'success',title:'Đã lưu!',background:'#1a1a2e',color:'#fff'}); bootstrap.Modal.getInstance(document.getElementById('newsModal')).hide(); loadAllData(); }
+    else { Swal.fire({icon:'error',title:'Lỗi',text:resp.error,background:'#1a1a2e',color:'#fff'}); }
+}
+
+async function deleteNews(id) {
+    const r = await Swal.fire({icon:'warning',title:'Xóa tin?',showCancelButton:true,confirmButtonText:'XÓA',background:'#1a1a2e',color:'#fff'});
+    if (r.isConfirmed) { await apiPost('/api/website/delete-item', {table:'categories_and_posts', id}); loadAllData(); }
+}
+
+// ======================== PARTNERS ========================
+function renderPartnersTable() {
+    renderTable('partners-table-container', allData.partners || [],
+        [{label:'Logo',field:'logo_url',type:'image'},{label:'Tên ĐT',field:'partner_name',type:'text'},{label:'Website',field:'website_url',type:'truncate',max:40}],
+        {edit:'editPartner',delete:'deletePartner'});
+}
+
+function showPartnerForm() { document.getElementById('edit_partner_id').value = ''; ['partner_name','partner_logo','partner_website'].forEach(id => document.getElementById(id).value = ''); document.getElementById('partner_sort').value = '0'; document.getElementById('partnerModalTitle').textContent = 'Thêm Đối Tác'; new bootstrap.Modal(document.getElementById('partnerModal')).show(); }
+
+function editPartner(id) {
+    const item = (allData.partners || []).find(i => i.id === id);
+    if (!item) return;
+    document.getElementById('edit_partner_id').value = id;
+    document.getElementById('partner_name').value = item.partner_name || '';
+    document.getElementById('partner_logo').value = item.logo_url || '';
+    document.getElementById('partner_website').value = item.website_url || '';
+    document.getElementById('partner_sort').value = item.sort_order || 0;
+    document.getElementById('partnerModalTitle').textContent = 'Sửa Đối Tác';
+    new bootstrap.Modal(document.getElementById('partnerModal')).show();
+}
+
+async function savePartner() {
+    const id = document.getElementById('edit_partner_id').value;
+    const data = { id: id || undefined, partner_name: document.getElementById('partner_name').value, logo_url: document.getElementById('partner_logo').value, website_url: document.getElementById('partner_website').value, sort_order: parseInt(document.getElementById('partner_sort').value) || 0 };
+    Swal.fire({title:'Đang lưu...',allowOutsideClick:false,didOpen:()=>Swal.showLoading(),background:'#1a1a2e',color:'#fff'});
+    const resp = await apiPost('/api/website/partner', data);
+    if (resp.success) { Swal.fire({icon:'success',title:'Đã lưu!',background:'#1a1a2e',color:'#fff'}); bootstrap.Modal.getInstance(document.getElementById('partnerModal')).hide(); loadAllData(); }
+    else { Swal.fire({icon:'error',title:'Lỗi',text:resp.error,background:'#1a1a2e',color:'#fff'}); }
+}
+
+async function deletePartner(id) {
+    const r = await Swal.fire({icon:'warning',title:'Xóa đối tác?',showCancelButton:true,confirmButtonText:'XÓA',background:'#1a1a2e',color:'#fff'});
+    if (r.isConfirmed) { await _supabase.from('partners').delete().eq('id', id); loadAllData(); }
+}
+
+// ======================== VIDEOS ========================
+function renderVideosTable() {
+    renderTable('videos-table-container', allData.videos || [],
+        [{label:'Ảnh',field:'thumbnail_url',type:'image'},{label:'Tiêu đề',field:'video_title',type:'text'},{label:'URL',field:'video_url',type:'truncate',max:40}],
+        {edit:'editVideo',delete:'deleteVideo'});
+}
+
+function showVideoForm() { document.getElementById('edit_video_id').value = ''; ['video_title','video_url','video_thumbnail','video_desc'].forEach(id => document.getElementById(id).value = ''); document.getElementById('video_sort').value = '0'; document.getElementById('videoModalTitle').textContent = 'Thêm Video'; new bootstrap.Modal(document.getElementById('videoModal')).show(); }
+
+function editVideo(id) {
+    const item = (allData.videos || []).find(i => i.id === id);
+    if (!item) return;
+    document.getElementById('edit_video_id').value = id;
+    document.getElementById('video_title').value = item.video_title || '';
+    document.getElementById('video_url').value = item.video_url || '';
+    document.getElementById('video_thumbnail').value = item.thumbnail_url || '';
+    document.getElementById('video_desc').value = item.description || '';
+    document.getElementById('video_sort').value = item.sort_order || 0;
+    document.getElementById('videoModalTitle').textContent = 'Sửa Video';
+    new bootstrap.Modal(document.getElementById('videoModal')).show();
+}
+
+async function saveVideo() {
+    const id = document.getElementById('edit_video_id').value;
+    const data = { id: id || undefined, video_title: document.getElementById('video_title').value, video_url: document.getElementById('video_url').value, thumbnail_url: document.getElementById('video_thumbnail').value, description: document.getElementById('video_desc').value, sort_order: parseInt(document.getElementById('video_sort').value) || 0 };
+    Swal.fire({title:'Đang lưu...',allowOutsideClick:false,didOpen:()=>Swal.showLoading(),background:'#1a1a2e',color:'#fff'});
+    const resp = await apiPost('/api/website/video', data);
+    if (resp.success) { Swal.fire({icon:'success',title:'Đã lưu!',background:'#1a1a2e',color:'#fff'}); bootstrap.Modal.getInstance(document.getElementById('videoModal')).hide(); loadAllData(); }
+    else { Swal.fire({icon:'error',title:'Lỗi',text:resp.error,background:'#1a1a2e',color:'#fff'}); }
+}
+
+async function deleteVideo(id) {
+    const r = await Swal.fire({icon:'warning',title:'Xóa video?',showCancelButton:true,confirmButtonText:'XÓA',background:'#1a1a2e',color:'#fff'});
+    if (r.isConfirmed) { await _supabase.from('videos').delete().eq('id', id); loadAllData(); }
+}
+
+// ======================== CATEGORIES ========================
+function renderCategoriesTable() {
+    renderTable('categories-table-container', allData.categories || [],
+        [{label:'Tên DM',field:'name',type:'text'},{label:'Slug',field:'slug',type:'text'},{label:'Mô tả',field:'description',type:'truncate',max:60}],
+        {edit:'editCategory',delete:'deleteCategory'});
+}
+
+function showCategoryForm() { document.getElementById('edit_category_id').value = ''; ['category_name','category_slug','category_desc'].forEach(id => document.getElementById(id).value = ''); document.getElementById('categoryModalTitle').textContent = 'Thêm Danh Mục'; new bootstrap.Modal(document.getElementById('categoryModal')).show(); }
+
+function editCategory(id) {
+    const item = (allData.categories || []).find(i => i.id === id);
+    if (!item) return;
+    document.getElementById('edit_category_id').value = id;
+    document.getElementById('category_name').value = item.name || '';
+    document.getElementById('category_slug').value = item.slug || '';
+    document.getElementById('category_desc').value = item.description || '';
+    document.getElementById('categoryModalTitle').textContent = 'Sửa Danh Mục';
+    new bootstrap.Modal(document.getElementById('categoryModal')).show();
+}
+
+async function saveCategory() {
+    const id = document.getElementById('edit_category_id').value;
+    const data = { id: id || undefined, name: document.getElementById('category_name').value, slug: document.getElementById('category_slug').value, description: document.getElementById('category_desc').value };
+    Swal.fire({title:'Đang lưu...',allowOutsideClick:false,didOpen:()=>Swal.showLoading(),background:'#1a1a2e',color:'#fff'});
+    const resp = await apiPost('/api/website/category', data);
+    if (resp.success) { Swal.fire({icon:'success',title:'Đã lưu!',background:'#1a1a2e',color:'#fff'}); bootstrap.Modal.getInstance(document.getElementById('categoryModal')).hide(); loadAllData(); }
+    else { Swal.fire({icon:'error',title:'Lỗi',text:resp.error,background:'#1a1a2e',color:'#fff'}); }
+}
+
+async function deleteCategory(id) {
+    const r = await Swal.fire({icon:'warning',title:'Xóa danh mục?',showCancelButton:true,confirmButtonText:'XÓA',background:'#1a1a2e',color:'#fff'});
+    if (r.isConfirmed) { await _supabase.from('categories').delete().eq('id', id); loadAllData(); }
+}
+
+// ======================== STAFF ========================
+function renderStaffTable() {
+    renderTable('staff-table-container', allData.staff || [],
+        [{label:'Avatar',field:'avatar_url',type:'image'},{label:'Họ tên',field:'full_name',type:'text'},{label:'Chức vụ',field:'position',type:'text'},{label:'SĐT',field:'phone',type:'text'}],
+        {edit:'editStaff',delete:'deleteStaff'});
+}
+
+function showStaffForm() { document.getElementById('edit_staff_id').value = ''; ['staff_name','staff_position','staff_phone','staff_email','staff_avatar','staff_desc'].forEach(id => document.getElementById(id).value = ''); document.getElementById('staffModalTitle').textContent = 'Thêm Nhân Sự'; new bootstrap.Modal(document.getElementById('staffModal')).show(); }
+
+function editStaff(id) {
+    const item = (allData.staff || []).find(i => i.id === id);
+    if (!item) return;
+    document.getElementById('edit_staff_id').value = id;
+    document.getElementById('staff_name').value = item.full_name || '';
+    document.getElementById('staff_position').value = item.position || '';
+    document.getElementById('staff_phone').value = item.phone || '';
+    document.getElementById('staff_email').value = item.email || '';
+    document.getElementById('staff_avatar').value = item.avatar_url || '';
+    document.getElementById('staff_desc').value = item.description || '';
+    document.getElementById('staffModalTitle').textContent = 'Sửa Nhân Sự';
+    new bootstrap.Modal(document.getElementById('staffModal')).show();
+}
+
+async function saveStaff() {
+    const id = document.getElementById('edit_staff_id').value;
+    const data = { id: id || undefined, full_name: document.getElementById('staff_name').value, position: document.getElementById('staff_position').value, phone: document.getElementById('staff_phone').value, email: document.getElementById('staff_email').value, avatar_url: document.getElementById('staff_avatar').value, description: document.getElementById('staff_desc').value };
+    Swal.fire({title:'Đang lưu...',allowOutsideClick:false,didOpen:()=>Swal.showLoading(),background:'#1a1a2e',color:'#fff'});
+    const resp = await apiPost('/api/website/staff', data);
+    if (resp.success) { Swal.fire({icon:'success',title:'Đã lưu!',background:'#1a1a2e',color:'#fff'}); bootstrap.Modal.getInstance(document.getElementById('staffModal')).hide(); loadAllData(); }
+    else { Swal.fire({icon:'error',title:'Lỗi',text:resp.error,background:'#1a1a2e',color:'#fff'}); }
+}
+
+async function deleteStaff(id) {
+    const r = await Swal.fire({icon:'warning',title:'Xóa nhân sự?',showCancelButton:true,confirmButtonText:'XÓA',background:'#1a1a2e',color:'#fff'});
+    if (r.isConfirmed) { await _supabase.from('staff').delete().eq('id', id); loadAllData(); }
+}
+
+// ======================== TESTIMONIALS ========================
+function renderTestimonialsTable() {
+    renderTable('testimonials-table-container', allData.testimonials || [],
+        [{label:'Avatar',field:'avatar_url',type:'image'},{label:'Tên KH',field:'customer_name',type:'text'},{label:'Chức vụ',field:'position',type:'text'},{label:'Nội dung',field:'content',type:'truncate',max:60}],
+        {edit:'editTestimonial',delete:'deleteTestimonial'});
+}
+
+function showTestimonialForm() { document.getElementById('edit_testimonial_id').value = ''; ['testimonial_name','testimonial_position','testimonial_company','testimonial_avatar','testimonial_content'].forEach(id => document.getElementById(id).value = ''); document.getElementById('testimonial_sort').value = '0'; document.getElementById('testimonialModalTitle').textContent = 'Thêm Đánh Giá'; new bootstrap.Modal(document.getElementById('testimonialModal')).show(); }
+
+function editTestimonial(id) {
+    const item = (allData.testimonials || []).find(i => i.id === id);
+    if (!item) return;
+    document.getElementById('edit_testimonial_id').value = id;
+    document.getElementById('testimonial_name').value = item.customer_name || '';
+    document.getElementById('testimonial_position').value = item.position || '';
+    document.getElementById('testimonial_company').value = item.company_name || '';
+    document.getElementById('testimonial_avatar').value = item.avatar_url || '';
+    document.getElementById('testimonial_content').value = item.content || '';
+    document.getElementById('testimonial_sort').value = item.sort_order || 0;
+    document.getElementById('testimonialModalTitle').textContent = 'Sửa Đánh Giá';
+    new bootstrap.Modal(document.getElementById('testimonialModal')).show();
+}
+
+async function saveTestimonial() {
+    const id = document.getElementById('edit_testimonial_id').value;
+    const data = { id: id || undefined, customer_name: document.getElementById('testimonial_name').value, position: document.getElementById('testimonial_position').value, company_name: document.getElementById('testimonial_company').value, avatar_url: document.getElementById('testimonial_avatar').value, content: document.getElementById('testimonial_content').value, sort_order: parseInt(document.getElementById('testimonial_sort').value) || 0 };
+    Swal.fire({title:'Đang lưu...',allowOutsideClick:false,didOpen:()=>Swal.showLoading(),background:'#1a1a2e',color:'#fff'});
+    const resp = await apiPost('/api/website/testimonial', data);
+    if (resp.success) { Swal.fire({icon:'success',title:'Đã lưu!',background:'#1a1a2e',color:'#fff'}); bootstrap.Modal.getInstance(document.getElementById('testimonialModal')).hide(); loadAllData(); }
+    else { Swal.fire({icon:'error',title:'Lỗi',text:resp.error,background:'#1a1a2e',color:'#fff'}); }
+}
+
+async function deleteTestimonial(id) {
+    const r = await Swal.fire({icon:'warning',title:'Xóa đánh giá?',showCancelButton:true,confirmButtonText:'XÓA',background:'#1a1a2e',color:'#fff'});
+    if (r.isConfirmed) { await _supabase.from('testimonials').delete().eq('id', id); loadAllData(); }
+}
+
+// ======================== CONTACTS ========================
+function renderContactsTable() {
+    const contacts = allData.contact_submissions || [];
+    const container = document.getElementById('contacts-table-container');
+    if (contacts.length === 0) {
+        container.innerHTML = `<div class="empty-state"><i class="fas fa-inbox"></i><p>Chưa có liên hệ nào</p></div>`;
+        return;
+    }
+    let html = `<div style="overflow-x:auto;"><table class="table"><thead><tr><th>Họ tên</th><th>SĐT</th><th>Email</th><th>Nội dung</th><th>Ngày</th><th style="width:90px;">Thao tác</th></tr></thead><tbody>`;
+    contacts.forEach(c => {
+        const statusColor = c.status === 'pending' || c.is_read === false ? 'bg-warning' : 'bg-success';
+        html += `<tr>
+            <td>${c.full_name || ''}</td>
+            <td>${c.phone || ''}</td>
+            <td>${c.email || ''}</td>
+            <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${(c.message || c.subject || '').substring(0, 80)}</td>
+            <td style="font-size:12px;color:rgba(255,255,255,0.5);">${new Date(c.created_at).toLocaleDateString('vi-VN')}</td>
+            <td><span class="badge-status ${statusColor}">${c.is_read === false ? 'Mới' : 'Đã xem'}</span></td>
+        </tr>`;
+    });
+    html += `</tbody></table></div>`;
+    container.innerHTML = html;
+}
+
+// ======================== NAVIGATION ========================
+function renderNavTable() {
+    renderTable('nav-table-container', allData.navigation || [],
+        [{label:'Tên menu',field:'label',type:'text'},{label:'URL',field:'url',type:'truncate',max:40},{label:'Thứ tự',field:'sort_order',type:'text'}],
+        {edit:'editNav',delete:'deleteNav'});
+}
+
+function showNavForm() { document.getElementById('edit_nav_id').value = ''; ['nav_label','nav_url','nav_icon','nav_parent'].forEach(id => document.getElementById(id).value = ''); document.getElementById('nav_sort').value = '0'; document.getElementById('navModalTitle').textContent = 'Thêm Menu'; new bootstrap.Modal(document.getElementById('navModal')).show(); }
+
+function editNav(id) {
+    const item = (allData.navigation || []).find(i => i.id === id);
+    if (!item) return;
+    document.getElementById('edit_nav_id').value = id;
+    document.getElementById('nav_label').value = item.label || '';
+    document.getElementById('nav_url').value = item.url || '';
+    document.getElementById('nav_icon').value = item.icon || '';
+    document.getElementById('nav_parent').value = item.parent_id || 0;
+    document.getElementById('nav_sort').value = item.sort_order || 0;
+    document.getElementById('navModalTitle').textContent = 'Sửa Menu';
+    new bootstrap.Modal(document.getElementById('navModal')).show();
+}
+
+async function saveNav() {
+    const id = document.getElementById('edit_nav_id').value;
+    const data = { id: id || undefined, label: document.getElementById('nav_label').value, url: document.getElementById('nav_url').value, icon: document.getElementById('nav_icon').value, parent_id: parseInt(document.getElementById('nav_parent').value) || null, sort_order: parseInt(document.getElementById('nav_sort').value) || 0 };
+    Swal.fire({title:'Đang lưu...',allowOutsideClick:false,didOpen:()=>Swal.showLoading(),background:'#1a1a2e',color:'#fff'});
+    const resp = await apiPost('/api/website/navigation', data);
+    if (resp.success) { Swal.fire({icon:'success',title:'Đã lưu!',background:'#1a1a2e',color:'#fff'}); bootstrap.Modal.getInstance(document.getElementById('navModal')).hide(); loadAllData(); }
+    else { Swal.fire({icon:'error',title:'Lỗi',text:resp.error,background:'#1a1a2e',color:'#fff'}); }
+}
+
+async function deleteNav(id) {
+    const r = await Swal.fire({icon:'warning',title:'Xóa menu?',showCancelButton:true,confirmButtonText:'XÓA',background:'#1a1a2e',color:'#fff'});
+    if (r.isConfirmed) { await _supabase.from('navigation').delete().eq('id', id); loadAllData(); }
+}
+
+// ======================== MEDIA ========================
+function renderMediaTable() {
+    renderTable('media-table-container', allData.site_media || [],
+        [{label:'URL',field:'url',type:'image'},{label:'Tiêu đề',field:'title',type:'text'},{label:'Loại',field:'media_type',type:'text'}],
+        {edit:'editMedia',delete:'deleteMedia'});
+}
+
+function showMediaForm() { document.getElementById('edit_media_id').value = ''; ['media_title','media_url','media_alt'].forEach(id => document.getElementById(id).value = ''); document.getElementById('media_type').value = 'image'; document.getElementById('mediaModalTitle').textContent = 'Thêm Media'; new bootstrap.Modal(document.getElementById('mediaModal')).show(); }
+
+function editMedia(id) {
+    const item = (allData.site_media || []).find(i => i.id === id);
+    if (!item) return;
+    document.getElementById('edit_media_id').value = id;
+    document.getElementById('media_title').value = item.title || '';
+    document.getElementById('media_url').value = item.url || '';
+    document.getElementById('media_type').value = item.media_type || 'image';
+    document.getElementById('media_alt').value = item.alt_text || '';
+    document.getElementById('mediaModalTitle').textContent = 'Sửa Media';
+    new bootstrap.Modal(document.getElementById('mediaModal')).show();
+}
+
+async function saveMedia() {
+    const id = document.getElementById('edit_media_id').value;
+    const data = { id: id || undefined, title: document.getElementById('media_title').value, url: document.getElementById('media_url').value, type: document.getElementById('media_type').value, alt_text: document.getElementById('media_alt').value };
+    Swal.fire({title:'Đang lưu...',allowOutsideClick:false,didOpen:()=>Swal.showLoading(),background:'#1a1a2e',color:'#fff'});
+    const resp = await apiPost('/api/website/media', data);
+    if (resp.success) { Swal.fire({icon:'success',title:'Đã lưu!',background:'#1a1a2e',color:'#fff'}); bootstrap.Modal.getInstance(document.getElementById('mediaModal')).hide(); loadAllData(); }
+    else { Swal.fire({icon:'error',title:'Lỗi',text:resp.error,background:'#1a1a2e',color:'#fff'}); }
+}
+
+async function deleteMedia(id) {
+    const r = await Swal.fire({icon:'warning',title:'Xóa media?',showCancelButton:true,confirmButtonText:'XÓA',background:'#1a1a2e',color:'#fff'});
+    if (r.isConfirmed) { await _supabase.from('site_media').delete().eq('id', id); loadAllData(); }
+}
+
+// ======================== SYNC ========================
+async function syncFilesToSupabase() {
+    Swal.fire({title:'Đang quét HTML...',allowOutsideClick:false,didOpen:()=>Swal.showLoading(),background:'#1a1a2e',color:'#fff'});
+    const resp = await apiPost('/api/sync/files-to-supabase', {});
+    if (resp.success) { Swal.fire({icon:'success',title:'Hoàn tất!',text:`Đã quét ${resp.scanned} file, cập nhật ${resp.updated}`,background:'#1a1a2e',color:'#fff'}); loadAllData(); }
+    else { Swal.fire({icon:'error',title:'Lỗi',text:resp.error,background:'#1a1a2e',color:'#fff'}); }
+}
+
+async function syncSupabaseToFiles() {
+    Swal.fire({title:'Đang tạo HTML...',allowOutsideClick:false,didOpen:()=>Swal.showLoading(),background:'#1a1a2e',color:'#fff'});
+    const resp = await apiPost('/api/sync/supabase-to-files', {});
+    if (resp.success) { Swal.fire({icon:'success',title:'Hoàn tất!',text:'Đã cập nhật file HTML',background:'#1a1a2e',color:'#fff'}); }
+    else { Swal.fire({icon:'error',title:'Lỗi',text:resp.error,background:'#1a1a2e',color:'#fff'}); }
+}
+
+async function syncAllData() {
+    Swal.fire({title:'Đang tải lại dữ liệu...',allowOutsideClick:false,didOpen:()=>Swal.showLoading(),background:'#1a1a2e',color:'#fff'});
+    await loadDirectFromSupabase();
+    Swal.fire({icon:'success',title:'Đã tải lại!',timer:1000,showConfirmButton:false,background:'#1a1a2e',color:'#fff'});
+}
+
+async function loadSyncLog() {
+    const container = document.getElementById('sync-log-container');
+    let logs = [];
+    try {
+        const resp = await _supabase.from('sync_log').select('*').order('id', { ascending: false }).limit(30);
+        logs = resp.data || [];
+    } catch(e) {}
+    if (logs.length === 0) {
+        container.innerHTML = '<div class="empty-state"><i class="fas fa-history"></i><p>Chưa có lịch sử đồng bộ</p></div>';
+        return;
+    }
+    const colors = { 'UPDATE_CONFIG':'#0d6efd', 'SCAN_HTML_TO_SUPABASE':'#0d6efd', 'GENERATE_HTML_FROM_SUPABASE':'#198754', 'FULL_SYNC':'#ffc107' };
+    container.innerHTML = logs.map(l => `<div class="log-item" style="border-left-color:${colors[l.action_type] || '#6c757d'};">
+        <div class="log-time">${new Date(l.created_at).toLocaleString('vi-VN')}</div>
+        <div class="log-action" style="color:${colors[l.action_type] || '#6c757d'};">${l.action_type}</div>
+        <div class="log-detail">${JSON.stringify(l.details || {}).substring(0, 120)}</div>
+    </div>`).join('');
+}
+
+// ======================== REALTIME ========================
+function subscribeRealtime() {
+    const tables = ['website_config','pages_content','categories_and_posts','navigation','site_media','staff','testimonials','contact_submissions','slides','partners','products','videos','categories'];
+    tables.forEach(table => {
+        try {
+            _supabase.channel(`admin-${table}`)
+                .on('postgres_changes', { event: '*', schema: 'public', table }, () => {
+                    console.log(`[REALTIME] ${table} changed`);
+                    loadDirectFromSupabase();
+                })
+                .subscribe();
+        } catch(e) {}
+    });
+    console.log('[REALTIME] Subscribed');
+}
+
+// ======================== FILE UPLOAD HELPER ========================
+async function uploadFile(fileInput, targetInputId) {
+    const file = fileInput.files[0];
+    if (!file) return;
+    
+    Swal.fire({title:'Đang upload ảnh...',allowOutsideClick:false,didOpen:()=>Swal.showLoading(),background:'#1a1a2e',color:'#fff'});
+    
+    // Strategy: try local /api/upload first, then fallback to client-side Supabase Storage
+    let uploadedUrl = null;
+    
+    // Try local Node.js server upload first
+    try {
+        const formData = new FormData();
+        formData.append('file', file);
+        const resp = await fetch('/api/upload', {
+            method: 'POST',
+            headers: { 'Authorization': authToken || 'Bearer local' },
+            body: formData
+        });
+        const result = await resp.json();
+        if (result.success) {
+            uploadedUrl = result.url;
+        }
+    } catch(localErr) {
+        console.log('Local upload failed, trying Supabase direct:', localErr.message);
+    }
+    
+    // If local upload failed (e.g. on Vercel/static), use client-side Supabase Storage
+    if (!uploadedUrl) {
+        try {
+            // Ensure bucket exists or use upload directly
+            const { data: upData, error: upError } = await _supabase.storage
+                .from('website-images')
+                .upload(`${Date.now()}-${Math.random().toString(36).substring(2, 8)}.${file.name.split('.').pop()}`, file, {
+                    contentType: file.type,
+                    upsert: true
+                });
+            
+            if (upError) throw upError;
+            
+            const { data: { publicUrl } } = _supabase.storage
+                .from('website-images')
+                .getPublicUrl(upData.path);
+            
+            uploadedUrl = publicUrl;
+        } catch(supabaseErr) {
+            Swal.fire({icon:'error',title:'Upload thất bại!',text:supabaseErr.message,background:'#1a1a2e',color:'#fff'});
+            fileInput.value = '';
+            return;
+        }
+    }
+    
+    if (uploadedUrl) {
+        document.getElementById(targetInputId).value = uploadedUrl;
+        Swal.fire({icon:'success',title:'Upload thành công!',timer:1000,showConfirmButton:false,background:'#1a1a2e',color:'#fff'});
+        const evt = new Event('input', { bubbles: true });
+        document.getElementById(targetInputId).dispatchEvent(evt);
+    }
+    
+    fileInput.value = '';
+}
+
+// ======================== INIT ========================
+console.log('🚀 SUPER ADMIN ULTIMATE v3.0');
+console.log('🔗 Supabase:', SUPABASE_URL);
+</script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,144 @@
+HTTrack3.49-2+htsswf+htsjava launched on Thu, 18 Jun 2026 17:26:49 at https://congbetongcuaau.com/ +*.png +*.gif +*.jpg +*.jpeg +*.css +*.js -ad.doubleclick.net/* -mime:application/foobar
+https://congbetongcuaau.com
+(winhttrack -qwC2%Ps2u1%s%uN0%I0p3DaK0H0%kf2A25000%f#f -F "Mozilla/4.5 (compatible; HTTrack 3.0x; Windows 98)" -%F "<!-- Mirrored from %s%s by HTTrack Website Copier/3.x [XR&CO'2014], %s -->" -%l "en, *" https://congbetongcuaau.com/ -O1 "D:\SUPPER APP TRIEU DO\webbetonglammau" +*.png +*.gif +*.jpg +*.jpeg +*.css +*.js -ad.doubleclick.net/* -mime:application/foobar )
+
+
+
+Information, Warnings and Errors reported for this mirror:
+
+note:	the hts-log.txt file, and hts-cache folder, may contain sensitive information,https://congbetongcuaau.com
+https://congbetongcuaau.comhttps://congbetongcuaau.com
+	such as username/password authentication fhttps://congbetongcuaau.coms projecthttps://congbetongcuaau.com
+https://congbetongcuaau.comhttps://congbetongcuaau.com
+	do not share these files/folders if you wanthttps://congbetongcuaau.comn privatehttps://congbetongcuaau.com
+https://congbetongcuaau.comhttps://congbetongcuaau.com
+https://congbetongcuaau.comhttps://congbetongcuaau.com
+https://congbetongcuaau.comhttps://congbetongcuaau.com
+17:30:16	Error: 	"Bad Request" (400) at link https://www.googletagmanager.com/gtm.js?id= (from https://congbetongcuaau.com/)https://congbetongcuaau.com
+https://congbetongcuaau.comhttps://congbetongcuaau.com
+17:37:42	Error: 	"Not Found" (404) at link hthttps://congbetongcuaau.comont/UTM Avo.ttf (from https://betongphuohttps://congbetongcuaau.coms)
+https://congbetongcuaau.comhttps://congbetongcuaau.com
+17:37:42	Error: 	"Not Found" (404) at link https://congbetongcuaau.com/font/UTM AvoBold.ttf (from https://betongphuongbac.https://congbetongcuaau.com
+https://congbetongcuaau.comhttps://congbetongcuaau.com
+17:37:42	Error: 	"Not Found" (404) at link https://congbetongcuaau.com/css/images/widget/phhttps://congbetongcuaau.com/betongphuongbac.com/css/css/layout.css)
+https://congbetongcuaau.comhttps://congbetongcuaau.com
+17:37:42	Error: 	"Bad Request" (400) at link https://congbetongcuaau.com/index.php/site/page/1?name=gioi-thieu-be-tong-phuong-bac (from https://betongphuongbachttps://congbetongcuaau.com
+https://congbetongcuaau.com
+17:37:53	Error: 	"Bad Request" (400) at link https://congbetongcuaau.com/index.php/site/page/6?name=thong-tin-cong-ty (from https://congbetongcuaau.com/thong-tin-cong-ty-a6.html)https://congbetongcuaau.com
+https://congbetongcuaau.com
+17:37:58	Error: 	"Bad Request" (400) at link https://congbetongcuaau.com/index.php/site/page/5?name=chinh-sach-chat-luong- (from https://congbetongcuaau.com/chinh-sach-chat-luong--https://congbetongcuaau.com
+https://congbetongcuaau.com
+17:38:02	Error: 	"Bad Request" (400) at link https://congbetongcuaau.com/index.php/site/page/4?name=nhan-luc (from https://congbetongcuaau.com/nhan-luc-a4.html)https://congbetongcuaau.com
+https://congbetongcuaau.comhttps://congbetongcuaau.com
+17:38:07	Warning: 	Retry after error -5 (Unable to get server's address: No such host is known. ) at linhttps://congbetongcuaau.coms/images/ANH SAN PHAM/20160625_152818.jpg (from https://congbetongcuaau.com/nhan-luc-a4.html)
+https://congbetongcuaau.com
+17:38:07	Error: 	"Bad Request" (400) at linhttps://congbetongcuaau.comom/index.php/site/page/9?name=chung-nhan-tiehttps://congbetongcuaau.coms://betongphuongbac.com/index.php/chung-nhan-tieu-chuan-san-pham-a9.html)
+https://congbetongcuaau.comhttps://congbetongcuaau.com
+17:38:14	Error: 	"Bad Request" (400) at linhttps://congbetongcuaau.comom/index.php/site/page/3?name=du-an (from https://betongphuonghttps://congbetongcuaau.com
+https://congbetongcuaau.com
+17:38:54	Error: 	"Not Found" (404) at link https://congbetongcuaau.com/Cống bê tông đúc sẵn chất lượng cung cấp toàn miền bắc (from https://congbetongcuaau.com/cong-be-tong-c46.hhttps://congbetongcuaau.com
+https://congbetongcuaau.com
+17:38:57	Error: 	"Not Found" (404) at link https://congbetongcuaau.com/BÁO GIÁ CỐNG BÊ TÔNG TẠI QUẢNG NINH NĂM 2023 (from httpshttps://congbetongcuaau.com-be-tong-c46.html)
+https://congbetongcuaau.comhttps://congbetongcuaau.com
+17:46:20	Error: 	"Bad Request" (400) at linhttps://congbetongcuaau.comom/index.php/site/page/10?name=vi-deo- (from hhttps://congbetongcuaau.comindex.php/vi-deo--a10.html)
+https://congbetongcuaau.com
+17:47:33	Error: 	"Not Found" (404) at link https://congbetongcuaau.com/.desc_product (from https://congbetongcuaau.com/index.php/bao-gia-cong-hop-be-tong-duc-shttps://congbetongcuaau.com
+https://congbetongcuaau.com
+17:47:33	Error: 	"Not Found" (404) at link https://congbetongcuaau.com/.feature_product (from https://congbetongcuaau.com/index.php/bao-gia-cong-hop-be-tong-duc-san-p53.html)https://congbetongcuaau.com
+https://congbetongcuaau.com
+17:47:47	Warning: 	Retry after error -5 (Unable to get server's address: unknown error) at link betongphuongbac.vn/uploads/images/ANH SAN PHAM/Ranh1.jpg (from https://https://congbetongcuaau.comhp/-tuynel-ky-thuat-(be-tong)-p9.html)
+https://congbetongcuaau.com
+17:47:47	Error: 	"Not Found" (404) at link https://mongcai.gov.vn/caches/news/57a/0667e580.JPG (from https://congbetongcuaau.com/index.php/-tuynel-ky-thuat-(be-tong)-p9.html)https://congbetongcuaau.com
+https://congbetongcuaau.com
+17:47:54	Warning: 	Retry after error -5 (Unable to get server's address: No such host is known. ) at link https://bsgland.com/wp-content/uploads/2022/04/ket-noi-vung-du-an-vinacohttps://congbetongcuaau.comfrom https://congbetongcuaau.com/index.php/du-an/du-an-khu-dan-cu-do-thi-tai-km3%2C-km4-phuong-hai-yen%2C-thanh-pho-mong-cai-n48.html)
+https://congbetongcuaau.com
+17:47:54	Warning: 	Retry after error -5 (Unhttps://congbetongcuaau.coms: unknown error) at link https://bsgland.comhttps://congbetongcuaau.com/cao-toc-ha-noi-mong-cai-vinaconex-mong-cai-1-1024x660.jpg (from https://congbetongcuaau.com/index.php/du-an/du-an-khu-dan-cu-do-thi-tai-km3%2C-km4-phuong-hai-yen%2C-thanh-pho-mong-cai-n48.html)
+https://congbetongcuaau.com
+17:47:54	Warning: 	Retry after error -5 (Unable to get server's address: unknown error) at link https://bsgland.com/wp-content/uploads/2022/04/cao-https://congbetongcuaau.com(from https://congbetongcuaau.com/index.php/du-an/du-an-khu-dan-cu-do-thi-tai-km3%2C-km4-phuong-hai-yen%2C-thanh-pho-mong-cai-n48.html)
+https://congbetongcuaau.comhttps://congbetongcuaau.com
+17:47:54	Error: 	"Not Found" (404) at link betongvietduc.com/wp-content/uploads/2019/10/cnt2.jpg (from https://congbetongcuaau.com/index.php/tin-tuc/co-nen-shttps://congbetongcuaau.comtong%3F-n32.html)
+https://congbetongcuaau.com
+17:47:54	Warning: 	Retry after error -5 (Unable to get server's address: unknown error) at link betongphuongbac.vn/uploads/images/ANH SAN PHAM/20160625_152818.jpg (from https://congbetongcuaau.com/nhan-luchttps://congbetongcuaau.com
+https://congbetongcuaau.com
+17:47:54	Error: 	"Not Found" (404) at link https://congbetongcuaau.com/images/attachment/3643img_20190917_164544.jpg (from https://congbetongcuaau.com/index.phttps://congbetongcuaau.com00---d1500-p61.html)
+https://congbetongcuaau.com
+17:47:57	Error: 	"Forbidden" (403) at link https://uphinhnhanh.com/images/2018/11/19/DSC_2244.jpg (from https://congbetongcuaau.com/index.php/video-huong-dan-cach-lap-gioang-cahttps://congbetongcuaau.com
+https://congbetongcuaau.com
+17:47:57	Error: 	"Forbidden" (403) at link https://uphinhnhanh.com/images/2018/11/19/DSC_2245.jpg (from https://congbetongcuaau.com/index.php/video-huonhttps://congbetongcuaau.comu-cong-be-tong-p64.html)
+https://congbetongcuaau.com
+17:47:57	Error: 	"Not Found" (404) at link https://congbetongcuaau.com/Giới thiệu cống tròn bê tông đúc sẵn (from https://congbetongcuaau.com/index.phhttps://congbetongcuaau.comn-be-tong-do-be-tong-phuong-bac-san-xuat-p70.html)
+
+17:47:57	Error: 	"Not Found" (404) at link https://congbetongcuaau.com/cống hộp đôi đúc sẵn chất lượng cao (from https://congbetongcuaau.com/index.php/video-cong-hop-doi-h2x3x3-be-tong-phuong-bac-san-xuat-p69.html)
+
+17:47:57	Error: 	"Not Found" (404) at link https://congbetongcuaau.com/images/attachment/2017cong-ho-be-tong-duc-san-(10).jpg (from https://congbetongcuaau.com/index.php/cong-hop-be-tong-duc-san-p49.html)
+
+17:48:12	Warning: 	Retry after error -5 (Unable to get server's address: No such host is known. ) at link www.nhadepkientruc.com/admin/upload-files/cau-thang-be-tong-lap-ghep003.jpg (from https://congbetongcuaau.com/index.php/cau-thang-be-tong-duc-san-p26.html)
+
+17:48:12	Warning: 	Retry after error -5 (Unable to get server's address: unknown error) at link www.nhadepkientruc.com/admin/upload-files/cau-thang-be-tong-lap-ghep004.jpg (from https://congbetongcuaau.com/index.php/cau-thang-be-tong-duc-san-p26.html)
+
+17:48:12	Warning: 	Retry after error -5 (Unable to get server's address: unknown error) at link www.nhadepkientruc.com/admin/upload-files/cau-thang-be-tong-lap-ghep005.jpg (from https://congbetongcuaau.com/index.php/cau-thang-be-tong-duc-san-p26.html)
+
+17:48:12	Error: 	"Not Found" (404) at link https://ecopark.com.vn/img/cache/su_truong_thanh_day_hung_khoi_1242211345.jpg (from https://congbetongcuaau.com/index.php/khach-hang/khu-do-thi-sinh-thai-ecopack---hung-yen-n19.html)
+
+17:48:12	Error: 	"Not Found" (404) at link https://congbetongcuaau.com/hpm/images/Upload/images/VLXD_org_Cat_vang_do_be_tong.jpg (from https://congbetongcuaau.com/index.php/nha-cung-cap/da-xay-dung-ha-nam-n16.html)
+
+17:48:12	Error: 	"Not Found" (404) at link https://congbetongcuaau.com/hpm/images/Upload/images/dA HA NAM.jpg (from https://congbetongcuaau.com/index.php/nha-cung-cap/da-xay-dung-ha-nam-n16.html)
+
+17:49:22	Error: 	"Not Implemented" (501) at link https://static3.rongbaycdn.com/original//rb_up_new/2018/04/06/424267/201804083329_catalog_pbc_p5.jpg (from https://congbetongcuaau.com/index.php/cong-tron-am-duong-p13.html)
+
+17:49:22	Warning: 	Retry after error -5 (Unable to get server's address: unknown error) at link betongphuongbac.vn/uploads/images/ANH SAN PHAM/Ranh1.jpg (from https://congbetongcuaau.com/index.php/-tuynel-ky-thuat-(be-tong)-p9.html)
+
+17:49:25	Warning: 	Retry after error -5 (Unable to get server's address: unknown error) at link https://bsgland.com/wp-content/uploads/2022/04/ket-noi-vung-du-an-vinaconex-mong-cai-1024x361.jpg (from https://congbetongcuaau.com/index.php/du-an/du-an-khu-dan-cu-do-thi-tai-km3%2C-km4-phuong-hai-yen%2C-thanh-pho-mong-cai-n48.html)
+
+17:49:25	Warning: 	Retry after error -5 (Unable to get server's address: unknown error) at link https://bsgland.com/wp-content/uploads/2022/04/cao-toc-ha-noi-mong-cai-vinaconex-mong-cai-1-1024x660.jpg (from https://congbetongcuaau.com/index.php/du-an/du-an-khu-dan-cu-do-thi-tai-km3%2C-km4-phuong-hai-yen%2C-thanh-pho-mong-cai-n48.html)
+
+17:49:25	Warning: 	Retry after error -5 (Unable to get server's address: unknown error) at link https://bsgland.com/wp-content/uploads/2022/04/cao-toc-van-don-mong-cai-1.jpg (from https://congbetongcuaau.com/index.php/du-an/du-an-khu-dan-cu-do-thi-tai-km3%2C-km4-phuong-hai-yen%2C-thanh-pho-mong-cai-n48.html)
+
+17:49:25	Error: 	"Unable to get server's address: unknown error" (-5) after 2 retries at link betongphuongbac.vn/uploads/images/ANH SAN PHAM/20160625_152818.jpg (from https://congbetongcuaau.com/nhan-luc-a4.html)
+
+17:49:25	Warning: 	Retry after error -5 (Unable to open local file) at link file:///C:/Users/ADMIN/AppData/Local/Temp/msohtmlclip1/01/clip_image012.gif (from https://congbetongcuaau.com/index.php/tin-tuc/coc-van-cu-be-tong-cot-thep-du-ung-luc-n33.html)
+
+17:49:25	Warning: 	Retry after error -5 (Unable to get server's address: unknown error) at link www.nhadepkientruc.com/admin/upload-files/cau-thang-be-tong-lap-ghep003.jpg (from https://congbetongcuaau.com/index.php/cau-thang-be-tong-duc-san-p26.html)
+
+17:49:25	Warning: 	Retry after error -5 (Unable to get server's address: unknown error) at link www.nhadepkientruc.com/admin/upload-files/cau-thang-be-tong-lap-ghep004.jpg (from https://congbetongcuaau.com/index.php/cau-thang-be-tong-duc-san-p26.html)
+
+17:49:25	Warning: 	Retry after error -5 (Unable to get server's address: unknown error) at link www.nhadepkientruc.com/admin/upload-files/cau-thang-be-tong-lap-ghep005.jpg (from https://congbetongcuaau.com/index.php/cau-thang-be-tong-duc-san-p26.html)
+
+17:49:25	Warning: 	Retry after error -5 (error:00000005:lib(0):func(0):DH lib) at link https://vanbanphapluat.co/data/2017/08/286654/image002.jpg (from https://congbetongcuaau.com/index.php/tin-tuc/kich-thuoc-va-sai-só-kich-thuoc-cac-loai-cong-hop-doi-n27.html)
+
+17:49:25	Error: 	"Not Found" (404) at link https://congbetongcuaau.com/hpm/images/Upload/images/DSC_2866.jpg (from https://congbetongcuaau.com/index.php/tin-tuc/quy-chuan-cua-qua-trinh-tron-be-tong-theo-tieu-chuan-quoc-te-5-n9.html)
+
+17:49:25	Error: 	"Forbidden" (403) at link https://uphinhnhanh.com/images/2018/11/16/IMG_1540288707364_1540362078529.jpg (from https://congbetongcuaau.com/index.php/tin-tuc/quy-chuan-cua-qua-trinh-tron-be-tong-theo-tieu-chuan-quoc-te-4-n8.html)
+
+17:49:25	Error: 	"Not Found" (404) at link https://vatlieuxaydung.org.vn/Upload/48/Nam_2017/Thang_7/Ngay_29/VLXD.org_Cat_vang_do_be_tong.jpg (from https://congbetongcuaau.com/index.php/tin-tuc/quy-chuan-cua-qua-trinh-tron-be-tong-theo-tieu-chuan-quoc-te-1-n5.html)
+
+17:49:25	Error: 	"Not Found" (404) at link https://congbetongcuaau.com/hpm/images/Upload/images/DSC_2160.JPG (from https://congbetongcuaau.com/index.php/tin-chuyen-nganh/tai-sao-nap-ho-ga-hinh-tron-n12.html)
+
+17:49:25	Error: 	"Unable to get server's address: unknown error" (-5) after 2 retries at link betongphuongbac.vn/uploads/images/ANH SAN PHAM/Ranh1.jpg (from https://congbetongcuaau.com/index.php/-tuynel-ky-thuat-(be-tong)-p9.html)
+
+17:49:25	Error: 	"Unable to get server's address: unknown error" (-5) after 2 retries at link https://bsgland.com/wp-content/uploads/2022/04/ket-noi-vung-du-an-vinaconex-mong-cai-1024x361.jpg (from https://congbetongcuaau.com/index.php/du-an/du-an-khu-dan-cu-do-thi-tai-km3%2C-km4-phuong-hai-yen%2C-thanh-pho-mong-cai-n48.html)
+
+17:49:25	Error: 	"Unable to get server's address: unknown error" (-5) after 2 retries at link https://bsgland.com/wp-content/uploads/2022/04/cao-toc-ha-noi-mong-cai-vinaconex-mong-cai-1-1024x660.jpg (from https://congbetongcuaau.com/index.php/du-an/du-an-khu-dan-cu-do-thi-tai-km3%2C-km4-phuong-hai-yen%2C-thanh-pho-mong-cai-n48.html)
+
+17:49:25	Error: 	"Unable to get server's address: unknown error" (-5) after 2 retries at link https://bsgland.com/wp-content/uploads/2022/04/cao-toc-van-don-mong-cai-1.jpg (from https://congbetongcuaau.com/index.php/du-an/du-an-khu-dan-cu-do-thi-tai-km3%2C-km4-phuong-hai-yen%2C-thanh-pho-mong-cai-n48.html)
+
+17:49:25	Warning: 	Retry after error -5 (Unable to open local file) at link file:///C:/Users/ADMIN/AppData/Local/Temp/msohtmlclip1/01/clip_image012.gif (from https://congbetongcuaau.com/index.php/tin-tuc/coc-van-cu-be-tong-cot-thep-du-ung-luc-n33.html)
+
+17:49:25	Error: 	"Unable to get server's address: unknown error" (-5) after 2 retries at link www.nhadepkientruc.com/admin/upload-files/cau-thang-be-tong-lap-ghep003.jpg (from https://congbetongcuaau.com/index.php/cau-thang-be-tong-duc-san-p26.html)
+
+17:49:25	Error: 	"Unable to get server's address: unknown error" (-5) after 2 retries at link www.nhadepkientruc.com/admin/upload-files/cau-thang-be-tong-lap-ghep004.jpg (from https://congbetongcuaau.com/index.php/cau-thang-be-tong-duc-san-p26.html)
+
+17:49:25	Error: 	"Unable to get server's address: unknown error" (-5) after 2 retries at link www.nhadepkientruc.com/admin/upload-files/cau-thang-be-tong-lap-ghep005.jpg (from https://congbetongcuaau.com/index.php/cau-thang-be-tong-duc-san-p26.html)
+
+17:49:40	Warning: 	Retry after error -5 (error:00000005:lib(0):func(0):DH lib) at link https://vanbanphapluat.co/data/2017/08/286654/image002.jpg (from https://congbetongcuaau.com/index.php/tin-tuc/kich-thuoc-va-sai-só-kich-thuoc-cac-loai-cong-hop-doi-n27.html)
+
+17:49:40	Error: 	"Unable to open local file" (-5) after 2 retries at link file:///C:/Users/ADMIN/AppData/Local/Temp/msohtmlclip1/01/clip_image012.gif (from https://congbetongcuaau.com/index.php/tin-tuc/coc-van-cu-be-tong-cot-thep-du-ung-luc-n33.html)
+
+17:49:56	Error: 	"error:00000005:lib(0):func(0):DH lib" (-5) after 2 retries at link https://vanbanphapluat.co/data/2017/08/286654/image002.jpg (from https://congbetongcuaau.com/index.php/tin-tuc/kich-thuoc-va-sai-só-kich-thuoc-cac-loai-cong-hop-doi-n27.html)
+
+
+
+HTTrack Website Copier/3.49-2 mirror complete in 23 minutes 7 seconds : 931 links scanned, 868 files written (156685399 bytes overall) [149432348 bytes received at 107737 bytes/sec], 10872065 bytes transferred using HTTP compression in 254 files, ratio 24%, 2.8 requests per connection
+
+(41 errors, 20 warnings, 0 messages)
+
