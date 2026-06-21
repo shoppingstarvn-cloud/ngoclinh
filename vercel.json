@@ -10,11 +10,13 @@
     }
   },
   "routes": [
-    { "src": "/", "dest": "/betongphuongbac.com/index.html" },
-    { "src": "/api/upload", "dest": "/api/upload.js" },
-    { "src": "/superadmin.html", "dest": "/superadmin.html" },
-    { "src": "/uploads/(.*)", "dest": "/uploads/$1" },
-    { "src": "/(.*)", "dest": "/betongphuongbac.com/$1" }
+    { "src": "^/$", "dest": "/betongphuongbac.com/index.html" },
+    { "src": "^/api/upload$", "dest": "/api/upload.js" },
+    { "src": "^/superadmin\\.html$", "dest": "/superadmin.html" },
+    { "src": "^/uploads/(.*)$", "dest": "/uploads/$1" },
+    { "src": "^/(.*\\.(css|js|jpg|jpeg|png|gif|webp|svg|ico|woff|woff2|ttf|eot|json|xml|txt))$", "dest": "/betongphuongbac.com/$1" },
+    { "src": "^/(.*\\.html)$", "dest": "/betongphuongbac.com/$1" },
+    { "src": "^/([^/.]+)$", "dest": "/betongphuongbac.com/$1.html" }
   ],
   "headers": [
     {
