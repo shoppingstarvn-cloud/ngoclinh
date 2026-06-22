@@ -627,7 +627,7 @@ app.get('/api/public/products', async (req, res) => {
 // SPA FALLBACK: Mọi route không phải API, không phải file tĩnh
 // đều trả về public/index.html
 // ================================================================
-app.get('*', (req, res) => {
+app.use((req, res) => {
     // Bỏ qua các route API, tránh ghi đè
     if (req.path.startsWith('/api/')) {
         return res.status(404).json({ error: 'API not found' });
