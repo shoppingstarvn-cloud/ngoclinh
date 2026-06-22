@@ -20,14 +20,14 @@ app.use(express.urlencoded({ extended: true, limit: '100mb' }));
 // ================================================================
 // CẤU HÌNH ĐƯỜNG DẪN TĨNH & TRANG CHỦ CHO VERCEL
 // ================================================================
-// Cấp quyền cho hệ thống đọc toàn bộ hình ảnh, css trong thư mục public
-app.use(express.static(path.join(__dirname, 'public')));
+// Cấp quyền cho hệ thống đọc toàn bộ hình ảnh, css trong thư mục betongphuongbac.com
+app.use(express.static(path.join(process.cwd(), 'betongphuongbac.com')));
 // Cấp quyền đọc thư mục gốc (cho uploads, superadmin...)
-app.use(express.static(__dirname));
+app.use(express.static(process.cwd()));
 
 // Trải thảm đỏ đón khách từ cửa chính (đường dẫn gốc '/')
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+    res.sendFile(path.join(process.cwd(), 'betongphuongbac.com', 'index.html'));
 });
 
 // ================================================================
@@ -513,12 +513,12 @@ app.post('/api/sync/files-to-supabase', authenticate, async (req, res) => {
                 }
             } catch(e) {}
         }
-        findHtmlFiles(__dirname);
+        findHtmlFiles(process.cwd());
         
         for (const filePath of htmlFiles) {
             results.scanned++;
             const content = fs.readFileSync(filePath, 'utf8');
-            const relativePath = path.relative(__dirname, filePath).replace(/\\/g, '/');
+            const relativePath = path.relative(process.cwd(), filePath).replace(/\\/g, '/');
             let pageSlug = relativePath.replace('.html', '').replace(/[/\\]/g, '-').replace(/[^a-zA-Z0-9-_]/g, '-');
             const titleMatch = content.match(/<title>(.*?)<\/title>/);
             const title = titleMatch ? titleMatch[1] : '';
@@ -544,7 +544,7 @@ app.post('/api/sync/supabase-to-files', authenticate, async (req, res) => {
         if (configs) configs.forEach(c => { configMap[c.key] = c.value; });
         
         // Update index.html if exists
-        const indexPath = path.join(__dirname, 'public', 'index.html');
+        const indexPath = path.join(process.cwd(), 'betongphuongbac.com', 'index.html');
         if (fs.existsSync(indexPath)) {
             let content = fs.readFileSync(indexPath, 'utf8');
             if (configMap['site_name']) content = content.replace(/CÔNG TY CỔ PHẦN THƯƠNG MẠI CỬA ÂU/g, configMap['site_name']);
@@ -565,7 +565,7 @@ app.post('/api/sync/supabase-to-files', authenticate, async (req, res) => {
 // FILE UPLOAD API - Upload to Local + Supabase Storage
 // ================================================================
 // Ensure uploads directory exists
-const UPLOADS_DIR = path.join(__dirname, 'uploads');
+const UPLOADS_DIR = path.join(process.cwd(), 'uploads');
 if (!fs.existsSync(UPLOADS_DIR)) {
     fs.mkdirSync(UPLOADS_DIR, { recursive: true });
 }
@@ -625,7 +625,7 @@ app.get('/api/public/products', async (req, res) => {
 
 // ================================================================
 // SPA FALLBACK: Mọi route không phải API, không phải file tĩnh
-// đều trả về public/index.html
+// đều trả về betongphuongbac.com/index.html
 // ================================================================
 app.use((req, res) => {
     // Bỏ qua các route API, tránh ghi đè
@@ -637,7 +637,7 @@ app.use((req, res) => {
     if (ext && ['.html', '.css', '.js', '.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg', '.ico', '.woff', '.woff2', '.ttf', '.eot', '.json', '.xml', '.txt'].includes(ext.toLowerCase())) {
         return res.status(404).send('Not found');
     }
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+    res.sendFile(path.join(process.cwd(), 'betongphuongbac.com', 'index.html'));
 });
 
 // ================================================================
