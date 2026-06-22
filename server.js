@@ -641,13 +641,15 @@ app.get('*', (req, res) => {
 });
 
 // ================================================================
-// START
+// START (chỉ chạy ở môi trường dev/local, không chạy trên Vercel)
 // ================================================================
-app.listen(PORT, () => {
-    console.log(`🚀 SUPER ADMIN ENGINE đang chạy tại cổng: ${PORT}`);
-    console.log(`🔗 Supabase: ${SUPABASE_URL}`);
-    console.log(`🌐 Admin: http://localhost:${PORT}/superadmin.html`);
-});
+if (!process.env.VERCEL) {
+    app.listen(PORT, () => {
+        console.log(`🚀 SUPER ADMIN ENGINE đang chạy tại cổng: ${PORT}`);
+        console.log(`🔗 Supabase: ${SUPABASE_URL}`);
+        console.log(`🌐 Admin: http://localhost:${PORT}/superadmin.html`);
+    });
+}
 
 // ================================================================
 // EXPORT MODULE CHO VERCEL (RẤT QUAN TRỌNG)
