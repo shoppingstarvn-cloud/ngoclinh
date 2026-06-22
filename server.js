@@ -20,14 +20,14 @@ app.use(express.urlencoded({ extended: true, limit: '100mb' }));
 // ================================================================
 // CẤU HÌNH ĐƯỜNG DẪN TĨNH & TRANG CHỦ CHO VERCEL
 // ================================================================
-// Cấp quyền cho hệ thống đọc toàn bộ hình ảnh, css trong thư mục betongphuongbac.com
-app.use(express.static(path.join(__dirname, 'betongphuongbac.com')));
+// Cấp quyền cho hệ thống đọc toàn bộ hình ảnh, css trong thư mục public
+app.use(express.static(path.join(__dirname, 'public')));
 // Cấp quyền đọc thư mục gốc (cho uploads, superadmin...)
 app.use(express.static(__dirname));
 
 // Trải thảm đỏ đón khách từ cửa chính (đường dẫn gốc '/')
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'betongphuongbac.com', 'index.html'));
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 // ================================================================
@@ -544,7 +544,7 @@ app.post('/api/sync/supabase-to-files', authenticate, async (req, res) => {
         if (configs) configs.forEach(c => { configMap[c.key] = c.value; });
         
         // Update index.html if exists
-        const indexPath = path.join(__dirname, 'betongphuongbac.com', 'index.html');
+        const indexPath = path.join(__dirname, 'public', 'index.html');
         if (fs.existsSync(indexPath)) {
             let content = fs.readFileSync(indexPath, 'utf8');
             if (configMap['site_name']) content = content.replace(/CÔNG TY CỔ PHẦN THƯƠNG MẠI CỬA ÂU/g, configMap['site_name']);
@@ -625,7 +625,7 @@ app.get('/api/public/products', async (req, res) => {
 
 // ================================================================
 // SPA FALLBACK: Mọi route không phải API, không phải file tĩnh
-// đều trả về betongphuongbac.com/index.html
+// đều trả về public/index.html
 // ================================================================
 app.get('*', (req, res) => {
     // Bỏ qua các route API, tránh ghi đè
@@ -637,7 +637,7 @@ app.get('*', (req, res) => {
     if (ext && ['.html', '.css', '.js', '.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg', '.ico', '.woff', '.woff2', '.ttf', '.eot', '.json', '.xml', '.txt'].includes(ext.toLowerCase())) {
         return res.status(404).send('Not found');
     }
-    res.sendFile(path.join(__dirname, 'betongphuongbac.com', 'index.html'));
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 // ================================================================
