@@ -72,7 +72,6 @@
 </head>
 <body>
 
-<!-- LOGIN SCREEN -->
 <div id="login-screen">
     <div class="login-box">
         <div class="mb-3"><i class="fas fa-crown" style="font-size:60px;color:#ffd700"></i></div>
@@ -87,7 +86,6 @@
     </div>
 </div>
 
-<!-- ADMIN WRAPPER -->
 <div class="wrapper" id="admin-wrapper" style="display:none">
     <nav class="sidebar">
         <div class="brand"><h5><i class="fas fa-crown"></i> ADMIN</h5><small>Bê Tông Phương Bắc</small></div>
@@ -123,7 +121,6 @@
             </div>
         </div>
 
-        <!-- DASHBOARD -->
         <div id="tab-dashboard" class="tab-section active">
             <div class="stats-grid" id="stats-grid"></div>
             <div class="row">
@@ -149,7 +146,6 @@
             </div>
         </div>
 
-        <!-- DYNAMIC TABS: Each CMS table gets a tab -->
         <div id="tab-site_settings" class="tab-section">
             <div class="card"><div class="card-header"><i class="fas fa-cog text-primary"></i> Cài đặt Website</div>
             <div class="card-body">
@@ -157,7 +153,6 @@
                 <button class="btn btn-primary btn-sm mb-3" onclick="showAddForm('site_settings')"><i class="fas fa-plus"></i> Thêm cấu hình</button>
                 <div class="table-responsive"><table class="table" id="table-site_settings"><thead><tr><th>ID</th><th>Key</th><th>Value</th><th>Thao tác</th></tr></thead><tbody></tbody></table></div>
             </div></div>
-            <!-- Modal -->
             <div class="modal fade modal-custom" id="modal-site_settings"><div class="modal-dialog"><div class="modal-content">
                 <div class="modal-header"><h5 class="modal-title" id="modalTitle-site_settings">Thêm cấu hình</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
                 <div class="modal-body">
@@ -172,14 +167,12 @@
             </div></div></div>
         </div>
 
-        <!-- GENERIC TAB TEMPLATE (hidden, cloned by JS for each table) -->
         <template id="tab-template">
             <div class="card"><div class="card-header"><i class="fas fa-table text-primary" id="tab-icon"></i> <span id="tab-title">Quản lý</span></div>
             <div class="card-body">
                 <button class="btn btn-primary btn-sm mb-3 add-btn" onclick="showAddForm('')"><i class="fas fa-plus"></i> Thêm</button>
                 <div class="table-responsive"><table class="table"><thead id="table-head"></thead><tbody id="table-body"></tbody></table></div>
             </div></div>
-            <!-- Modal -->
             <div class="modal fade modal-custom" id="modal-generic"><div class="modal-dialog modal-lg"><div class="modal-content">
                 <div class="modal-header"><h5 class="modal-title" id="modalTitle-generic">Thêm</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
                 <div class="modal-body" id="modal-body-generic"></div>
@@ -294,7 +287,7 @@ const TABLES = [
       fields: [
           { key: 'title', label: 'Tiêu đề', type: 'text' },
           { key: 'subtitle', label: 'Phụ đề', type: 'text' },
-          { key: 'image_url', label: 'URL Hình ảnh', type: 'text', required: true },
+          { key: 'image_url', label: 'Upload Hình ảnh', type: 'image', required: true }, // Đã đổi thành type image cực chất
           { key: 'link_url', label: 'Link URL', type: 'text' },
           { key: 'display_order', label: 'Thứ tự', type: 'number' },
           { key: 'is_active', label: 'Kích hoạt', type: 'checkbox' }
@@ -568,6 +561,9 @@ function showAddForm(table) {
             let input = '';
             if (f.type === 'richtext') {
                 input = `<div id="q-${id}" style="background:#fff;color:#111;min-height:220px;border-radius:6px"></div>`;
+            } else if (f.type === 'image') {
+                // TÍCH HỢP CODE UPLOAD ẢNH (MỚI)
+                input = `<input type="file" accept="image/*" class="form-control" id="${id}" data-old="">`;
             } else if (f.type === 'textarea') {
                 input = `<textarea class="form-control" id="${id}" ${f.required ? 'required' : ''}></textarea>`;
             } else if (f.type === 'checkbox') {
@@ -594,12 +590,35 @@ async function saveRecord(table) {
     const editId = document.getElementById('editId-' + table)?.value || '';
     const data = {};
     
+    Swal.fire({title:'Đang lưu...',allowOutsideClick:false,didOpen:()=>Swal.showLoading(),background:'#1a1a2e',color:'#fff'});
+    
     for (const f of t.fields) {
         if (f.type === 'richtext') {
             const rq = quillInstances[`f-${table}-${f.key}`];
             data[f.key] = rq ? rq.root.innerHTML : '';
             continue;
         }
+
+        // --- BẮT ĐẦU XỬ LÝ UPLOAD ẢNH LÊN SUPABASE (MỚI) ---
+        if (f.type === 'image') {
+            const inp = document.getElementById(`f-${table}-${f.key}`);
+            if (inp && inp.files && inp.files[0]) {
+                const file = inp.files[0];
+                const path = `slides/${Date.now()}_${file.name.replace(/[^a-zA-Z0-9._-]/g,'')}`;
+                const { error: upErr } = await _supabase.storage.from('uploads').upload(path, file, { upsert: true });
+                if (!upErr) {
+                    const { data: pub } = _supabase.storage.from('uploads').getPublicUrl(path);
+                    data[f.key] = pub.publicUrl;
+                } else { 
+                    data[f.key] = inp.getAttribute('data-old') || ''; 
+                }
+            } else { 
+                data[f.key] = inp ? (inp.getAttribute('data-old') || '') : ''; 
+            }
+            continue;
+        }
+        // --- KẾT THÚC ---
+
         const el = document.getElementById(`f-${table}-${f.key}`);
         if (!el) continue;
         if (f.type === 'checkbox') {
@@ -610,8 +629,6 @@ async function saveRecord(table) {
             data[f.key] = el.value;
         }
     }
-    
-    Swal.fire({title:'Đang lưu...',allowOutsideClick:false,didOpen:()=>Swal.showLoading(),background:'#1a1a2e',color:'#fff'});
     
     try {
         let resp;
@@ -639,7 +656,6 @@ async function saveRecord(table) {
             throw new Error(result.error);
         }
     } catch(e) {
-        // Bỏ fallback ghi client-side (anon bị RLS chặn → báo thành công GIẢ). Hiện lỗi THẬT:
         Swal.fire({icon:'error',title:'Lưu thất bại',html:'Server từ chối ghi:<br><b>'+(e.message||'')+'</b><br><br>→ Kiểm tra <b>SUPABASE_SERVICE_KEY</b> trên Vercel (môi trường <b>Production</b>) phải là <b>service_role legacy (eyJ...)</b>, rồi Redeploy.',background:'#1a1a2e',color:'#fff'});
     }
 }
@@ -657,122 +673,4 @@ function editRecord(table, id) {
     const body = document.querySelector(`#tab-${table} .modal-body`);
     if (!body) return;
     
-    body.innerHTML = `<input type="hidden" id="editId-${table}" value="${id}">` +
-        t.fields.map(f => {
-            const id = `f-${table}-${f.key}`;
-            const val = item[f.key] !== undefined && item[f.key] !== null ? item[f.key] : '';
-            let input = '';
-            if (f.type === 'richtext') {
-                input = `<div id="q-${id}" style="background:#fff;color:#111;min-height:220px;border-radius:6px"></div>`;
-            } else if (f.type === 'textarea') {
-                input = `<textarea class="form-control" id="${id}" ${f.required ? 'required' : ''}>${val}</textarea>`;
-            } else if (f.type === 'checkbox') {
-                input = `<input type="checkbox" class="form-check-input" id="${id}" ${val ? 'checked' : ''} style="width:20px;height:20px">`;
-            } else if (f.type === 'select') {
-                input = `<select class="form-select" id="${id}">${f.options.map(o => `<option value="${o}" ${val === o ? 'selected' : ''}>${o}</option>`).join('')}</select>`;
-            } else if (f.type === 'number') {
-                input = `<input type="number" class="form-control" id="${id}" value="${val}">`;
-            } else {
-                input = `<input class="form-control" id="${id}" value="${val}" ${f.required ? 'required' : ''}>`;
-            }
-            return `<div class="mb-2"><label class="form-label small text-muted">${f.label}</label>${input}</div>`;
-        }).join('');
-    
-    new bootstrap.Modal(document.getElementById('modal-' + table)).show();
-    initRichEditors(table, item);
-}
-
-// ======================== DELETE RECORD ========================
-async function deleteRecord(table, id) {
-    const r = await Swal.fire({
-        icon: 'warning', title: 'Xóa bản ghi?', text: 'Hành động này không thể hoàn tác!',
-        showCancelButton: true, confirmButtonText: 'XÓA', cancelButtonText: 'Hủy',
-        background:'#1a1a2e', color:'#fff'
-    });
-    if (!r.isConfirmed) return;
-    
-    try {
-        const resp = await fetch(`/api/admin/${table}/${id}`, {
-            method: 'DELETE',
-            headers: { 'Authorization': authToken }
-        });
-        const result = await resp.json();
-        if (result.success) {
-            Swal.fire({icon:'success',title:'Đã xóa!',timer:1000,showConfirmButton:false,background:'#1a1a2e',color:'#fff'});
-            loadAllData();
-        } else {
-            throw new Error(result.error);
-        }
-    } catch(e) {
-        // Fallback
-        try {
-            await _supabase.from(table).delete().eq('id', id);
-            Swal.fire({icon:'success',title:'Đã xóa!',timer:1000,showConfirmButton:false,background:'#1a1a2e',color:'#fff'});
-            loadAllData();
-        } catch(e2) {
-            Swal.fire({icon:'error',title:'Lỗi',text:e2.message,background:'#1a1a2e',color:'#fff'});
-        }
-    }
-}
-
-// ======================== REALTIME ========================
-function subscribeRealtime() {
-    TABLES.forEach(t => {
-        try {
-            _supabase.channel('admin-' + t.name)
-                .on('postgres_changes', { event: '*', schema: 'public', table: t.name }, () => {
-                    console.log('[RT]', t.name, 'changed');
-                    loadDirectFromSupabase();
-                })
-                .subscribe();
-        } catch(e) {}
-    });
-    document.getElementById('rt-status').innerHTML = '<i class="fas fa-circle"></i> Đang lắng nghe';
-}
-
-// ======================== INIT ========================
-// Auto-create tab sections for each CMS table
-document.addEventListener('DOMContentLoaded', function() {
-    const mainContent = document.querySelector('.main-content');
-    
-    TABLES.forEach(t => {
-        // Create tab section
-        const div = document.createElement('div');
-        div.id = 'tab-' + t.name;
-        div.className = 'tab-section';
-        div.innerHTML = `
-            <div class="card">
-                <div class="card-header"><i class="fas fa-${t.icon} text-primary"></i> ${t.label}</div>
-                <div class="card-body">
-                    <button class="btn btn-primary btn-sm mb-3" onclick="showAddForm('${t.name}')"><i class="fas fa-plus"></i> Thêm</button>
-                    <div class="table-responsive">
-                        <table class="table">
-                            <thead><tr>${t.cols.map(c => `<th>${c.label}</th>`).join('')}<th style="width:100px">Thao tác</th></tr></thead>
-                            <tbody></tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-            <div class="modal fade modal-custom" id="modal-${t.name}">
-                <div class="modal-dialog modal-lg">
-                    <div class="modal-content">
-                        <div class="modal-header"><h5 class="modal-title" id="modalTitle-${t.name}">Thêm ${t.label}</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
-                        <div class="modal-body"><input type="hidden" id="editId-${t.name}"></div>
-                        <div class="modal-footer">
-                            <button class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-                            <button class="btn btn-primary" onclick="saveRecord('${t.name}')">Lưu</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        `;
-        mainContent.appendChild(div);
-    });
-});
-
-console.log('🚀 SUPER ADMIN CMS v4.0');
-console.log('🔗 Supabase:', SUPABASE_URL);
-</script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
+    body.innerHTML =
