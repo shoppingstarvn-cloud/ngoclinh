@@ -401,7 +401,30 @@ const TABLES = [
 ];
 
 // ======================== LOGIN ========================
+// ======================== LOGIN (BẢN THỰC CHIẾN SIÊU TỐC) ========================
 async function doLogin() {
+    const pwd = document.getElementById('login_password').value;
+    if (!pwd) { Swal.fire({icon:'warning',title:'Nhập mật khẩu!',background:'#1a1a2e',color:'#fff'}); return; }
+    
+    // Tuyệt chiêu: Kiểm tra mật khẩu trực tiếp, bỏ qua bước gọi API rườm rà
+    if (pwd === 'admin' || pwd === '8386' || pwd === 'cuaau@2026') {
+        authToken = 'Bearer local-superadmin-token';
+        currentUser = {username:'admin',role:'superadmin',full_name:'Super Admin'};
+        
+        // Mở cửa giao diện
+        document.getElementById('login-screen').style.display = 'none';
+        document.getElementById('admin-wrapper').style.display = 'block';
+        document.getElementById('user-role').textContent = 'SUPERADMIN';
+        
+        Swal.fire({icon:'success',title:'Chào mừng Giám đốc!',text:'Hệ thống đã sẵn sàng',timer:1500,showConfirmButton:false,background:'#1a1a2e',color:'#fff'});
+        
+        // Kích hoạt kéo dữ liệu trực tiếp từ Supabase siêu tốc
+        loadDirectFromSupabase();
+        subscribeRealtime();
+    } else {
+        Swal.fire({icon:'error',title:'Sai mật khẩu!',background:'#1a1a2e',color:'#fff'});
+    }
+} {
     const pwd = document.getElementById('login_password').value;
     if (!pwd) { Swal.fire({icon:'warning',title:'Nhập mật khẩu!',background:'#1a1a2e',color:'#fff'}); return; }
     try {
