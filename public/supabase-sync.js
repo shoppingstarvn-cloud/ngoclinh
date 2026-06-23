@@ -3,6 +3,25 @@
 // Tự động đồng bộ tất cả dữ liệu từ Supabase ra website
 // ============================================================
 
+// === [MENU FIX] Tab "Sản phẩm" -> chỉ 1 trang Cống tròn, gỡ toàn bộ dropdown danh mục ===
+(function(){
+  function fixProductMenu(){
+    try {
+      document.querySelectorAll('a').forEach(function(a){
+        var t=(a.textContent||'').replace(/\s+/g,' ').trim();
+        if(t==='Sản phẩm'){
+          a.setAttribute('href','/cong-tron-c53.html');
+          a.innerHTML='Sản phẩm';
+          var li=a.closest('li');
+          if(li){ li.querySelectorAll('ul').forEach(function(u){ u.remove(); }); }
+        }
+      });
+    } catch(e){}
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',fixProductMenu);
+  else fixProductMenu();
+})();
+
 const SUPABASE_URL = "https://bfruxinvvvaqufghtigw.supabase.co";
 const SUPABASE_KEY = "sb_publishable_QUYv4qEJntioJJ-XWtHkdA_haHovSml";
 const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
