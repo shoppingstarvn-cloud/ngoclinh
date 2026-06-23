@@ -226,7 +226,7 @@ async function seedContactSubmissions() {
 async function seedLinks() {
   const linksData = [
     { label: 'Facebook', url: 'https://www.facebook.com/phuongbac.betong', icon: 'fa-facebook', link_group: 'social', display_order: 0, is_active: true },
-    { label: 'Zalo', url: 'https://zalo.me/0947881181', icon: 'fa-zalo', link_group: 'social', display_order: 1, is_active: true },
+    { label: 'Zalo', url: 'https://zalo.me/0934640601', icon: 'fa-zalo', link_group: 'social', display_order: 1, is_active: true },
     { label: 'Youtube', url: '#', icon: 'fa-youtube', link_group: 'social', display_order: 2, is_active: true },
   ];
   const count = await upsert('links', linksData, 'id');
