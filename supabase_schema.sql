@@ -28,7 +28,7 @@ INSERT INTO website_config (key, value) VALUES
   ('email_2', ''),
   ('address', 'Thôn 6, Pháp Cổ, Xã Việt Khê, Hải Phòng'),
   ('address_short', 'Thôn 6, Pháp Cổ, Việt Khê, Hải Phòng'),
-  ('website_url', 'https://betongphuongbac.com'),
+  ('website_url', 'https://congbetongcuaau.com'),
   ('facebook_url', 'https://www.facebook.com/phuongbac.betong'),
   ('twitter_url', '#'),
   ('youtube_url', '#'),
