@@ -305,18 +305,18 @@ const TABLES = [
           { key: 'is_active', label: 'Active', render: v => v ? '<span class="text-success">✓</span>' : '<span class="text-danger">✗</span>' }
       ]
     },
-    { name: 'images', label: 'Thư viện ảnh', icon: 'images', pk: 'id',
+    { name: 'photos', label: 'Thư viện ảnh', icon: 'images', pk: 'id',
       fields: [
-          { key: 'image_url', label: 'URL Ảnh', type: 'text', required: true },
+          { key: 'file_path', label: 'URL Ảnh', type: 'text', required: true },
+          { key: 'title', label: 'Tiêu đề', type: 'text' },
+          { key: 'description', label: 'Chú thích', type: 'text' },
           { key: 'album_id', label: 'Album ID', type: 'text' },
-          { key: 'caption', label: 'Chú thích', type: 'text' },
-          { key: 'display_order', label: 'Thứ tự', type: 'number' },
-          { key: 'is_active', label: 'Kích hoạt', type: 'checkbox' }
+          { key: 'display_order', label: 'Thứ tự', type: 'number' }
       ],
       cols: [
           { key: 'id', label: 'ID' },
-          { key: 'image_url', label: 'Ảnh', render: v => v ? `<img src="${v}" class="thumb-img">` : '' },
-          { key: 'album_id', label: 'Album' },
+          { key: 'file_path', label: 'Ảnh', render: v => v ? `<img src="${v}" class="thumb-img">` : '' },
+          { key: 'title', label: 'Tiêu đề' },
           { key: 'is_active', label: 'Active', render: v => v ? '<span class="text-success">✓</span>' : '<span class="text-danger">✗</span>' }
       ]
     },
