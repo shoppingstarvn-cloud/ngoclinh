@@ -16,6 +16,20 @@
           if(li){ li.querySelectorAll('ul').forEach(function(u){ u.remove(); }); }
         }
       });
+      // Footer "SẢN PHẨM": chỉ giữ 1 dòng "Cống tròn bê tông"
+      document.querySelectorAll('h5').forEach(function(h){
+        if((h.textContent||'').replace(/\s+/g,' ').trim()==='SẢN PHẨM'){
+          var ul=h.nextElementSibling;
+          if(ul && ul.tagName==='UL'){
+            ul.querySelectorAll('li').forEach(function(li){
+              var link=li.querySelector('a');
+              var href=link?(link.getAttribute('href')||''):'';
+              if(href.indexOf('cong-tron-c53')!==-1){ link.setAttribute('href','/cong-tron-c53.html'); }
+              else { li.remove(); }
+            });
+          }
+        }
+      });
     } catch(e){}
   }
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',fixProductMenu);
