@@ -38,14 +38,15 @@ app.use((req, res, next) => {
 });
 
 // ================================================================
-// CẤU HÌNH ĐƯỜNG DẪN TĨNH & TRANG CHỦ CHO VERCEL
+// CẤU HÌNH ĐƯỜNG DẪN TĨNH & TRANG CHỦ
 // ================================================================
 const ROOT_DIR = process.cwd();
-app.use(express.static(path.join(ROOT_DIR, 'betongphuongbac.com')));
-app.use(express.static(ROOT_DIR));
+// Serve từ thư mục public/ (nơi chứa index.html, CSS, JS, images)
+app.use(express.static(path.join(ROOT_DIR, 'public')));
+app.use('/uploads', express.static(path.join(ROOT_DIR, 'uploads')));
 
 app.get('/', (req, res) => {
-    res.sendFile(path.join(ROOT_DIR, 'betongphuongbac.com', 'index.html'));
+    res.sendFile(path.join(ROOT_DIR, 'public', 'index.html'));
 });
 
 // ================================================================
@@ -148,17 +149,32 @@ CMS_TABLES.filter(t => t.publicRead).forEach(({ table, pk }) => {
       if (table === 'posts') {
         query = query.eq('status', 'published');
       }
-      // Order
-      if (['slides', 'menus', 'categories', 'products', 'partners', 'testimonials', 'links', 'images', 'videos'].includes(table)) {
-        query = query.order('display_order', { ascending: true }).order('created_at', { ascending: false });
-      } else {
-        query = query.order('created_at', { ascending: false });
-      }
+      // Order - try with created_at, fallback if column doesn't exist
+      try {
+        if (['slides', 'menus', 'categories', 'products', 'partners', 'testimonials', 'links', 'images', 'videos'].includes(table)) {
+          query = query.order('display_order', { ascending: true }).order('created_at', { ascending: false });
+        } else {
+          query = query.order('created_at', { ascending: false });
+        }
+      } catch(e) {}
       const { data, error } = await query;
       if (error) throw error;
       res.json({ success: true, data: data || [] });
     } catch (e) {
-      res.json({ success: false, error: e.message });
+      // Fallback: try without ordering
+      try {
+        let fallbackQuery = supabasePublic.from(table).select('*');
+        if (table !== 'site_settings' && table !== 'contact_submissions') {
+          fallbackQuery = fallbackQuery.eq('is_active', true);
+        }
+        if (table === 'posts') {
+          fallbackQuery = fallbackQuery.eq('status', 'published');
+        }
+        const { data } = await fallbackQuery;
+        res.json({ success: true, data: data || [] });
+      } catch (e2) {
+        res.json({ success: false, error: e.message });
+      }
     }
   });
 
@@ -301,7 +317,7 @@ app.post('/api/upload', adminAuth, upload.single('file'), async (req, res) => {
 });
 
 // ================================================================
-// PUBLIC API (từ schema cũ, giữ tương thích)
+// PUBLIC API
 // ================================================================
 app.get('/api/public/config', async (req, res) => {
   const { data } = await supabasePublic.from('site_settings').select('*');
@@ -324,7 +340,23 @@ app.post('/api/public/contact', async (req, res) => {
 });
 
 // ================================================================
-// SYNC ENGINE (giữ nguyên từ code cũ)
+// ADMIN: Lấy tất cả dữ liệu cho admin (1 request duy nhất)
+// ================================================================
+app.get('/api/admin/all-data', adminAuth, async (req, res) => {
+  try {
+    const result = {};
+    for (const { table } of CMS_TABLES) {
+      const { data } = await supabase.from(table).select('*').order('created_at', { ascending: false }).limit(500);
+      result[table] = data || [];
+    }
+    res.json({ success: true, data: result });
+  } catch (e) {
+    res.json({ success: false, error: e.message });
+  }
+});
+
+// ================================================================
+// SYNC ENGINE
 // ================================================================
 app.post('/api/sync/files-to-supabase', adminAuth, async (req, res) => {
   try {
@@ -379,7 +411,7 @@ app.use((req, res) => {
     if (ext && ['.html', '.css', '.js', '.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg', '.ico', '.woff', '.woff2', '.ttf', '.eot', '.json', '.xml', '.txt'].includes(ext.toLowerCase())) {
         return res.status(404).send('Not found');
     }
-    res.sendFile(path.join(ROOT_DIR, 'betongphuongbac.com', 'index.html'));
+    res.sendFile(path.join(ROOT_DIR, 'public', 'index.html'));
 });
 
 // ================================================================
@@ -389,7 +421,8 @@ if (!process.env.VERCEL) {
     app.listen(PORT, () => {
         console.log(`🚀 SUPER ADMIN ENGINE đang chạy tại cổng: ${PORT}`);
         console.log(`🔗 Supabase: ${SUPABASE_URL}`);
-        console.log(`🌐 Admin: http://localhost:${PORT}/superadmin.html`);
+        console.log(`🌐 Admin: http://localhost:${PORT}/admin.html`);
+        console.log(`🌐 Website: http://localhost:${PORT}/`);
     });
 }
 

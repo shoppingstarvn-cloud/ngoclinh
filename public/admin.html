@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SUPER ADMIN - Bê Tông Phương Bắc</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{background:#0f0f1a;font-family:'Segoe UI',sans-serif;color:#fff;overflow-x:hidden}
+        #login-screen{position:fixed;top:0;left:0;width:100%;height:100vh;background:linear-gradient(135deg,#0a0a0a,#1a1a2e 50%,#16213e);z-index:99999;display:flex;justify-content:center;align-items:center}
+        .login-box{background:rgba(255,255,255,0.05);padding:50px;border-radius:20px;backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.1);width:420px;text-align:center;box-shadow:0 25px 60px rgba(0,0,0,0.5)}
+        .login-box h3{color:#ffd700;font-size:28px;margin-bottom:5px}
+        .login-box p{color:rgba(255,255,255,0.6);margin-bottom:30px}
+        .login-box input{width:100%;padding:16px;border-radius:10px;border:1px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.1);color:#fff;font-size:16px;outline:none;transition:.3s}
+        .login-box input:focus{border-color:#0d6efd;box-shadow:0 0 20px rgba(13,110,253,0.3)}
+        .sidebar{width:250px;background:linear-gradient(180deg,#0a0a0a,#16162a);color:#fff;min-height:100vh;position:fixed;z-index:1000;overflow-y:auto;transition:.3s;border-right:1px solid rgba(255,255,255,0.05)}
+        .sidebar::-webkit-scrollbar{width:3px}
+        .sidebar::-webkit-scrollbar-thumb{background:#0d6efd;border-radius:2px}
+        .sidebar .brand{padding:20px;text-align:center;border-bottom:1px solid rgba(255,255,255,0.05)}
+        .sidebar .brand h5{color:#ffd700;font-weight:800;margin:0}
+        .sidebar .brand small{color:rgba(255,255,255,0.3);font-size:10px;text-transform:uppercase;letter-spacing:2px}
+        .nav-section{padding:15px 20px 5px;font-size:10px;text-transform:uppercase;color:rgba(255,255,255,0.2);letter-spacing:2px;font-weight:700}
+        .nav-link{color:rgba(255,255,255,0.6);cursor:pointer;padding:10px 20px;display:flex;align-items:center;gap:12px;transition:.3s;border-left:3px solid transparent;font-size:13px;text-decoration:none}
+        .nav-link:hover{background:rgba(255,255,255,0.04);color:#fff;padding-left:25px}
+        .nav-link.active{background:rgba(13,110,253,0.12);color:#0d6efd;border-left-color:#0d6efd;font-weight:600}
+        .nav-link i{width:18px;text-align:center}
+        .main-content{margin-left:250px;min-height:100vh;padding:20px}
+        .top-bar{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:12px;padding:15px 25px;margin-bottom:20px;display:flex;justify-content:space-between;align-items:center}
+        .top-bar h4{margin:0;font-size:18px;font-weight:700}
+        .tab-section{display:none;animation:fadeIn .3s}
+        .tab-section.active{display:block}
+        @keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+        .card{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:14px;margin-bottom:20px;overflow:hidden}
+        .card-header{background:rgba(255,255,255,0.03);border-bottom:1px solid rgba(255,255,255,0.06);padding:16px 20px;font-weight:600;font-size:14px;display:flex;justify-content:space-between;align-items:center}
+        .card-body{padding:20px}
+        .form-control,.form-select{background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:8px;color:#fff;padding:10px 14px;outline:none;transition:.3s}
+        .form-control:focus,.form-select:focus{border-color:#0d6efd;box-shadow:0 0 0 3px rgba(13,110,253,0.15);background:rgba(255,255,255,0.08);color:#fff}
+        .form-select option{background:#16162a;color:#fff}
+        textarea.form-control{min-height:80px;resize:vertical}
+        .btn{border-radius:8px;font-weight:600;padding:8px 20px;transition:.3s;font-size:13px;border:none}
+        .btn:hover{transform:translateY(-1px)}
+        .btn-primary{background:linear-gradient(135deg,#0d6efd,#0a58ca)}
+        .btn-success{background:linear-gradient(135deg,#198754,#157347)}
+        .btn-danger{background:linear-gradient(135deg,#dc3545,#bb2d3b)}
+        .btn-warning{background:linear-gradient(135deg,#ffc107,#d39e00);color:#000}
+        .btn-sm{padding:5px 12px;font-size:11px}
+        .table{color:rgba(255,255,255,0.8);font-size:13px;margin:0}
+        .table thead th{background:rgba(255,255,255,0.03);color:rgba(255,255,255,0.4);font-size:11px;text-transform:uppercase;letter-spacing:1px;border:none;padding:10px 12px;font-weight:600}
+        .table tbody td{border-color:rgba(255,255,255,0.04);padding:10px 12px;vertical-align:middle}
+        .table tbody tr:hover{background:rgba(255,255,255,0.02)}
+        .thumb-img{width:60px;height:40px;object-fit:cover;border-radius:6px;border:1px solid rgba(255,255,255,0.08)}
+        .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:20px}
+        .stat-card{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:12px;padding:16px;transition:.3s}
+        .stat-card:hover{border-color:rgba(255,255,255,0.12);transform:translateY(-2px)}
+        .stat-card .num{font-size:24px;font-weight:800;margin:0}
+        .stat-card .lbl{color:rgba(255,255,255,0.4);margin:0;font-size:11px;text-transform:uppercase}
+        .empty-state{text-align:center;padding:40px;color:rgba(255,255,255,0.3)}
+        .empty-state i{font-size:48px;margin-bottom:12px;opacity:0.4}
+        .modal-custom{background:rgba(0,0,0,0.7);backdrop-filter:blur(10px)}
+        .modal-custom .modal-content{background:#1a1a2e;border:1px solid rgba(255,255,255,0.1);border-radius:16px;color:#fff}
+        .modal-custom .modal-header,.modal-custom .modal-footer{border-color:rgba(255,255,255,0.06)}
+        .modal-custom .btn-close{filter:invert(1)}
+        .badge-dot{padding:3px 10px;border-radius:12px;font-size:10px;font-weight:600}
+        @media(max-width:768px){.sidebar{width:50px}.sidebar .brand h5,.sidebar .brand small,.nav-section,.nav-link span{display:none}.nav-link{justify-content:center;padding:12px}.main-content{margin-left:50px;padding:10px}.stats-grid{grid-template-columns:repeat(2,1fr)}}
+    </style>
+</head>
+<body>
+
+<!-- LOGIN SCREEN -->
+<div id="login-screen">
+    <div class="login-box">
+        <div class="mb-3"><i class="fas fa-crown" style="font-size:60px;color:#ffd700"></i></div>
+        <h3>SUPER ADMIN</h3>
+        <p>Hệ thống quản trị CMS • API CRUD</p>
+        <div style="position:relative;margin-bottom:20px">
+            <input type="password" id="login_password" placeholder="Nhập mật khẩu..." onkeydown="if(event.key==='Enter')doLogin()" style="padding-right:45px">
+            <i class="fas fa-eye" style="position:absolute;right:16px;top:50%;transform:translateY(-50%);cursor:pointer;color:rgba(255,255,255,0.4)" onclick="this.classList.toggle('fa-eye-slash');document.getElementById('login_password').type=document.getElementById('login_password').type==='password'?'text':'password'"></i>
+        </div>
+        <button class="btn btn-primary w-100 py-3 fw-bold" onclick="doLogin()"><i class="fas fa-rocket"></i> ĐĂNG NHẬP</button>
+        <p class="mt-3" style="color:rgba(255,255,255,0.2);font-size:11px">Mật khẩu mặc định: admin / 8386 / cuaau@2026</p>
+    </div>
+</div>
+
+<!-- ADMIN WRAPPER -->
+<div class="wrapper" id="admin-wrapper" style="display:none">
+    <nav class="sidebar">
+        <div class="brand"><h5><i class="fas fa-crown"></i> ADMIN</h5><small>Bê Tông Phương Bắc</small></div>
+        <div class="nav-section">Tổng Quan</div>
+        <a class="nav-link active" onclick="showTab('dashboard',this)"><i class="fas fa-tachometer-alt"></i><span>Dashboard</span></a>
+        <div class="nav-section">Cấu Hình</div>
+        <a class="nav-link" onclick="showTab('site_settings',this)"><i class="fas fa-cog"></i><span>Cài đặt Website</span></a>
+        <div class="nav-section">Nội Dung</div>
+        <a class="nav-link" onclick="showTab('slides',this)"><i class="fas fa-images"></i><span>Slide</span></a>
+        <a class="nav-link" onclick="showTab('menus',this)"><i class="fas fa-bars"></i><span>Menu</span></a>
+        <a class="nav-link" onclick="showTab('categories',this)"><i class="fas fa-sitemap"></i><span>Danh mục</span></a>
+        <a class="nav-link" onclick="showTab('posts',this)"><i class="fas fa-newspaper"></i><span>Bài viết</span></a>
+        <a class="nav-link" onclick="showTab('products',this)"><i class="fas fa-box"></i><span>Sản phẩm</span></a>
+        <a class="nav-link" onclick="showTab('partners',this)"><i class="fas fa-handshake"></i><span>Đối tác</span></a>
+        <a class="nav-link" onclick="showTab('testimonials',this)"><i class="fas fa-comment-dots"></i><span>Đánh giá</span></a>
+        <a class="nav-link" onclick="showTab('videos',this)"><i class="fas fa-video"></i><span>Video</span></a>
+        <a class="nav-link" onclick="showTab('images',this)"><i class="fas fa-images"></i><span>Thư viện ảnh</span></a>
+        <div class="nav-section">Liên Hệ</div>
+        <a class="nav-link" onclick="showTab('contact_submissions',this)"><i class="fas fa-inbox"></i><span>Liên hệ <span class="badge bg-danger" id="unread-count">0</span></span></a>
+        <div class="nav-section">Hệ Thống</div>
+        <a class="nav-link" onclick="showTab('links',this)"><i class="fas fa-link"></i><span>Liên kết</span></a>
+        <a class="nav-link" onclick="showTab('sync',this)"><i class="fas fa-sync"></i><span>Đồng bộ</span></a>
+        <a class="nav-link" onclick="logout()" style="color:#dc3545"><i class="fas fa-sign-out-alt"></i><span>Đăng xuất</span></a>
+    </nav>
+
+    <div class="main-content">
+        <div class="top-bar">
+            <h4 id="page-title"><i class="fas fa-tachometer-alt text-primary"></i> Dashboard</h4>
+            <div>
+                <span class="badge bg-success me-2"><i class="fas fa-circle"></i> <span id="conn-status">LIVE</span></span>
+                <span class="badge bg-secondary me-2" id="user-role">SUPERADMIN</span>
+                <button class="btn btn-primary btn-sm" onclick="loadAllData()"><i class="fas fa-sync"></i> Tải lại</button>
+            </div>
+        </div>
+
+        <!-- DASHBOARD -->
+        <div id="tab-dashboard" class="tab-section active">
+            <div class="stats-grid" id="stats-grid"></div>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <div class="card"><div class="card-header"><i class="fas fa-bolt text-warning"></i> Hành động nhanh</div>
+                    <div class="card-body">
+                        <div class="d-grid gap-2">
+                            <button class="btn btn-primary" onclick="showAddForm('slides')"><i class="fas fa-images"></i> Thêm Slide</button>
+                            <button class="btn btn-success" onclick="showAddForm('products')"><i class="fas fa-box"></i> Thêm Sản phẩm</button>
+                            <button class="btn btn-info" onclick="showAddForm('posts')"><i class="fas fa-newspaper"></i> Thêm Bài viết</button>
+                            <button class="btn btn-warning" onclick="showAddForm('partners')"><i class="fas fa-handshake"></i> Thêm Đối tác</button>
+                        </div>
+                    </div></div>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <div class="card"><div class="card-header"><i class="fas fa-info-circle text-info"></i> Trạng thái</div>
+                    <div class="card-body">
+                        <p><strong>API Server:</strong> <span class="text-success"><i class="fas fa-circle"></i> Đang chạy</span></p>
+                        <p><strong>Supabase:</strong> <span class="text-success"><i class="fas fa-circle"></i> Đã kết nối</span></p>
+                        <p><strong>Realtime:</strong> <span class="text-success" id="rt-status"><i class="fas fa-circle"></i> Đang lắng nghe</span></p>
+                    </div></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- DYNAMIC TABS: Each CMS table gets a tab -->
+        <div id="tab-site_settings" class="tab-section">
+            <div class="card"><div class="card-header"><i class="fas fa-cog text-primary"></i> Cài đặt Website</div>
+            <div class="card-body">
+                <p class="text-muted mb-3">Các cặp key=value cho cấu hình website. Key là tên cấu hình (site_name, hotline, address...).</p>
+                <button class="btn btn-primary btn-sm mb-3" onclick="showAddForm('site_settings')"><i class="fas fa-plus"></i> Thêm cấu hình</button>
+                <div class="table-responsive"><table class="table" id="table-site_settings"><thead><tr><th>ID</th><th>Key</th><th>Value</th><th>Thao tác</th></tr></thead><tbody></tbody></table></div>
+            </div></div>
+            <!-- Modal -->
+            <div class="modal fade modal-custom" id="modal-site_settings"><div class="modal-dialog"><div class="modal-content">
+                <div class="modal-header"><h5 class="modal-title" id="modalTitle-site_settings">Thêm cấu hình</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+                <div class="modal-body">
+                    <input type="hidden" id="editId-site_settings">
+                    <div class="mb-3"><label class="form-label">Key</label><input class="form-control" id="f-site_settings-key"></div>
+                    <div class="mb-3"><label class="form-label">Value</label><input class="form-control" id="f-site_settings-value"></div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button class="btn btn-primary" onclick="saveRecord('site_settings')">Lưu</button>
+                </div>
+            </div></div></div>
+        </div>
+
+        <!-- GENERIC TAB TEMPLATE (hidden, cloned by JS for each table) -->
+        <template id="tab-template">
+            <div class="card"><div class="card-header"><i class="fas fa-table text-primary" id="tab-icon"></i> <span id="tab-title">Quản lý</span></div>
+            <div class="card-body">
+                <button class="btn btn-primary btn-sm mb-3 add-btn" onclick="showAddForm('')"><i class="fas fa-plus"></i> Thêm</button>
+                <div class="table-responsive"><table class="table"><thead id="table-head"></thead><tbody id="table-body"></tbody></table></div>
+            </div></div>
+            <!-- Modal -->
+            <div class="modal fade modal-custom" id="modal-generic"><div class="modal-dialog modal-lg"><div class="modal-content">
+                <div class="modal-header"><h5 class="modal-title" id="modalTitle-generic">Thêm</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+                <div class="modal-body" id="modal-body-generic"></div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button class="btn btn-primary" onclick="saveRecord()">Lưu</button>
+                </div>
+            </div></div></div>
+        </template>
+    </div>
+</div>
+
+<script>
+// ======================== CONFIG ========================
+const SUPABASE_URL = "https://bfruxinvvvaqufghtigw.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_QUYv4qEJntioJJ-XWtHkdA_haHovSml";
+const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+let authToken = null;
+let currentUser = null;
+let allData = {};
+let currentTable = null;
+
+// ======================== CMS TABLES ========================
+const TABLES = [
+    { name: 'site_settings', label: 'Cài đặt', icon: 'cog', pk: 'id',
+      fields: [
+          { key: 'key', label: 'Key', type: 'text', required: true },
+          { key: 'value', label: 'Value', type: 'text' }
+      ],
+      cols: [
+          { key: 'id', label: 'ID' },
+          { key: 'key', label: 'Key' },
+          { key: 'value', label: 'Value' }
+      ]
+    },
+    { name: 'menus', label: 'Menu', icon: 'bars', pk: 'id',
+      fields: [
+          { key: 'label', label: 'Tên menu', type: 'text', required: true },
+          { key: 'url', label: 'URL', type: 'text' },
+          { key: 'parent_id', label: 'Menu cha (ID)', type: 'number' },
+          { key: 'display_order', label: 'Thứ tự', type: 'number' },
+          { key: 'is_active', label: 'Kích hoạt', type: 'checkbox' }
+      ],
+      cols: [
+          { key: 'id', label: 'ID' },
+          { key: 'label', label: 'Tên' },
+          { key: 'url', label: 'URL' },
+          { key: 'display_order', label: 'Thứ tự' },
+          { key: 'is_active', label: 'Active', render: v => v ? '<span class="text-success">✓</span>' : '<span class="text-danger">✗</span>' }
+      ]
+    },
+    { name: 'categories', label: 'Danh mục', icon: 'sitemap', pk: 'id',
+      fields: [
+          { key: 'name', label: 'Tên danh mục', type: 'text', required: true },
+          { key: 'slug', label: 'Slug', type: 'text', required: true },
+          { key: 'description', label: 'Mô tả', type: 'textarea' },
+          { key: 'type', label: 'Loại', type: 'select', options: ['product','post','project','gallery'] },
+          { key: 'parent_id', label: 'Danh mục cha (ID)', type: 'number' },
+          { key: 'display_order', label: 'Thứ tự', type: 'number' },
+          { key: 'is_active', label: 'Kích hoạt', type: 'checkbox' }
+      ],
+      cols: [
+          { key: 'id', label: 'ID' },
+          { key: 'name', label: 'Tên' },
+          { key: 'slug', label: 'Slug' },
+          { key: 'type', label: 'Loại' },
+          { key: 'is_active', label: 'Active', render: v => v ? '<span class="text-success">✓</span>' : '<span class="text-danger">✗</span>' }
+      ]
+    },
+    { name: 'posts', label: 'Bài viết', icon: 'newspaper', pk: 'id',
+      fields: [
+          { key: 'title', label: 'Tiêu đề', type: 'text', required: true },
+          { key: 'slug', label: 'Slug', type: 'text', required: true },
+          { key: 'category_id', label: 'Danh mục (ID)', type: 'number' },
+          { key: 'excerpt', label: 'Mô tả ngắn', type: 'textarea' },
+          { key: 'content', label: 'Nội dung', type: 'textarea' },
+          { key: 'thumbnail_url', label: 'Ảnh đại diện (URL)', type: 'text' },
+          { key: 'tags', label: 'Tags (phân cách bằng dấu phẩy)', type: 'text' },
+          { key: 'status', label: 'Trạng thái', type: 'select', options: ['draft','published','archived'] },
+          { key: 'display_order', label: 'Thứ tự', type: 'number' },
+          { key: 'is_active', label: 'Kích hoạt', type: 'checkbox' }
+      ],
+      cols: [
+          { key: 'id', label: 'ID' },
+          { key: 'thumbnail_url', label: 'Ảnh', render: v => v ? `<img src="${v}" class="thumb-img">` : '' },
+          { key: 'title', label: 'Tiêu đề' },
+          { key: 'status', label: 'Trạng thái' },
+          { key: 'is_active', label: 'Active', render: v => v ? '<span class="text-success">✓</span>' : '<span class="text-danger">✗</span>' }
+      ]
+    },
+    { name: 'products', label: 'Sản phẩm', icon: 'box', pk: 'id',
+      fields: [
+          { key: 'name', label: 'Tên sản phẩm', type: 'text', required: true },
+          { key: 'slug', label: 'Slug', type: 'text', required: true },
+          { key: 'category_id', label: 'Danh mục (ID)', type: 'number' },
+          { key: 'description', label: 'Mô tả', type: 'textarea' },
+          { key: 'content', label: 'Nội dung chi tiết', type: 'textarea' },
+          { key: 'price', label: 'Giá', type: 'text' },
+          { key: 'thumbnail_url', label: 'Ảnh đại diện (URL)', type: 'text' },
+          { key: 'display_order', label: 'Thứ tự', type: 'number' },
+          { key: 'is_active', label: 'Kích hoạt', type: 'checkbox' }
+      ],
+      cols: [
+          { key: 'id', label: 'ID' },
+          { key: 'thumbnail_url', label: 'Ảnh', render: v => v ? `<img src="${v}" class="thumb-img">` : '' },
+          { key: 'name', label: 'Tên SP' },
+          { key: 'price', label: 'Giá' },
+          { key: 'is_active', label: 'Active', render: v => v ? '<span class="text-success">✓</span>' : '<span class="text-danger">✗</span>' }
+      ]
+    },
+    { name: 'slides', label: 'Slide', icon: 'images', pk: 'id',
+      fields: [
+          { key: 'title', label: 'Tiêu đề', type: 'text' },
+          { key: 'subtitle', label: 'Phụ đề', type: 'text' },
+          { key: 'image_url', label: 'URL Hình ảnh', type: 'text', required: true },
+          { key: 'link_url', label: 'Link URL', type: 'text' },
+          { key: 'display_order', label: 'Thứ tự', type: 'number' },
+          { key: 'is_active', label: 'Kích hoạt', type: 'checkbox' }
+      ],
+      cols: [
+          { key: 'id', label: 'ID' },
+          { key: 'image_url', label: 'Ảnh', render: v => v ? `<img src="${v}" class="thumb-img">` : '' },
+          { key: 'title', label: 'Tiêu đề' },
+          { key: 'display_order', label: 'Thứ tự' },
+          { key: 'is_active', label: 'Active', render: v => v ? '<span class="text-success">✓</span>' : '<span class="text-danger">✗</span>' }
+      ]
+    },
+    { name: 'images', label: 'Thư viện ảnh', icon: 'images', pk: 'id',
+      fields: [
+          { key: 'image_url', label: 'URL Ảnh', type: 'text', required: true },
+          { key: 'album_id', label: 'Album ID', type: 'text' },
+          { key: 'caption', label: 'Chú thích', type: 'text' },
+          { key: 'display_order', label: 'Thứ tự', type: 'number' },
+          { key: 'is_active', label: 'Kích hoạt', type: 'checkbox' }
+      ],
+      cols: [
+          { key: 'id', label: 'ID' },
+          { key: 'image_url', label: 'Ảnh', render: v => v ? `<img src="${v}" class="thumb-img">` : '' },
+          { key: 'album_id', label: 'Album' },
+          { key: 'is_active', label: 'Active', render: v => v ? '<span class="text-success">✓</span>' : '<span class="text-danger">✗</span>' }
+      ]
+    },
+    { name: 'videos', label: 'Video', icon: 'video', pk: 'id',
+      fields: [
+          { key: 'title', label: 'Tiêu đề', type: 'text' },
+          { key: 'youtube_url', label: 'Youtube URL', type: 'text' },
+          { key: 'embed_url', label: 'Embed URL', type: 'text' },
+          { key: 'thumbnail_url', label: 'Thumbnail URL', type: 'text' },
+          { key: 'description', label: 'Mô tả', type: 'textarea' },
+          { key: 'display_order', label: 'Thứ tự', type: 'number' },
+          { key: 'is_active', label: 'Kích hoạt', type: 'checkbox' }
+      ],
+      cols: [
+          { key: 'id', label: 'ID' },
+          { key: 'thumbnail_url', label: 'Thumb', render: v => v ? `<img src="${v}" class="thumb-img">` : '' },
+          { key: 'title', label: 'Tiêu đề' },
+          { key: 'is_active', label: 'Active', render: v => v ? '<span class="text-success">✓</span>' : '<span class="text-danger">✗</span>' }
+      ]
+    },
+    { name: 'partners', label: 'Đối tác', icon: 'handshake', pk: 'id',
+      fields: [
+          { key: 'name', label: 'Tên đối tác', type: 'text', required: true },
+          { key: 'logo_url', label: 'URL Logo', type: 'text' },
+          { key: 'website_url', label: 'Website', type: 'text' },
+          { key: 'display_order', label: 'Thứ tự', type: 'number' },
+          { key: 'is_active', label: 'Kích hoạt', type: 'checkbox' }
+      ],
+      cols: [
+          { key: 'id', label: 'ID' },
+          { key: 'logo_url', label: 'Logo', render: v => v ? `<img src="${v}" class="thumb-img">` : '' },
+          { key: 'name', label: 'Tên' },
+          { key: 'is_active', label: 'Active', render: v => v ? '<span class="text-success">✓</span>' : '<span class="text-danger">✗</span>' }
+      ]
+    },
+    { name: 'testimonials', label: 'Đánh giá', icon: 'comment-dots', pk: 'id',
+      fields: [
+          { key: 'name', label: 'Tên khách hàng', type: 'text', required: true },
+          { key: 'avatar_url', label: 'Avatar URL', type: 'text' },
+          { key: 'content', label: 'Nội dung', type: 'textarea', required: true },
+          { key: 'rating', label: 'Đánh giá (1-5)', type: 'number' },
+          { key: 'display_order', label: 'Thứ tự', type: 'number' },
+          { key: 'is_active', label: 'Kích hoạt', type: 'checkbox' }
+      ],
+      cols: [
+          { key: 'id', label: 'ID' },
+          { key: 'avatar_url', label: 'Avatar', render: v => v ? `<img src="${v}" style="width:36px;height:36px;border-radius:50%;object-fit:cover">` : '' },
+          { key: 'name', label: 'Tên KH' },
+          { key: 'rating', label: 'Rating' },
+          { key: 'is_active', label: 'Active', render: v => v ? '<span class="text-success">✓</span>' : '<span class="text-danger">✗</span>' }
+      ]
+    },
+    { name: 'links', label: 'Liên kết', icon: 'link', pk: 'id',
+      fields: [
+          { key: 'label', label: 'Tên', type: 'text', required: true },
+          { key: 'url', label: 'URL', type: 'text', required: true },
+          { key: 'icon', label: 'Icon class (VD: fa fa-facebook)', type: 'text' },
+          { key: 'link_group', label: 'Nhóm', type: 'select', options: ['social','footer','quick'] },
+          { key: 'display_order', label: 'Thứ tự', type: 'number' },
+          { key: 'is_active', label: 'Kích hoạt', type: 'checkbox' }
+      ],
+      cols: [
+          { key: 'id', label: 'ID' },
+          { key: 'label', label: 'Tên' },
+          { key: 'url', label: 'URL' },
+          { key: 'link_group', label: 'Nhóm' },
+          { key: 'is_active', label: 'Active', render: v => v ? '<span class="text-success">✓</span>' : '<span class="text-danger">✗</span>' }
+      ]
+    },
+    { name: 'contact_submissions', label: 'Liên hệ', icon: 'inbox', pk: 'id',
+      fields: [
+          { key: 'full_name', label: 'Họ tên', type: 'text' },
+          { key: 'phone', label: 'SĐT', type: 'text' },
+          { key: 'email', label: 'Email', type: 'text' },
+          { key: 'subject', label: 'Chủ đề', type: 'text' },
+          { key: 'message', label: 'Nội dung', type: 'textarea' },
+          { key: 'is_read', label: 'Đã đọc', type: 'checkbox' }
+      ],
+      cols: [
+          { key: 'id', label: 'ID' },
+          { key: 'full_name', label: 'Họ tên' },
+          { key: 'phone', label: 'SĐT' },
+          { key: 'email', label: 'Email' },
+          { key: 'is_read', label: 'Đã đọc', render: v => v ? '<span class="badge-dot bg-success">Đã xem</span>' : '<span class="badge-dot bg-warning">Mới</span>' }
+      ]
+    }
+];
+
+// ======================== LOGIN ========================
+async function doLogin() {
+    const pwd = document.getElementById('login_password').value;
+    if (!pwd) { Swal.fire({icon:'warning',title:'Nhập mật khẩu!',background:'#1a1a2e',color:'#fff'}); return; }
+    try {
+        const resp = await fetch('/api/auth/login', {
+            method:'POST', headers:{'Content-Type':'application/json'},
+            body: JSON.stringify({password: pwd})
+        });
+        const result = await resp.json();
+        if (result.success) {
+            authToken = 'Bearer ' + result.token;
+            currentUser = result.user || {username:'admin',role:'superadmin',full_name:'Super Admin'};
+            document.getElementById('login-screen').style.display = 'none';
+            document.getElementById('admin-wrapper').style.display = 'block';
+            document.getElementById('user-role').textContent = (currentUser.role || 'admin').toUpperCase();
+            Swal.fire({icon:'success',title:'Chào mừng!',text:'Hệ thống đã sẵn sàng',timer:1500,showConfirmButton:false,background:'#1a1a2e',color:'#fff'});
+            loadAllData();
+            subscribeRealtime();
+            return;
+        }
+    } catch(e) {}
+    Swal.fire({icon:'error',title:'Sai mật khẩu!',background:'#1a1a2e',color:'#fff'});
+}
+
+function logout() {
+    authToken = null;
+    document.getElementById('admin-wrapper').style.display = 'none';
+    document.getElementById('login-screen').style.display = 'flex';
+    document.getElementById('login_password').value = '';
+}
+
+// ======================== TAB NAVIGATION ========================
+function showTab(table, el) {
+    document.querySelectorAll('.tab-section').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.nav-link').forEach(n => n.classList.remove('active'));
+    document.getElementById('tab-' + table).classList.add('active');
+    if (el) el.classList.add('active');
+    const t = TABLES.find(x => x.name === table);
+    document.getElementById('page-title').innerHTML = `<i class="fas fa-${t ? t.icon : 'table'} text-primary"></i> ${t ? t.label : table}`;
+    currentTable = table;
+    renderTable(table);
+}
+
+// ======================== LOAD ALL DATA ========================
+async function loadAllData() {
+    if (!authToken) return;
+    try {
+        const resp = await fetch('/api/admin/all-data', { headers: { 'Authorization': authToken } });
+        const result = await resp.json();
+        if (result.success) {
+            allData = result.data;
+            updateStats();
+            // Re-render current table
+            if (currentTable) renderTable(currentTable);
+        } else {
+            // Fallback: load individual tables
+            loadDirectFromSupabase();
+        }
+    } catch(e) {
+        loadDirectFromSupabase();
+    }
+}
+
+async function loadDirectFromSupabase() {
+    allData = {};
+    for (const t of TABLES) {
+        try {
+            const { data } = await _supabase.from(t.name).select('*').order('created_at', { ascending: false }).limit(500);
+            allData[t.name] = data || [];
+        } catch(e) { allData[t.name] = []; }
+    }
+    updateStats();
+    if (currentTable) renderTable(currentTable);
+}
+
+function updateStats() {
+    const grid = document.getElementById('stats-grid');
+    grid.innerHTML = TABLES.map(t => {
+        const count = (allData[t.name] || []).length;
+        const icons = { 'site_settings':'cog','menus':'bars','categories':'sitemap','posts':'newspaper','products':'box','slides':'images','images':'images','videos':'video','partners':'handshake','testimonials':'comment-dots','links':'link','contact_submissions':'inbox' };
+        const colors = ['#0d6efd','#198754','#0dcaf0','#ffc107','#dc3545','#6f42c1','#fd7e14','#20c997','#e83e8c','#17a2b8','#6610f2','#d63384'];
+        const idx = TABLES.indexOf(t);
+        return `<div class="stat-card" style="cursor:pointer" onclick="showTab('${t.name}',document.querySelectorAll('.nav-link')[${idx+1}])">
+            <div style="font-size:24px;margin-bottom:5px;color:${colors[idx]}"><i class="fas fa-${icons[t.name]}"></i></div>
+            <p class="num">${count}</p>
+            <p class="lbl">${t.label}</p>
+        </div>`;
+    }).join('');
+    
+    // Unread count
+    const contacts = allData.contact_submissions || [];
+    const unread = contacts.filter(c => !c.is_read).length;
+    document.getElementById('unread-count').textContent = unread;
+}
+
+// ======================== RENDER TABLE ========================
+function renderTable(table) {
+    const t = TABLES.find(x => x.name === table);
+    if (!t) return;
+    const data = allData[table] || [];
+    const tbody = document.querySelector(`#tab-${table} tbody`);
+    if (!tbody) return;
+    
+    if (data.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="99" class="text-center py-4 text-muted">Chưa có dữ liệu</td></tr>`;
+        return;
+    }
+    
+    tbody.innerHTML = data.map(row => {
+        let cols = t.cols.map(c => {
+            if (c.render) return `<td>${c.render(row[c.key])}</td>`;
+            const val = row[c.key];
+            if (c.key === 'id') return `<td class="text-muted">${val}</td>`;
+            if (typeof val === 'boolean') return `<td>${val ? '<span class="text-success">✓</span>' : '<span class="text-danger">✗</span>'}</td>`;
+            if (typeof val === 'string' && val.length > 80) return `<td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${val.substring(0, 80)}...</td>`;
+            return `<td>${val || ''}</td>`;
+        }).join('');
+        return `<tr>
+            ${cols}
+            <td style="white-space:nowrap">
+                <button class="btn btn-primary btn-sm me-1" onclick="editRecord('${table}',${row.id})"><i class="fas fa-edit"></i></button>
+                <button class="btn btn-danger btn-sm" onclick="deleteRecord('${table}',${row.id})"><i class="fas fa-trash"></i></button>
+            </td>
+        </tr>`;
+    }).join('');
+}
+
+// ======================== SHOW ADD FORM ========================
+function showAddForm(table) {
+    const t = TABLES.find(x => x.name === table);
+    if (!t) return;
+    
+    document.getElementById('editId-' + table).value = '';
+    document.getElementById('modalTitle-' + table).textContent = 'Thêm ' + t.label;
+    
+    const body = document.querySelector(`#tab-${table} .modal-body`);
+    if (!body) return;
+    
+    // Render form fields
+    body.innerHTML = `<input type="hidden" id="editId-${table}">` +
+        t.fields.map(f => {
+            const id = `f-${table}-${f.key}`;
+            let input = '';
+            if (f.type === 'textarea') {
+                input = `<textarea class="form-control" id="${id}" ${f.required ? 'required' : ''}></textarea>`;
+            } else if (f.type === 'checkbox') {
+                input = `<input type="checkbox" class="form-check-input" id="${id}" style="width:20px;height:20px">`;
+            } else if (f.type === 'select') {
+                input = `<select class="form-select" id="${id}">${f.options.map(o => `<option value="${o}">${o}</option>`).join('')}</select>`;
+            } else if (f.type === 'number') {
+                input = `<input type="number" class="form-control" id="${id}" value="0">`;
+            } else {
+                input = `<input class="form-control" id="${id}" ${f.required ? 'required' : ''}>`;
+            }
+            return `<div class="mb-2"><label class="form-label small text-muted">${f.label}</label>${input}</div>`;
+        }).join('');
+    
+    new bootstrap.Modal(document.getElementById('modal-' + table)).show();
+}
+
+// ======================== SAVE RECORD ========================
+async function saveRecord(table) {
+    const t = TABLES.find(x => x.name === table);
+    if (!t) return;
+    
+    const editId = document.getElementById('editId-' + table)?.value || '';
+    const data = {};
+    
+    for (const f of t.fields) {
+        const el = document.getElementById(`f-${table}-${f.key}`);
+        if (!el) continue;
+        if (f.type === 'checkbox') {
+            data[f.key] = el.checked;
+        } else if (f.type === 'number') {
+            data[f.key] = parseInt(el.value) || 0;
+        } else {
+            data[f.key] = el.value;
+        }
+    }
+    
+    Swal.fire({title:'Đang lưu...',allowOutsideClick:false,didOpen:()=>Swal.showLoading(),background:'#1a1a2e',color:'#fff'});
+    
+    try {
+        let resp;
+        if (editId) {
+            // UPDATE
+            resp = await fetch(`/api/admin/${table}/${editId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type':'application/json', 'Authorization': authToken },
+                body: JSON.stringify(data)
+            });
+        } else {
+            // CREATE
+            resp = await fetch(`/api/admin/${table}`, {
+                method: 'POST',
+                headers: { 'Content-Type':'application/json', 'Authorization': authToken },
+                body: JSON.stringify(data)
+            });
+        }
+        const result = await resp.json();
+        if (result.success) {
+            Swal.fire({icon:'success',title:'Đã lưu!',timer:1000,showConfirmButton:false,background:'#1a1a2e',color:'#fff'});
+            bootstrap.Modal.getInstance(document.getElementById('modal-' + table)).hide();
+            loadAllData();
+        } else {
+            throw new Error(result.error);
+        }
+    } catch(e) {
+        // Bỏ fallback ghi client-side (anon bị RLS chặn → báo thành công GIẢ). Hiện lỗi THẬT:
+        Swal.fire({icon:'error',title:'Lưu thất bại',html:'Server từ chối ghi:<br><b>'+(e.message||'')+'</b><br><br>→ Kiểm tra <b>SUPABASE_SERVICE_KEY</b> trên Vercel (môi trường <b>Production</b>) phải là <b>service_role legacy (eyJ...)</b>, rồi Redeploy.',background:'#1a1a2e',color:'#fff'});
+    }
+}
+
+// ======================== EDIT RECORD ========================
+function editRecord(table, id) {
+    const t = TABLES.find(x => x.name === table);
+    if (!t) return;
+    const item = (allData[table] || []).find(r => r.id === id);
+    if (!item) return;
+    
+    document.getElementById('editId-' + table).value = id;
+    document.getElementById('modalTitle-' + table).textContent = 'Sửa ' + t.label;
+    
+    const body = document.querySelector(`#tab-${table} .modal-body`);
+    if (!body) return;
+    
+    body.innerHTML = `<input type="hidden" id="editId-${table}" value="${id}">` +
+        t.fields.map(f => {
+            const id = `f-${table}-${f.key}`;
+            const val = item[f.key] !== undefined && item[f.key] !== null ? item[f.key] : '';
+            let input = '';
+            if (f.type === 'textarea') {
+                input = `<textarea class="form-control" id="${id}" ${f.required ? 'required' : ''}>${val}</textarea>`;
+            } else if (f.type === 'checkbox') {
+                input = `<input type="checkbox" class="form-check-input" id="${id}" ${val ? 'checked' : ''} style="width:20px;height:20px">`;
+            } else if (f.type === 'select') {
+                input = `<select class="form-select" id="${id}">${f.options.map(o => `<option value="${o}" ${val === o ? 'selected' : ''}>${o}</option>`).join('')}</select>`;
+            } else if (f.type === 'number') {
+                input = `<input type="number" class="form-control" id="${id}" value="${val}">`;
+            } else {
+                input = `<input class="form-control" id="${id}" value="${val}" ${f.required ? 'required' : ''}>`;
+            }
+            return `<div class="mb-2"><label class="form-label small text-muted">${f.label}</label>${input}</div>`;
+        }).join('');
+    
+    new bootstrap.Modal(document.getElementById('modal-' + table)).show();
+}
+
+// ======================== DELETE RECORD ========================
+async function deleteRecord(table, id) {
+    const r = await Swal.fire({
+        icon: 'warning', title: 'Xóa bản ghi?', text: 'Hành động này không thể hoàn tác!',
+        showCancelButton: true, confirmButtonText: 'XÓA', cancelButtonText: 'Hủy',
+        background:'#1a1a2e', color:'#fff'
+    });
+    if (!r.isConfirmed) return;
+    
+    try {
+        const resp = await fetch(`/api/admin/${table}/${id}`, {
+            method: 'DELETE',
+            headers: { 'Authorization': authToken }
+        });
+        const result = await resp.json();
+        if (result.success) {
+            Swal.fire({icon:'success',title:'Đã xóa!',timer:1000,showConfirmButton:false,background:'#1a1a2e',color:'#fff'});
+            loadAllData();
+        } else {
+            throw new Error(result.error);
+        }
+    } catch(e) {
+        // Fallback
+        try {
+            await _supabase.from(table).delete().eq('id', id);
+            Swal.fire({icon:'success',title:'Đã xóa!',timer:1000,showConfirmButton:false,background:'#1a1a2e',color:'#fff'});
+            loadAllData();
+        } catch(e2) {
+            Swal.fire({icon:'error',title:'Lỗi',text:e2.message,background:'#1a1a2e',color:'#fff'});
+        }
+    }
+}
+
+// ======================== REALTIME ========================
+function subscribeRealtime() {
+    TABLES.forEach(t => {
+        try {
+            _supabase.channel('admin-' + t.name)
+                .on('postgres_changes', { event: '*', schema: 'public', table: t.name }, () => {
+                    console.log('[RT]', t.name, 'changed');
+                    loadDirectFromSupabase();
+                })
+                .subscribe();
+        } catch(e) {}
+    });
+    document.getElementById('rt-status').innerHTML = '<i class="fas fa-circle"></i> Đang lắng nghe';
+}
+
+// ======================== INIT ========================
+// Auto-create tab sections for each CMS table
+document.addEventListener('DOMContentLoaded', function() {
+    const mainContent = document.querySelector('.main-content');
+    
+    TABLES.forEach(t => {
+        // Create tab section
+        const div = document.createElement('div');
+        div.id = 'tab-' + t.name;
+        div.className = 'tab-section';
+        div.innerHTML = `
+            <div class="card">
+                <div class="card-header"><i class="fas fa-${t.icon} text-primary"></i> ${t.label}</div>
+                <div class="card-body">
+                    <button class="btn btn-primary btn-sm mb-3" onclick="showAddForm('${t.name}')"><i class="fas fa-plus"></i> Thêm</button>
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead><tr>${t.cols.map(c => `<th>${c.label}</th>`).join('')}<th style="width:100px">Thao tác</th></tr></thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="modal fade modal-custom" id="modal-${t.name}">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header"><h5 class="modal-title" id="modalTitle-${t.name}">Thêm ${t.label}</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+                        <div class="modal-body"><input type="hidden" id="editId-${t.name}"></div>
+                        <div class="modal-footer">
+                            <button class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                            <button class="btn btn-primary" onclick="saveRecord('${t.name}')">Lưu</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        mainContent.appendChild(div);
+    });
+});
+
+console.log('🚀 SUPER ADMIN CMS v4.0');
+console.log('🔗 Supabase:', SUPABASE_URL);
+</script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
