@@ -8,6 +8,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link href="https://cdn.quilljs.com/1.3.7/quill.snow.css" rel="stylesheet">
+    <script src="https://cdn.quilljs.com/1.3.7/quill.min.js"></script>
     <style>
         *{margin:0;padding:0;box-sizing:border-box}
         body{background:#0f0f1a;font-family:'Segoe UI',sans-serif;color:#fff;overflow-x:hidden}
@@ -253,7 +255,7 @@ const TABLES = [
           { key: 'slug', label: 'Slug', type: 'text', required: true },
           { key: 'category_id', label: 'Danh mục (ID)', type: 'number' },
           { key: 'excerpt', label: 'Mô tả ngắn', type: 'textarea' },
-          { key: 'content', label: 'Nội dung', type: 'textarea' },
+          { key: 'content', label: 'Nội dung (soạn thảo + chèn ảnh)', type: 'richtext' },
           { key: 'thumbnail_url', label: 'Ảnh đại diện (URL)', type: 'text' },
           { key: 'tags', label: 'Tags (phân cách bằng dấu phẩy)', type: 'text' },
           { key: 'status', label: 'Trạng thái', type: 'select', options: ['draft','published','archived'] },
@@ -534,6 +536,21 @@ function renderTable(table) {
 }
 
 // ======================== SHOW ADD FORM ========================
+let quillInstances = {};
+function initRichEditors(table, item) {
+    const t = TABLES.find(x => x.name === table);
+    if (!t || !window.Quill) return;
+    t.fields.forEach(f => {
+        if (f.type !== 'richtext') return;
+        const cont = document.getElementById(`q-f-${table}-${f.key}`);
+        if (!cont) return;
+        cont.innerHTML = '';
+        const q = new Quill(cont, { theme: 'snow', modules: { toolbar: [['bold','italic','underline','strike'],[{header:[1,2,3,false]}],[{list:'ordered'},{list:'bullet'}],[{align:[]}],['link','image'],['clean']] } });
+        if (item && item[f.key]) q.root.innerHTML = item[f.key];
+        quillInstances[`f-${table}-${f.key}`] = q;
+    });
+}
+
 function showAddForm(table) {
     const t = TABLES.find(x => x.name === table);
     if (!t) return;
@@ -549,7 +566,9 @@ function showAddForm(table) {
         t.fields.map(f => {
             const id = `f-${table}-${f.key}`;
             let input = '';
-            if (f.type === 'textarea') {
+            if (f.type === 'richtext') {
+                input = `<div id="q-${id}" style="background:#fff;color:#111;min-height:220px;border-radius:6px"></div>`;
+            } else if (f.type === 'textarea') {
                 input = `<textarea class="form-control" id="${id}" ${f.required ? 'required' : ''}></textarea>`;
             } else if (f.type === 'checkbox') {
                 input = `<input type="checkbox" class="form-check-input" id="${id}" style="width:20px;height:20px">`;
@@ -564,6 +583,7 @@ function showAddForm(table) {
         }).join('');
     
     new bootstrap.Modal(document.getElementById('modal-' + table)).show();
+    initRichEditors(table, null);
 }
 
 // ======================== SAVE RECORD ========================
@@ -575,6 +595,11 @@ async function saveRecord(table) {
     const data = {};
     
     for (const f of t.fields) {
+        if (f.type === 'richtext') {
+            const rq = quillInstances[`f-${table}-${f.key}`];
+            data[f.key] = rq ? rq.root.innerHTML : '';
+            continue;
+        }
         const el = document.getElementById(`f-${table}-${f.key}`);
         if (!el) continue;
         if (f.type === 'checkbox') {
@@ -637,7 +662,9 @@ function editRecord(table, id) {
             const id = `f-${table}-${f.key}`;
             const val = item[f.key] !== undefined && item[f.key] !== null ? item[f.key] : '';
             let input = '';
-            if (f.type === 'textarea') {
+            if (f.type === 'richtext') {
+                input = `<div id="q-${id}" style="background:#fff;color:#111;min-height:220px;border-radius:6px"></div>`;
+            } else if (f.type === 'textarea') {
                 input = `<textarea class="form-control" id="${id}" ${f.required ? 'required' : ''}>${val}</textarea>`;
             } else if (f.type === 'checkbox') {
                 input = `<input type="checkbox" class="form-check-input" id="${id}" ${val ? 'checked' : ''} style="width:20px;height:20px">`;
@@ -652,6 +679,7 @@ function editRecord(table, id) {
         }).join('');
     
     new bootstrap.Modal(document.getElementById('modal-' + table)).show();
+    initRichEditors(table, item);
 }
 
 // ======================== DELETE RECORD ========================
