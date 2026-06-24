@@ -7,7 +7,6 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <!-- Thư viện Supabase bản UMD ổn định -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
     <link href="https://cdn.quilljs.com/1.3.7/quill.snow.css" rel="stylesheet">
     <script src="https://cdn.quilljs.com/1.3.7/quill.min.js"></script>
@@ -15,15 +14,14 @@
         *{margin:0;padding:0;box-sizing:border-box}
         body{background:#0f0f1a;font-family:'Segoe UI',sans-serif;color:#fff;overflow-x:hidden}
         #login-screen{position:fixed;top:0;left:0;width:100%;height:100vh;background:linear-gradient(135deg,#0a0a0a,#1a1a2e 50%,#16213e);z-index:99999;display:flex;justify-content:center;align-items:center}
-        .login-box{background:rgba(255,255,255,0.05);padding:50px;border-radius:20px;backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.1);width:420px;text-align:center;box-shadow:0 25px 60px rgba(0,0,0,0.5)}
-        .login-box h3{color:#ffd700;font-size:28px;margin-bottom:5px}
-        .sidebar{width:250px;background:linear-gradient(180deg,#0a0a0a,#16162a);color:#fff;min-height:100vh;position:fixed;z-index:1000;border-right:1px solid rgba(255,255,255,0.05)}
-        .main-content{margin-left:250px;min-height:100vh;padding:20px}
+        .login-box{background:rgba(255,255,255,0.05);padding:50px;border-radius:20px;backdrop-filter:blur(20px);width:420px;text-align:center}
+        .sidebar{width:250px;background:#0a0a0a;min-height:100vh;position:fixed;border-right:1px solid #333}
+        .main-content{margin-left:250px;padding:20px}
         .tab-section{display:none} .tab-section.active{display:block}
-        .card{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:14px;margin-bottom:20px}
-        .btn{border-radius:8px;font-weight:600;padding:8px 20px;transition:.3s}
-        .btn-primary{background:linear-gradient(135deg,#0d6efd,#0a58ca)}
-        .modal-custom .modal-content{background:#1a1a2e;border:1px solid rgba(255,255,255,0.1);color:#fff}
+        .card{background:rgba(255,255,255,0.03);border:1px solid #333;border-radius:12px;margin-bottom:20px}
+        .nav-link{cursor:pointer;padding:15px;color:#fff;display:block;text-decoration:none}
+        .nav-link:hover{background:#1a1a2e}
+        .btn{border-radius:8px;font-weight:600}
     </style>
 </head>
 <body>
@@ -31,23 +29,26 @@
 <div id="login-screen">
     <div class="login-box">
         <h3>SUPER ADMIN</h3>
-        <p>Hệ thống quản trị CMS • API CRUD</p>
-        <input type="password" id="login_password" placeholder="Nhập mật khẩu..." onkeydown="if(event.key==='Enter')doLogin()" class="form-control mb-3">
-        <button class="btn btn-primary w-100" onclick="doLogin()"><i class="fas fa-rocket"></i> ĐĂNG NHẬP</button>
+        <input type="password" id="login_password" class="form-control mb-3" placeholder="Nhập mật khẩu...">
+        <button class="btn btn-primary w-100" onclick="doLogin()">ĐĂNG NHẬP</button>
     </div>
 </div>
 
 <div class="wrapper" id="admin-wrapper" style="display:none">
     <nav class="sidebar">
-        <div class="text-center py-4"><h5><i class="fas fa-crown text-warning"></i> ADMIN</h5></div>
-        <a class="nav-link" onclick="showTab('slides')"><i class="fas fa-images"></i> Slide</a>
-        <a class="nav-link" onclick="logout()" style="color:#dc3545"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a>
+        <div class="p-3"><h5><i class="fas fa-crown text-warning"></i> ADMIN</h5></div>
+        <a class="nav-link" onclick="showTab('dashboard')"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+        <a class="nav-link" onclick="showTab('slides')"><i class="fas fa-images"></i> Quản lý Slide</a>
+        <a class="nav-link" onclick="logout()" class="text-danger"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a>
     </nav>
     <div class="main-content">
         <h4 id="page-title">Dashboard</h4>
-        <div id="tab-slides" class="tab-section active">
+        <div id="tab-dashboard" class="tab-section active">
+            <div class="card p-3">Chào mừng Giám đốc trở lại!</div>
+        </div>
+        <div id="tab-slides" class="tab-section">
             <div class="card p-3">
-                <button class="btn btn-primary mb-3" onclick="showAddForm('slides')">Thêm Slide</button>
+                <button class="btn btn-primary mb-3" onclick="showAddForm()">Thêm Slide</button>
                 <table class="table text-white"><thead><tr><th>ID</th><th>Ảnh</th><th>Thao tác</th></tr></thead><tbody id="table-slides"></tbody></table>
             </div>
         </div>
@@ -55,17 +56,13 @@
 </div>
 
 <script>
-// Khởi tạo Supabase an toàn
-const SUPABASE_URL = "https://bfruxinvvvaqufghtigw.supabase.co";
-const SUPABASE_ANON_KEY = "sb_publishable_QUYv4qEJntioJJ-XWtHkdA_haHovSml";
-const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const _supabase = supabase.createClient("https://bfruxinvvvaqufghtigw.supabase.co", "sb_publishable_QUYv4qEJntioJJ-XWtHkdA_haHovSml");
 
 async function doLogin() {
     const pwd = document.getElementById('login_password').value;
     if (pwd === 'admin' || pwd === '8386' || pwd === 'cuaau@2026') {
         document.getElementById('login-screen').style.display = 'none';
         document.getElementById('admin-wrapper').style.display = 'block';
-        Swal.fire({icon:'success',title:'Chào Giám đốc!',background:'#1a1a2e',color:'#fff'});
         loadData();
     } else {
         Swal.fire({icon:'error',title:'Sai mật khẩu',background:'#1a1a2e',color:'#fff'});
@@ -76,6 +73,12 @@ async function loadData() {
     const { data } = await _supabase.from('slides').select('*');
     const tbody = document.getElementById('table-slides');
     tbody.innerHTML = data.map(item => `<tr><td>${item.id}</td><td><img src="${item.image_url}" width="60"></td><td>...</td></tr>`).join('');
+}
+
+function showTab(tab) {
+    document.querySelectorAll('.tab-section').forEach(t => t.style.display = 'none');
+    document.getElementById('tab-' + tab).style.display = 'block';
+    document.getElementById('page-title').innerText = tab === 'slides' ? 'Quản lý Slide' : 'Dashboard';
 }
 
 function logout() { location.reload(); }
