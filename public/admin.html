@@ -287,7 +287,7 @@ const TABLES = [
       fields: [
           { key: 'title', label: 'Tiêu đề', type: 'text' },
           { key: 'subtitle', label: 'Phụ đề', type: 'text' },
-          { key: 'image_url', label: 'Upload Hình ảnh', type: 'image', required: true }, // Đã đổi thành type image cực chất
+          { key: 'image_url', label: 'Upload Hình ảnh', type: 'image', required: true }, // Đã đổi thành type image
           { key: 'link_url', label: 'Link URL', type: 'text' },
           { key: 'display_order', label: 'Thứ tự', type: 'number' },
           { key: 'is_active', label: 'Kích hoạt', type: 'checkbox' }
@@ -401,7 +401,6 @@ const TABLES = [
 ];
 
 // ======================== LOGIN ========================
-// ======================== LOGIN (BẢN THỰC CHIẾN SIÊU TỐC) ========================
 async function doLogin() {
     const pwd = document.getElementById('login_password').value;
     if (!pwd) { Swal.fire({icon:'warning',title:'Nhập mật khẩu!',background:'#1a1a2e',color:'#fff'}); return; }
@@ -424,28 +423,6 @@ async function doLogin() {
     } else {
         Swal.fire({icon:'error',title:'Sai mật khẩu!',background:'#1a1a2e',color:'#fff'});
     }
-} {
-    const pwd = document.getElementById('login_password').value;
-    if (!pwd) { Swal.fire({icon:'warning',title:'Nhập mật khẩu!',background:'#1a1a2e',color:'#fff'}); return; }
-    try {
-        const resp = await fetch('/api/auth/login', {
-            method:'POST', headers:{'Content-Type':'application/json'},
-            body: JSON.stringify({password: pwd})
-        });
-        const result = await resp.json();
-        if (result.success) {
-            authToken = 'Bearer ' + result.token;
-            currentUser = result.user || {username:'admin',role:'superadmin',full_name:'Super Admin'};
-            document.getElementById('login-screen').style.display = 'none';
-            document.getElementById('admin-wrapper').style.display = 'block';
-            document.getElementById('user-role').textContent = (currentUser.role || 'admin').toUpperCase();
-            Swal.fire({icon:'success',title:'Chào mừng!',text:'Hệ thống đã sẵn sàng',timer:1500,showConfirmButton:false,background:'#1a1a2e',color:'#fff'});
-            loadAllData();
-            subscribeRealtime();
-            return;
-        }
-    } catch(e) {}
-    Swal.fire({icon:'error',title:'Sai mật khẩu!',background:'#1a1a2e',color:'#fff'});
 }
 
 function logout() {
@@ -585,7 +562,6 @@ function showAddForm(table) {
             if (f.type === 'richtext') {
                 input = `<div id="q-${id}" style="background:#fff;color:#111;min-height:220px;border-radius:6px"></div>`;
             } else if (f.type === 'image') {
-                // TÍCH HỢP CODE UPLOAD ẢNH (MỚI)
                 input = `<input type="file" accept="image/*" class="form-control" id="${id}" data-old="">`;
             } else if (f.type === 'textarea') {
                 input = `<textarea class="form-control" id="${id}" ${f.required ? 'required' : ''}></textarea>`;
@@ -622,7 +598,7 @@ async function saveRecord(table) {
             continue;
         }
 
-        // --- BẮT ĐẦU XỬ LÝ UPLOAD ẢNH LÊN SUPABASE (MỚI) ---
+        // --- BẮT ĐẦU XỬ LÝ UPLOAD ẢNH LÊN SUPABASE ---
         if (f.type === 'image') {
             const inp = document.getElementById(`f-${table}-${f.key}`);
             if (inp && inp.files && inp.files[0]) {
@@ -640,7 +616,6 @@ async function saveRecord(table) {
             }
             continue;
         }
-        // --- KẾT THÚC ---
 
         const el = document.getElementById(`f-${table}-${f.key}`);
         if (!el) continue;
@@ -679,7 +654,7 @@ async function saveRecord(table) {
             throw new Error(result.error);
         }
     } catch(e) {
-        Swal.fire({icon:'error',title:'Lưu thất bại',html:'Server từ chối ghi:<br><b>'+(e.message||'')+'</b><br><br>→ Kiểm tra <b>SUPABASE_SERVICE_KEY</b> trên Vercel (môi trường <b>Production</b>) phải là <b>service_role legacy (eyJ...)</b>, rồi Redeploy.',background:'#1a1a2e',color:'#fff'});
+        Swal.fire({icon:'error',title:'Lưu thất bại',html:'Server từ chối ghi:<br><b>'+(e.message||'')+'</b><br><br>→ Kiểm tra lại cấu hình Vercel.',background:'#1a1a2e',color:'#fff'});
     }
 }
 
@@ -696,4 +671,13 @@ function editRecord(table, id) {
     const body = document.querySelector(`#tab-${table} .modal-body`);
     if (!body) return;
     
-    body.innerHTML =
+    body.innerHTML = `<input type="hidden" id="editId-${table}" value="${id}">` +
+        t.fields.map(f => {
+            const id = `f-${table}-${f.key}`;
+            const val = item[f.key] !== undefined && item[f.key] !== null ? item[f.key] : '';
+            let input = '';
+            if (f.type === 'richtext') {
+                input = `<div id="q-${id}" style="background:#fff;color:#111;min-height:220px;border-radius:6px"></div>`;
+            } else if (f.type === 'image') {
+                input = `<input type="file" accept="image/*" class="form-control" id="${id}" data-old="${(val||'')}">` +
+                        (val ? `<img src="${val}" style="max-height:90px;margin-top:6px;
