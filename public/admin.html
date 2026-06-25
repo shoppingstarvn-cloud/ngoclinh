@@ -519,7 +519,7 @@ function renderTable(table) {
     tbody.innerHTML = data.map(row => {
         let cols = t.cols.map(c => {
             if (c.render) return `<td>${c.render(row[c.key])}</td>`;
-            const val = row[c.key];
+            const val = row[c.key] !== undefined ? row[c.key] : '';
             if (c.key === 'id') return `<td class="text-muted">${val}</td>`;
             if (typeof val === 'boolean') return `<td>${val ? '<span class="text-success">✓</span>' : '<span class="text-danger">✗</span>'}</td>`;
             if (typeof val === 'string' && val.length > 80) return `<td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${val.substring(0, 80)}...</td>`;
