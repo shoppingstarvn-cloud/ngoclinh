@@ -575,11 +575,11 @@ function showAddForm(table) {
             } else if (f.type === 'select') {
                 input = `<select class="form-select" id="${id}">${f.options.map(o => `<option value="${o}">${o}</option>`).join('')}</select>`;
             } else if (f.type === 'number') {
-                input = `<input type="number" class="form-control" id="${id}" value="0">`;
+                input = `<input type="number" class="form-control" id="${id}" value="0" placeholder="Nhập ${f.label.toLowerCase()}">`;
             } else {
-                input = `<input class="form-control" id="${id}" ${f.required ? 'required' : ''}>`;
+                input = `<input class="form-control" id="${id}" placeholder="Nhập ${f.label.toLowerCase()}" ${f.required ? 'required' : ''}>`;
             }
-            return `<div class="mb-2"><label class="form-label small text-muted">${f.label}</label>${input}</div>`;
+            return `<div class="mb-3"><label class="form-label fw-bold text-white">${f.label}${f.required ? ' <span class="text-danger">*</span>' : ''}</label>${input}</div>`;
         }).join('');
     
     new bootstrap.Modal(document.getElementById('modal-' + table)).show();
@@ -671,11 +671,11 @@ function editRecord(table, id) {
             } else if (f.type === 'select') {
                 input = `<select class="form-select" id="${id}">${f.options.map(o => `<option value="${o}" ${val === o ? 'selected' : ''}>${o}</option>`).join('')}</select>`;
             } else if (f.type === 'number') {
-                input = `<input type="number" class="form-control" id="${id}" value="${val}">`;
+                input = `<input type="number" class="form-control" id="${id}" value="${val}" placeholder="Nhập ${f.label.toLowerCase()}">`;
             } else {
-                input = `<input class="form-control" id="${id}" value="${val}" ${f.required ? 'required' : ''}>`;
+                input = `<input class="form-control" id="${id}" value="${val}" placeholder="Nhập ${f.label.toLowerCase()}" ${f.required ? 'required' : ''}>`;
             }
-            return `<div class="mb-2"><label class="form-label small text-muted">${f.label}</label>${input}</div>`;
+            return `<div class="mb-3"><label class="form-label fw-bold text-white">${f.label}${f.required ? ' <span class="text-danger">*</span>' : ''}</label>${input}</div>`;
         }).join('');
     
     new bootstrap.Modal(document.getElementById('modal-' + table)).show();
