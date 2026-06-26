@@ -81,7 +81,6 @@
 </head>
 <body>
 
-<!-- LOGIN SCREEN -->
 <div id="login-screen">
     <div class="login-box">
         <div class="mb-3"><i class="fas fa-crown" style="font-size:60px;color:#ffd700"></i></div>
@@ -96,7 +95,6 @@
     </div>
 </div>
 
-<!-- ADMIN WRAPPER -->
 <div class="wrapper" id="admin-wrapper" style="display:none">
     <nav class="sidebar">
         <div class="brand"><h5><i class="fas fa-crown"></i> ADMIN</h5><small>Bê Tông Phương Bắc</small></div>
@@ -132,7 +130,6 @@
             </div>
         </div>
 
-        <!-- DASHBOARD -->
         <div id="tab-dashboard" class="tab-section active">
             <div class="stats-grid" id="stats-grid"></div>
             <div class="row">
@@ -158,7 +155,6 @@
             </div>
         </div>
 
-        <!-- DYNAMIC TABS: Each CMS table gets a tab -->
         <div id="tab-site_settings" class="tab-section">
             <div class="card"><div class="card-header"><i class="fas fa-cog text-primary"></i> Cài đặt Website</div>
             <div class="card-body">
@@ -166,7 +162,6 @@
                 <button class="btn btn-primary btn-sm mb-3" onclick="showAddForm('site_settings')"><i class="fas fa-plus"></i> Thêm cấu hình</button>
                 <div class="table-responsive"><table class="table" id="table-site_settings"><thead><tr><th>ID</th><th>Key</th><th>Value</th><th>Thao tác</th></tr></thead><tbody></tbody></table></div>
             </div></div>
-            <!-- Modal -->
             <div class="modal fade modal-custom" id="modal-site_settings"><div class="modal-dialog"><div class="modal-content">
                 <div class="modal-header"><h5 class="modal-title" id="modalTitle-site_settings">Thêm cấu hình</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
                 <div class="modal-body">
@@ -181,14 +176,12 @@
             </div></div></div>
         </div>
 
-        <!-- GENERIC TAB TEMPLATE (hidden, cloned by JS for each table) -->
         <template id="tab-template">
             <div class="card"><div class="card-header"><i class="fas fa-table text-primary" id="tab-icon"></i> <span id="tab-title">Quản lý</span></div>
             <div class="card-body">
                 <button class="btn btn-primary btn-sm mb-3 add-btn" onclick="showAddForm('')"><i class="fas fa-plus"></i> Thêm</button>
                 <div class="table-responsive"><table class="table"><thead id="table-head"></thead><tbody id="table-body"></tbody></table></div>
             </div></div>
-            <!-- Modal -->
             <div class="modal fade modal-custom" id="modal-generic"><div class="modal-dialog modal-lg"><div class="modal-content">
                 <div class="modal-header"><h5 class="modal-title" id="modalTitle-generic">Thêm</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
                 <div class="modal-body" id="modal-body-generic"></div>
@@ -575,7 +568,22 @@ function showAddForm(table) {
         t.fields.map(f => {
             const id = `f-${table}-${f.key}`;
             let input = '';
-            if (f.type === 'richtext') {
+            
+            // ĐÂY LÀ PHẦN CAN THIỆP CỰC MẠNH CỦA VỢ: TỰ ĐỘNG BẮT CÁC TRƯỜNG HÌNH ẢNH
+            const isImageField = ['image_url', 'thumbnail_url', 'logo_url', 'avatar_url', 'file_path'].includes(f.key);
+            
+            if (isImageField) {
+                input = `
+                <div class="upload-zone" data-target="${f.key}">
+                    <div class="upload-drop-area" style="border: 2px dashed #0d6efd; padding: 20px; text-align: center; cursor: pointer; border-radius: 8px; background: rgba(13,110,253,0.05);" onclick="document.getElementById('file-upload-${id}').click()">
+                        <p style="margin:0; color:rgba(255,255,255,0.6);">📷 Kéo thả ảnh hoặc click để chọn file</p>
+                        <input type="file" id="file-upload-${id}" accept="image/*,video/*" style="display:none" onchange="handleFileSelect(this, '${id}')">
+                    </div>
+                    <div class="preview-container" id="preview-${id}" style="margin-top: 10px;"></div>
+                    <input type="hidden" id="${id}" value="" ${f.required ? 'required' : ''}>
+                </div>`;
+            } 
+            else if (f.type === 'richtext') {
                 input = `<div id="q-${id}" style="background:#fff;color:#111;min-height:220px;border-radius:6px"></div>`;
             } else if (f.type === 'textarea') {
                 input = `<textarea class="form-control" id="${id}" ${f.required ? 'required' : ''}></textarea>`;
@@ -671,7 +679,23 @@ function editRecord(table, id) {
             const id = `f-${table}-${f.key}`;
             const val = item[f.key] !== undefined && item[f.key] !== null ? item[f.key] : '';
             let input = '';
-            if (f.type === 'richtext') {
+            
+            // ĐÂY LÀ PHẦN CAN THIỆP CỰC MẠNH CỦA VỢ: TỰ ĐỘNG BẮT CÁC TRƯỜNG HÌNH ẢNH (FORM SỬA)
+            const isImageField = ['image_url', 'thumbnail_url', 'logo_url', 'avatar_url', 'file_path'].includes(f.key);
+            
+            if (isImageField) {
+                const currentImg = val ? `<img src="${val}" style="width:100px; height:100px; object-fit:cover; border-radius:8px; border:2px solid rgba(255,255,255,0.1);">` : '';
+                input = `
+                <div class="upload-zone" data-target="${f.key}">
+                    <div class="upload-drop-area" style="border: 2px dashed #0d6efd; padding: 20px; text-align: center; cursor: pointer; border-radius: 8px; background: rgba(13,110,253,0.05);" onclick="document.getElementById('file-upload-${id}').click()">
+                        <p style="margin:0; color:rgba(255,255,255,0.6);">📷 Kéo thả ảnh hoặc click để chọn file</p>
+                        <input type="file" id="file-upload-${id}" accept="image/*,video/*" style="display:none" onchange="handleFileSelect(this, '${id}')">
+                    </div>
+                    <div class="preview-container" id="preview-${id}" style="margin-top: 10px;">${currentImg}</div>
+                    <input type="hidden" id="${id}" value="${val}" ${f.required ? 'required' : ''}>
+                </div>`;
+            }
+            else if (f.type === 'richtext') {
                 input = `<div id="q-${id}" style="background:#fff;color:#111;min-height:220px;border-radius:6px"></div>`;
             } else if (f.type === 'textarea') {
                 input = `<textarea class="form-control" id="${id}" ${f.required ? 'required' : ''}>${val}</textarea>`;
@@ -739,6 +763,35 @@ function subscribeRealtime() {
     document.getElementById('rt-status').innerHTML = '<i class="fas fa-circle"></i> Đang lắng nghe';
 }
 
+// ======================== HÀM XỬ LÝ UPLOAD TRỰC TIẾP (VỢ THÊM VÀO CHO ANH) ========================
+async function handleFileSelect(input, targetId) {
+    const file = input.files[0];
+    if (!file) return;
+
+    const preview = document.getElementById(`preview-${targetId}`);
+    preview.innerHTML = '<span style="color:#0dcaf0;"><i class="fas fa-spinner fa-spin"></i> Đang upload ảnh lên mây...</span>';
+
+    // Kiểm tra xem hàm uploadToSupabaseStorage từ upload-handler.js đã sắn sàng chưa
+    if (typeof uploadToSupabaseStorage !== 'function') {
+        Swal.fire({icon:'error', title:'Lỗi cấu hình', text:'Không tìm thấy hàm uploadToSupabaseStorage()!', background:'#1a1a2e', color:'#fff'});
+        preview.innerHTML = '<span class="text-danger">Upload thất bại!</span>';
+        return;
+    }
+
+    try {
+        const url = await uploadToSupabaseStorage(file);
+        if (url) {
+            document.getElementById(targetId).value = url; // Lưu URL tuyệt đẹp vào input ẩn để chờ ấn nút LƯU
+            preview.innerHTML = `<img src="${url}" style="width:100px; height:100px; object-fit:cover; border-radius:8px; border:2px solid rgba(255,255,255,0.1); margin-top:10px;">`;
+        } else {
+            preview.innerHTML = '<span class="text-danger">Không nhận được URL từ server!</span>';
+        }
+    } catch (error) {
+        console.error("Lỗi upload: ", error);
+        preview.innerHTML = '<span class="text-danger">Lỗi khi upload file! Hãy kiểm tra lại Policy.</span>';
+    }
+}
+
 // ======================== INIT ========================
 // Auto-create tab sections for each CMS table
 document.addEventListener('DOMContentLoaded', function() {
@@ -779,7 +832,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
-console.log('🚀 SUPER ADMIN CMS v4.0');
+console.log('🚀 SUPER ADMIN CMS v4.0 (Tích hợp Upload Kéo Thả Cực Mạnh)');
 console.log('🔗 Supabase:', SUPABASE_URL);
 </script>
 <script src="upload-handler.js"></script>
