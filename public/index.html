@@ -66,10 +66,8 @@ $(document).ready(function() {
             }
         }
     });
-    $('.slide-carousel').owlCarousel({
-        loop: true, autoplay:true, margin:0, responsiveClass:true,
-        responsive:{ 0:{ items:1, nav:false, dots: true }, 600:{ items:1, nav:false, dots: true }, 1000:{ items:1, nav:false, dots: true } }
-    });
+    // SLIDE: KHÔNG khởi tạo Owl ở đây. realtime-data.js sẽ tự kéo dữ liệu từ Supabase
+    // rồi mới khởi tạo Owl cho #slide-container (init SAU khi đã chèn data).
     $('.partner-carousel').owlCarousel({
         loop: true, autoplay:true, margin:20, responsiveClass:true,
         responsive:{ 0:{ items:2, nav:false, dots: true }, 600:{ items:3, nav:false, dots: true }, 1000:{ items:6, nav:false, dots: true } }
@@ -877,5 +875,7 @@ Chủ đầu tư: Tổng công ty CP VINACONEX
 </div>
 </div> </body>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="realtime-data.js"></script>
+<!-- ?v= cache-bust: ép trình duyệt tải bản mới nhất, tránh lỗi cache cũ (loadSlides is not defined) -->
+<script src="realtime-data.js?v=20260629"></script>
 </html>
+
