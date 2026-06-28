@@ -14,7 +14,7 @@ function reinitOwl(sel, opts) {
 // ============ 1. SLIDES ============
 async function loadSlides() {
     try {
-        const { data } = await supabase.from('slides').select('*').eq('is_active', true).order('display_order').limit(10);
+        const { data } = await supabase.from('slides').select('*').eq('is_active', true).order('display_order', { ascending: true }).order('id', { ascending: true }).limit(10);
         if (!data || data.length === 0) return; // Giữ hardcode nếu trống
         const c = document.querySelector('.slide-carousel');
         if (!c) return;
@@ -165,7 +165,7 @@ async function loadVideos() {
 // ============ 10. PHOTOS (Thư viện ảnh -> #photo-list nếu có) ============
 async function loadPhotos() {
     try {
-        const { data } = await supabase.from('photos').select('*').order('display_order').limit(30);
+        const { data } = await supabase.from('photos').select('*').eq('is_active', true).order('display_order', { ascending: true }).order('id', { ascending: true }).limit(30);
         if (!data || data.length === 0) return;
         const c = document.querySelector('#photo-list, .photo-list, .gallery-list');
         if (!c) return;
