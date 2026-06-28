@@ -11,21 +11,38 @@ function reinitOwl(sel, opts) {
     }
 }
 
-// ============ 1. SLIDES ============
+// ============ 1. SLIDES (Dynamic 100% -> #slide-container) ============
 async function loadSlides() {
+    // Container động: ưu tiên #slide-container, fallback .slide-carousel
+    const c = document.querySelector('#slide-container, .slide-carousel');
+    if (!c) return;
     try {
-        const { data } = await supabase.from('slides').select('*').eq('is_active', true).order('display_order', { ascending: true }).order('id', { ascending: true }).limit(10);
-        if (!data || data.length === 0) return; // Giữ hardcode nếu trống
-        const c = document.querySelector('.slide-carousel');
-        if (!c) return;
+        const { data } = await supabase
+            .from('slides')
+            .select('*')
+            .eq('is_active', true)
+            .order('display_order', { ascending: true })
+            .order('id', { ascending: true })
+            .limit(10);
+
+        // XÓA SẠCH nội dung cũ (huỷ owl cũ trước khi vẽ lại) — đảm bảo realtime luôn mới nhất
+        try { if (window.jQuery) jQuery(c).trigger('destroy.owl.carousel'); } catch(e){}
+        c.innerHTML = '';
+
+        if (!data || data.length === 0) return; // Không còn slide active -> để trống (đúng dữ liệu Supabase)
+
+        // CHÈN LẠI các slide mới từ Supabase
         c.innerHTML = data.map(s => `
             <div class="item">
                 <a href="${s.link_url || '#'}"><img src="${s.image_url}" alt="${s.title || 'Slide'}" /></a>
                 ${s.title ? `<div><h3>${s.title}</h3><p>${s.subtitle || ''}</p></div>` : ''}
             </div>`).join('');
-        reinitOwl('.slide-carousel', { loop:true, autoplay:true, margin:0, responsiveClass:true, responsive:{0:{items:1,dots:true},1000:{items:1,dots:true}} });
+
+        // Khởi tạo lại carousel sau khi đã có dữ liệu thật
+        reinitOwl('#slide-container', { loop: data.length > 1, autoplay:true, margin:0, responsiveClass:true, responsive:{0:{items:1,dots:true},1000:{items:1,dots:true}} });
     } catch(e) { console.error('[Slides]', e); }
 }
+
 
 // ============ 2. PRODUCTS ============
 async function loadProducts() {
