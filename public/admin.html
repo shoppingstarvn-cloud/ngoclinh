@@ -209,7 +209,7 @@ const TABLES = [
     { name: 'site_settings', label: 'Cài đặt', icon: 'cog', pk: 'id',
       fields: [
           { key: 'key', label: 'Key', type: 'text', required: true },
-          { key: 'value', label: 'Value', type: 'text' }
+          { key: 'value', label: 'Value', type: 'textarea' }   // textarea: an toàn với HTML/quote collision
       ],
       cols: [
           { key: 'id', label: 'ID' },
@@ -698,7 +698,8 @@ function editRecord(table, id) {
             else if (f.type === 'richtext') {
                 input = `<div id="q-${id}" style="background:#fff;color:#111;min-height:220px;border-radius:6px"></div>`;
             } else if (f.type === 'textarea') {
-                input = `<textarea class="form-control" id="${id}" ${f.required ? 'required' : ''}>${val}</textarea>`;
+                // KHÔNG nội suy val vào innerHTML — gán qua DOM API sau khi render xong
+                input = `<textarea class="form-control" id="${id}" rows="6" ${f.required ? 'required' : ''}></textarea>`;
             } else if (f.type === 'checkbox') {
                 input = `<input type="checkbox" class="form-check-input" id="${id}" ${val ? 'checked' : ''} style="width:20px;height:20px">`;
             } else if (f.type === 'select') {
@@ -706,11 +707,29 @@ function editRecord(table, id) {
             } else if (f.type === 'number') {
                 input = `<input type="number" class="form-control" id="${id}" value="${val}" placeholder="Nhập ${f.label.toLowerCase()}">`;
             } else {
-                input = `<input class="form-control" id="${id}" value="${val}" placeholder="Nhập ${f.label.toLowerCase()}" ${f.required ? 'required' : ''}>`;
+                // KHÔNG nội suy val vào attribute value — gán qua DOM API sau
+                input = `<input class="form-control" id="${id}" data-safe-val="1" placeholder="Nhập ${f.label.toLowerCase()}" ${f.required ? 'required' : ''}>`;
             }
             return `<div class="mb-3"><label class="form-label fw-bold text-white">${f.label}${f.required ? ' <span class="text-danger">*</span>' : ''}</label>${input}</div>`;
         }).join('');
-    
+
+    // =====================================================================
+    // DOM-SAFE ASSIGNMENT: gán giá trị SAU khi body.innerHTML đã render xong
+    // Tránh hoàn toàn quote collision khi val chứa HTML như <span style="...">
+    // =====================================================================
+    t.fields.forEach(f => {
+        const fid = `f-${table}-${f.key}`;
+        const el = document.getElementById(fid);
+        if (!el) return;
+        const fval = item[f.key] != null ? String(item[f.key]) : '';
+        if (f.type === 'textarea') {
+            el.value = fval;                          // .value = chuỗi thuần, không parse HTML
+        } else if (el.hasAttribute('data-safe-val')) {
+            el.value = fval;                          // input text/url/email: gán qua .value
+            el.removeAttribute('data-safe-val');
+        }
+    });
+
     new bootstrap.Modal(document.getElementById('modal-' + table)).show();
     initRichEditors(table, item);
 }
