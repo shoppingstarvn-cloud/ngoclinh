@@ -32,7 +32,7 @@
 <script type="text/javascript" language="javascript" src="css/animate/wow.min.js"></script>
 <link rel="stylesheet" href="css/css/owlcarousel/assets/owl.carousel.min.css">
 <link rel="stylesheet" href="css/css/owlcarousel/assets/owl.theme.default.min.css">
-<script src="css/css/owlcarousel/owl.carousel.js"></script>
+<!-- Owl JS nạp ở CUỐI <body> qua CDN (đúng thứ tự: jQuery -> Owl -> Supabase -> realtime-data.js) -->
 
 <script type="text/javascript">
 $(document).ready(function() {
@@ -66,21 +66,13 @@ $(document).ready(function() {
             }
         }
     });
-    // SLIDE: KHÔNG khởi tạo Owl ở đây. realtime-data.js sẽ tự kéo dữ liệu từ Supabase
-    // rồi mới khởi tạo Owl cho #slide-container (init SAU khi đã chèn data).
-    $('.partner-carousel').owlCarousel({
-        loop: true, autoplay:true, margin:20, responsiveClass:true,
-        responsive:{ 0:{ items:2, nav:false, dots: true }, 600:{ items:3, nav:false, dots: true }, 1000:{ items:6, nav:false, dots: true } }
-    });
-    $('.product-carousel').owlCarousel({
-        loop: true, autoplay:true, margin:20, responsiveClass:true,
-        responsive:{ 0:{ items:1, nav:false, dots: true }, 600:{ items:2, nav:false, dots: true }, 1000:{ items:3, nav:false, dots: true } }
-    });
-    $('.comment-carousel').owlCarousel({
-        loop: true, autoplay:true, autoplayTimeout:4000, margin: 10, responsiveClass:true, nav:true,
-        responsive:{ 0:{ items:1, nav:false, dots: true }, 600:{ items:1, nav:false, dots: true }, 1000:{ items:2, nav:true, dots: true } }
-    });
+    // ⛔ KHÔNG khởi tạo Owl Carousel ở đây nữa.
+    // TẤT CẢ owlCarousel() được gọi trong realtime-data.js — SAU khi:
+    //   (1) thư viện Owl (CDN) đã nạp xong ở cuối <body>, và
+    //   (2) dữ liệu từ Supabase đã được chèn vào HTML.
+    // Việc này triệt tiêu lỗi "$(...).owlCarousel is not a function".
 });
+
 </script>
 </head>
 
@@ -874,8 +866,15 @@ Chủ đầu tư: Tổng công ty CP VINACONEX
     </div>
 </div>
 </div> </body>
+<!-- ============================================================
+     THỨ TỰ NẠP THƯ VIỆN BẮT BUỘC (chống lỗi $(...).owlCarousel is not a function)
+     1) jQuery: đã nạp DUY NHẤT 1 lần ở <head> (KHÔNG nạp lại để tránh ghi đè plugin)
+     2) Owl Carousel 2.3.4 (CDN)
+     3) Supabase JS
+     4) realtime-data.js (tự kéo dữ liệu + khởi tạo Owl SAU khi đã chèn data)
+     ============================================================ -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/owl.carousel.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<!-- ?v= cache-bust: ép trình duyệt tải bản mới nhất, tránh lỗi cache cũ (loadSlides is not defined) -->
-<script src="realtime-data.js?v=20260629"></script>
+<script src="realtime-data.js?v=20260630"></script>
 </html>
 

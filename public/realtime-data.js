@@ -47,10 +47,13 @@ async function loadSlides() {
 // ============ 2. PRODUCTS ============
 async function loadProducts() {
     try {
-        const { data } = await supabase.from('products').select('*').eq('is_active', true).order('display_order').limit(15);
-        if (!data || data.length === 0) return;
         const c = document.querySelector('.product-carousel');
         if (!c) return;
+        const { data } = await supabase.from('products').select('*').eq('is_active', true).order('display_order').limit(15);
+        if (!data || data.length === 0) {
+            reinitOwl('.product-carousel', { loop:true, autoplay:true, margin:20, responsiveClass:true, responsive:{0:{items:1,dots:true},600:{items:2,dots:true},1000:{items:3,dots:true}} });
+            return; // Giữ nội dung tĩnh + vẫn chạy carousel
+        }
         c.innerHTML = data.map(p => `
             <div class="item"><dl>
                 <dt><img src="${p.thumbnail_url || 'images/placeholder.jpg'}" alt="${p.name}" title="${p.name}"></dt>
@@ -63,10 +66,13 @@ async function loadProducts() {
 // ============ 3. PARTNERS ============
 async function loadPartners() {
     try {
-        const { data } = await supabase.from('partners').select('*').eq('is_active', true).order('display_order').limit(20);
-        if (!data || data.length === 0) return;
         const c = document.querySelector('.partner-carousel');
         if (!c) return;
+        const { data } = await supabase.from('partners').select('*').eq('is_active', true).order('display_order').limit(20);
+        if (!data || data.length === 0) {
+            reinitOwl('.partner-carousel', { loop:true, autoplay:true, margin:20, responsiveClass:true, responsive:{0:{items:2,dots:true},600:{items:3,dots:true},1000:{items:6,dots:true}} });
+            return; // Giữ nội dung tĩnh + vẫn chạy carousel
+        }
         c.innerHTML = data.map(p => `
             <div class="item"><a href="${p.website_url || '#'}" target="_blank" title="${p.name}"><img src="${p.logo_url}" alt="${p.name}"></a></div>`).join('');
         reinitOwl('.partner-carousel', { loop:true, autoplay:true, margin:20, responsiveClass:true, responsive:{0:{items:2,dots:true},600:{items:3,dots:true},1000:{items:6,dots:true}} });
@@ -76,10 +82,13 @@ async function loadPartners() {
 // ============ 4. TESTIMONIALS ============
 async function loadTestimonials() {
     try {
-        const { data } = await supabase.from('testimonials').select('*').eq('is_active', true).order('display_order').limit(10);
-        if (!data || data.length === 0) return;
         const c = document.querySelector('.comment-carousel');
         if (!c) return;
+        const { data } = await supabase.from('testimonials').select('*').eq('is_active', true).order('display_order').limit(10);
+        if (!data || data.length === 0) {
+            reinitOwl('.comment-carousel', { loop:true, autoplay:true, autoplayTimeout:4000, margin:10, responsiveClass:true, nav:true, responsive:{0:{items:1,dots:true},1000:{items:2,nav:true,dots:true}} });
+            return; // Giữ nội dung tĩnh + vẫn chạy carousel
+        }
         c.innerHTML = data.map(t => `
             <div class="item"><div>
                 ${t.avatar_url ? `<a><img src="${t.avatar_url}" alt="${t.name}"></a>` : ''}
