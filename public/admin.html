@@ -599,6 +599,7 @@ function showAddForm(table) {
             return `<div class="mb-3"><label class="form-label fw-bold text-white">${f.label}${f.required ? ' <span class="text-danger">*</span>' : ''}</label>${input}</div>`;
         }).join('');
     
+    wireSlugAuto(table); // Tự động sinh slug khi gõ tên/tiêu đề
     new bootstrap.Modal(document.getElementById('modal-' + table)).show();
     initRichEditors(table, null);
 }
@@ -730,6 +731,7 @@ function editRecord(table, id) {
         }
     });
 
+    wireSlugAuto(table); // Tự động sinh slug khi gõ tên/tiêu đề
     new bootstrap.Modal(document.getElementById('modal-' + table)).show();
     initRichEditors(table, item);
 }
@@ -813,6 +815,46 @@ async function handleFileSelect(input, targetId) {
         console.error("Lỗi upload: ", error);
         preview.innerHTML = '<span class="text-danger">Lỗi khi upload file! Hãy kiểm tra lại Policy.</span>';
     }
+}
+
+// ======================== AUTO SLUG ========================
+// Hàm chuyển tiếng Việt có dấu → slug chuẩn SEO (chữ thường, không dấu, khoảng trắng → -)
+function slugify(str) {
+    const map = {
+        'à':'a','á':'a','ả':'a','ã':'a','ạ':'a',
+        'ă':'a','ắ':'a','ặ':'a','ẵ':'a','ằ':'a','ẳ':'a',
+        'â':'a','ấ':'a','ầ':'a','ậ':'a','ẫ':'a','ẩ':'a',
+        'è':'e','é':'e','ẻ':'e','ẽ':'e','ẹ':'e',
+        'ê':'e','ế':'e','ề':'e','ệ':'e','ễ':'e','ể':'e',
+        'ì':'i','í':'i','ỉ':'i','ĩ':'i','ị':'i',
+        'ò':'o','ó':'o','ỏ':'o','õ':'o','ọ':'o',
+        'ô':'o','ố':'o','ồ':'o','ổ':'o','ỗ':'o','ộ':'o',
+        'ơ':'o','ớ':'o','ờ':'o','ở':'o','ỡ':'o','ợ':'o',
+        'ù':'u','ú':'u','ủ':'u','ũ':'u','ụ':'u',
+        'ư':'u','ứ':'u','ừ':'u','ử':'u','ữ':'u','ự':'u',
+        'ỳ':'y','ý':'y','ỷ':'y','ỹ':'y','ỵ':'y','đ':'d'
+    };
+    return str.toLowerCase()
+        .replace(/./g, c => map[c] || c)
+        .replace(/[^a-z0-9\s-]/g, '')
+        .trim().replace(/\s+/g, '-').replace(/-+/g, '-');
+}
+// Gắn listener: khi Sếp gõ tên/tiêu đề → tự động điền slug (chỉ khi slug còn rỗng)
+function wireSlugAuto(table) {
+    const t = TABLES.find(x => x.name === table);
+    if (!t || !t.fields.some(f => f.key === 'slug')) return;
+    const srcKey = ['name','title'].find(k => t.fields.some(f => f.key === k));
+    if (!srcKey) return;
+    const srcEl  = document.getElementById(`f-${table}-${srcKey}`);
+    const slugEl = document.getElementById(`f-${table}-slug`);
+    if (!srcEl || !slugEl) return;
+    srcEl.addEventListener('input', () => {
+        if (!slugEl.value || slugEl.dataset.auto === '1') {
+            slugEl.value = slugify(srcEl.value);
+            slugEl.dataset.auto = '1';
+        }
+    });
+    slugEl.addEventListener('input', () => { slugEl.dataset.auto = '0'; });
 }
 
 // ======================== INIT ========================
