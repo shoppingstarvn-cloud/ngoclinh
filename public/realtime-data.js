@@ -221,17 +221,32 @@ async function loadLinks() {
     } catch(e) { console.error('[Links]', e); }
 }
 
-// ============ 12. SITE SETTINGS (Tên site, hotline, địa chỉ...) ============
+// ============ 12. SITE SETTINGS (Tên site, hotline, địa chỉ, intro_text, footer) ============
 async function loadSiteSettings() {
     try {
         const { data } = await supabase.from('site_settings').select('*');
         if (!data || data.length === 0) return;
         const cfg = {};
         data.forEach(s => cfg[s.key] = s.value);
-        // Áp dụng từng cấu hình nếu có
-        if (cfg.hotline) document.querySelectorAll('.hotline').forEach(e => e.textContent = cfg.hotline);
-        if (cfg.address) document.querySelectorAll('.address').forEach(e => e.textContent = 'Địa chỉ: ' + cfg.address);
+
+        // --- Header: hotline, address, site_name ---
+        if (cfg.hotline)   document.querySelectorAll('.hotline').forEach(e => e.textContent = cfg.hotline);
+        if (cfg.address)   document.querySelectorAll('.address').forEach(e => e.textContent = 'Địa chỉ: ' + cfg.address);
         if (cfg.site_name) { document.title = cfg.site_name; document.querySelectorAll('.welcome').forEach(e => e.textContent = cfg.site_name); }
+
+        // --- Đoạn giới thiệu xanh lá (key: intro_text → id="dynamic-intro") ---
+        // Quản lý trong Admin > Cài đặt Website: key=intro_text, value=<HTML hoặc text>
+        if (cfg.intro_text) {
+            const el = document.getElementById('dynamic-intro');
+            if (el) el.innerHTML = cfg.intro_text;
+        }
+
+        // --- Footer spans (id="footer-address", "footer-phone", "footer-email", "footer-copyright") ---
+        if (cfg.address)          { const el = document.getElementById('footer-address');   if (el) el.textContent = cfg.address; }
+        if (cfg.hotline)          { const el = document.getElementById('footer-phone');     if (el) el.textContent = cfg.hotline; }
+        if (cfg.email)            { const el = document.getElementById('footer-email');     if (el) el.textContent = cfg.email; }
+        if (cfg.footer_copyright) { const el = document.getElementById('footer-copyright'); if (el) el.textContent = cfg.footer_copyright; }
+
     } catch(e) { console.error('[Settings]', e); }
 }
 
