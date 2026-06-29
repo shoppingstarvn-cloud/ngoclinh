@@ -1,8 +1,14 @@
 // ============ REALTIME DATA SYNC - ADMIN <-> SUPABASE <-> WEBSITE ============
 // Cơ chế AN TOÀN: Chỉ ghi đè hardcode KHI Supabase CÓ dữ liệu (tránh trang trắng)
+// Bọc toàn bộ trong IIFE để biến cục bộ KHÔNG đụng global 'supabase' của thư viện CDN
+// → triệt tiêu lỗi "Identifier 'supabase' has already been declared" và an toàn khi nạp lại.
+(function () {
+"use strict";
 const SUPABASE_URL = "https://bfruxinvvvaqufghtigw.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_QUYv4qEJntioJJ-XWtHkdA_haHovSml";
+// Lấy thư viện từ global rồi tạo client cục bộ (chỉ tạo 1 lần trong scope này)
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
 
 function reinitOwl(sel, opts) {
     if (window.jQuery && jQuery.fn.owlCarousel) {
@@ -264,3 +270,7 @@ if (document.readyState === 'loading') {
 } else {
     init();
 }
+
+})(); // end IIFE — đóng scope cục bộ, không rò rỉ biến ra global
+
+
