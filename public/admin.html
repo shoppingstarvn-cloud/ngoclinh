@@ -779,14 +779,18 @@ async function handleFileSelect(input, targetId) {
     }
 
     try {
-        const url = await uploadToSupabaseStorage(file);
-        if (url) {
-            document.getElementById(targetId).value = url; // Lưu URL tuyệt đẹp vào input ẩn để chờ ấn nút LƯU
+        // uploadToSupabaseStorage() trả về OBJECT { success, url, path } — KHÔNG phải chuỗi.
+        // Phải bóc tách .url (chuỗi publicUrl) ra, nếu không sẽ lưu "[object Object]" vào DB.
+        const result = await uploadToSupabaseStorage(file);
+        const url = (result && typeof result === 'object') ? result.url : result; // an toàn cho cả 2 kiểu trả về
+        if (result && result.success && url) {
+            document.getElementById(targetId).value = url; // Lưu CHUỖI URL vào input ẩn để chờ ấn nút LƯU
             preview.innerHTML = `<img src="${url}" style="width:100px; height:100px; object-fit:cover; border-radius:8px; border:2px solid rgba(255,255,255,0.1); margin-top:10px;">`;
         } else {
-            preview.innerHTML = '<span class="text-danger">Không nhận được URL từ server!</span>';
+            preview.innerHTML = `<span class="text-danger">${(result && result.error) ? result.error : 'Không nhận được URL từ server!'}</span>`;
         }
     } catch (error) {
+
         console.error("Lỗi upload: ", error);
         preview.innerHTML = '<span class="text-danger">Lỗi khi upload file! Hãy kiểm tra lại Policy.</span>';
     }
