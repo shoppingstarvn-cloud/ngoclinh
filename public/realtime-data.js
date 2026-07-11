@@ -17,6 +17,15 @@ function reinitOwl(sel, opts) {
     }
 }
 
+// Link đích cho thẻ sản phẩm / danh mục: ưu tiên link_url (admin đặt), fallback slug.html.
+// Luôn trả link tuyệt đối từ gốc để chạy đúng ở mọi độ sâu trang.
+function itemHref(item) {
+    const u = (item.link_url || '').trim();
+    if (u) return /^(https?:|\/|#)/.test(u) ? u : '/' + u;
+    if (item.slug) return '/' + item.slug + '.html';
+    return '#';
+}
+
 // ============ 1. SLIDES (Dynamic 100% -> #slide-container) ============
 async function loadSlides() {
     // Container động: ưu tiên #slide-container, fallback .slide-carousel
@@ -62,8 +71,8 @@ async function loadProducts() {
         }
         c.innerHTML = data.map(p => `
             <div class="item"><dl>
-                <dt><img src="${p.thumbnail_url || 'images/placeholder.jpg'}" alt="${p.name}" title="${p.name}"></dt>
-                <dd><h3>${p.name}</h3>${p.price ? `<p class="price">${p.price}</p>` : ''}<a href="${p.slug}.html"></a></dd>
+                <dt><a href="${itemHref(p)}"><img src="${p.thumbnail_url || 'images/placeholder.jpg'}" alt="${p.name}" title="${p.name}"></a></dt>
+                <dd><h3><a href="${itemHref(p)}">${p.name}</a></h3>${p.price ? `<p class="price">${p.price}</p>` : ''}</dd>
             </dl></div>`).join('');
         reinitOwl('.product-carousel', { loop:true, autoplay:true, margin:20, responsiveClass:true, responsive:{0:{items:1,dots:true},600:{items:2,dots:true},1000:{items:3,dots:true}} });
     } catch(e) { console.error('[Products]', e); }
@@ -219,8 +228,8 @@ async function loadCategories() {
         if (!c) return;
         c.innerHTML = data.map(cat => `
             <div class="col-12 col-md-4 item_s"><dl>
-                <dt><a href="${cat.slug}.html"><img src="${cat.thumbnail_url || cat.image_url || 'images/placeholder.jpg'}" alt="${cat.name}"></a></dt>
-                <dd><h3><a href="${cat.slug}.html">${cat.name}</a></h3><div>${cat.description || ''}</div></dd>
+                <dt><a href="${itemHref(cat)}"><img src="${cat.thumbnail_url || cat.image_url || 'images/placeholder.jpg'}" alt="${cat.name}"></a></dt>
+                <dd><h3><a href="${itemHref(cat)}">${cat.name}</a></h3><div>${cat.description || ''}</div></dd>
             </dl></div>`).join('');
     } catch(e) { console.error('[Categories]', e); }
 }

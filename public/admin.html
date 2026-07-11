@@ -291,6 +291,7 @@ const TABLES = [
       fields: [
           { key: 'name', label: 'Tên danh mục', type: 'text', required: true },
           { key: 'slug', label: 'Slug', type: 'text', required: true },
+          { key: 'link_url', label: 'Link đích khi bấm vào (VD: /cong-tron-c53.html). Để trống = tự dùng slug', type: 'text' },
           { key: 'description', label: 'Mô tả', type: 'textarea' },
           { key: 'thumbnail_url', label: 'Ảnh danh mục (URL)', type: 'text' },
           { key: 'type', label: 'Loại', type: 'select', options: ['product','post','project','gallery'] },
@@ -302,7 +303,7 @@ const TABLES = [
           { key: 'id', label: 'ID' },
           { key: 'thumbnail_url', label: 'Ảnh', render: v => v ? `<img src="${v}" class="thumb-img">` : '' },
           { key: 'name', label: 'Tên' },
-          { key: 'slug', label: 'Slug' },
+          { key: 'link_url', label: 'Link đích', render: (v, row) => v || (row.slug ? '/' + row.slug + '.html' : '') },
           { key: 'type', label: 'Loại' },
           { key: 'is_active', label: 'Active', render: v => v ? '<span class="text-success">✓</span>' : '<span class="text-danger">✗</span>' }
       ]
@@ -332,6 +333,7 @@ const TABLES = [
       fields: [
           { key: 'name', label: 'Tên sản phẩm', type: 'text', required: true },
           { key: 'slug', label: 'Slug', type: 'text', required: true },
+          { key: 'link_url', label: 'Link đích khi bấm vào (VD: /cong-tron-c53.html). Để trống = tự dùng slug', type: 'text' },
           { key: 'category_id', label: 'Danh mục (ID)', type: 'number' },
           { key: 'description', label: 'Mô tả', type: 'textarea' },
           { key: 'content', label: 'Nội dung chi tiết', type: 'textarea' },
@@ -344,6 +346,7 @@ const TABLES = [
           { key: 'id', label: 'ID' },
           { key: 'thumbnail_url', label: 'Ảnh', render: v => v ? `<img src="${v}" class="thumb-img">` : '' },
           { key: 'name', label: 'Tên SP' },
+          { key: 'link_url', label: 'Link đích', render: (v, row) => v || (row.slug ? '/' + row.slug + '.html' : '') },
           { key: 'price', label: 'Giá' },
           { key: 'is_active', label: 'Active', render: v => v ? '<span class="text-success">✓</span>' : '<span class="text-danger">✗</span>' }
       ]
