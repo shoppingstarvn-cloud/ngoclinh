@@ -69,11 +69,14 @@ async function loadProducts() {
             reinitOwl('.product-carousel', { loop:true, autoplay:true, margin:20, responsiveClass:true, responsive:{0:{items:1,dots:true},600:{items:2,dots:true},1000:{items:3,dots:true}} });
             return; // Giữ nội dung tĩnh + vẫn chạy carousel
         }
+        // BỌC CẢ THẺ (ảnh + chữ) trong 1 link -> bấm bất kỳ đâu trên thẻ/ảnh đều nhảy đúng trang
         c.innerHTML = data.map(p => `
-            <div class="item"><dl>
-                <dt><a href="${itemHref(p)}"><img src="${p.thumbnail_url || 'images/placeholder.jpg'}" alt="${p.name}" title="${p.name}"></a></dt>
-                <dd><h3><a href="${itemHref(p)}">${p.name}</a></h3>${p.price ? `<p class="price">${p.price}</p>` : ''}</dd>
-            </dl></div>`).join('');
+            <div class="item"><a href="${itemHref(p)}" title="${p.name}" style="display:block;position:relative;color:inherit;text-decoration:none">
+                <dl>
+                    <dt><img src="${p.thumbnail_url || 'images/placeholder.jpg'}" alt="${p.name}" title="${p.name}"></dt>
+                    <dd><h3>${p.name}</h3>${p.price ? `<p class="price">${p.price}</p>` : ''}</dd>
+                </dl>
+            </a></div>`).join('');
         reinitOwl('.product-carousel', { loop:true, autoplay:true, margin:20, responsiveClass:true, responsive:{0:{items:1,dots:true},600:{items:2,dots:true},1000:{items:3,dots:true}} });
     } catch(e) { console.error('[Products]', e); }
 }
@@ -226,11 +229,12 @@ async function loadCategories() {
         if (!data || data.length === 0) return;
         const c = document.querySelector('.service_home .row');
         if (!c) return;
+        // BỌC CẢ THẺ danh mục trong 1 link -> bấm bất kỳ đâu trên ảnh đều nhảy đúng trang
         c.innerHTML = data.map(cat => `
-            <div class="col-12 col-md-4 item_s"><dl>
-                <dt><a href="${itemHref(cat)}"><img src="${cat.thumbnail_url || cat.image_url || 'images/placeholder.jpg'}" alt="${cat.name}"></a></dt>
-                <dd><h3><a href="${itemHref(cat)}">${cat.name}</a></h3><div>${cat.description || ''}</div></dd>
-            </dl></div>`).join('');
+            <div class="col-12 col-md-4 item_s"><a href="${itemHref(cat)}" title="${cat.name}" style="display:block;position:relative;color:inherit;text-decoration:none"><dl>
+                <dt><img src="${cat.thumbnail_url || cat.image_url || 'images/placeholder.jpg'}" alt="${cat.name}"></dt>
+                <dd><h3>${cat.name}</h3><div>${cat.description || ''}</div></dd>
+            </dl></a></div>`).join('');
     } catch(e) { console.error('[Categories]', e); }
 }
 
