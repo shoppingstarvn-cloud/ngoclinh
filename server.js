@@ -96,19 +96,20 @@ app.post('/api/auth/login', async (req, res) => {
     return res.json({ success: true, token, user: { username: 'admin', role: 'superadmin', full_name: 'Super Admin' } });
   }
 
-  // Check Supabase admin_users
+  // Check Supabase admin_users (so sánh mật khẩu ĐÃ BĂM - sha256)
+  // Tương thích ngược: chấp nhận cả bản ghi còn lưu plaintext (trong lúc chuyển đổi)
   try {
+    const hashed = crypto.createHash('sha256').update(password).digest('hex');
     const { data, error } = await supabase
       .from('admin_users')
       .select('*')
-      .eq('password_hash', password)
-      .eq('is_active', true)
-      .maybeSingle();
+      .eq('is_active', true);
     if (error) throw error;
-    if (data) {
-      const token = generateToken(data);
-      await supabase.from('admin_users').update({ last_login: new Date().toISOString() }).eq('id', data.id);
-      return res.json({ success: true, token, user: { id: data.id, username: data.username, role: data.role, full_name: data.full_name } });
+    const user = (data || []).find(u => u.password_hash === hashed || u.password_hash === password);
+    if (user) {
+      const token = generateToken(user);
+      await supabase.from('admin_users').update({ last_login: new Date().toISOString() }).eq('id', user.id);
+      return res.json({ success: true, token, user: { id: user.id, username: user.username, role: user.role, full_name: user.full_name } });
     }
   } catch(e) {}
   res.json({ success: false, error: 'Sai mật khẩu!' });
