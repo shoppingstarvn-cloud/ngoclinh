@@ -159,6 +159,9 @@ async function loadMenus() {
         const html = roots.map(buildLi).join('');
         const pcMenu = document.querySelector('.header .menu ul');
         if (pcMenu) pcMenu.innerHTML = html;
+        // Menu mobile (.menu-m) dùng cùng cây dữ liệu
+        const mMenu = document.querySelector('.menu-m ul');
+        if (mMenu) mMenu.innerHTML = html;
     } catch(e) { console.error('[Menus]', e); }
 }
 
@@ -221,7 +224,7 @@ async function loadLinks() {
     } catch(e) { console.error('[Links]', e); }
 }
 
-// ============ 12. SITE SETTINGS (Tên site, hotline, địa chỉ, intro_text, footer) ============
+// ============ 12. SITE SETTINGS (Tên site, hotline, địa chỉ, intro_text, footer, logo, favicon, meta) ============
 async function loadSiteSettings() {
     try {
         const { data } = await supabase.from('site_settings').select('*');
@@ -232,7 +235,32 @@ async function loadSiteSettings() {
         // --- Header: hotline, address, site_name ---
         if (cfg.hotline)   document.querySelectorAll('.hotline').forEach(e => e.textContent = cfg.hotline);
         if (cfg.address)   document.querySelectorAll('.address').forEach(e => e.textContent = 'Địa chỉ: ' + cfg.address);
-        if (cfg.site_name) { document.title = cfg.site_name; document.querySelectorAll('.welcome').forEach(e => e.textContent = cfg.site_name); }
+        if (cfg.site_name) {
+            document.title = cfg.site_name;
+            document.querySelectorAll('.welcome').forEach(e => e.textContent = cfg.site_name);
+            const ogTitle = document.querySelector('meta[property="og:title"]'); if (ogTitle) ogTitle.setAttribute('content', cfg.site_name);
+            const ogSite  = document.querySelector('meta[property="og:site_name"]'); if (ogSite) ogSite.setAttribute('content', cfg.site_name);
+        }
+
+        // --- Logo website (mọi ảnh logo trong header) ---
+        if (cfg.logo_url) {
+            document.querySelectorAll('.logo img, a.logo img').forEach(img => img.setAttribute('src', cfg.logo_url));
+            const ogImg = document.querySelector('meta[property="og:image"]'); if (ogImg) ogImg.setAttribute('content', cfg.logo_url);
+        }
+
+        // --- Favicon (icon tab trình duyệt) ---
+        if (cfg.favicon_url) {
+            document.querySelectorAll('link[rel="icon"]').forEach(link => link.setAttribute('href', cfg.favicon_url));
+        }
+
+        // --- Meta SEO ---
+        if (cfg.meta_description) {
+            const meta = document.querySelector('meta[name="description"]'); if (meta) meta.setAttribute('content', cfg.meta_description);
+            const ogDesc = document.querySelector('meta[property="og:description"]'); if (ogDesc) ogDesc.setAttribute('content', cfg.meta_description);
+        }
+        if (cfg.meta_keywords) {
+            const meta = document.querySelector('meta[name="keywords"]'); if (meta) meta.setAttribute('content', cfg.meta_keywords);
+        }
 
         // --- Đoạn giới thiệu xanh lá (key: intro_text → id="dynamic-intro") ---
         // Quản lý trong Admin > Cài đặt Website: key=intro_text, value=<HTML hoặc text>
@@ -246,6 +274,20 @@ async function loadSiteSettings() {
         if (cfg.hotline)          { const el = document.getElementById('footer-phone');     if (el) el.textContent = cfg.hotline; }
         if (cfg.email)            { const el = document.getElementById('footer-email');     if (el) el.textContent = cfg.email; }
         if (cfg.footer_copyright) { const el = document.getElementById('footer-copyright'); if (el) el.textContent = cfg.footer_copyright; }
+
+        // --- Hook tổng quát: bất kỳ phần tử nào có data-sync="ten_key" đều được tự động điền ---
+        // Cho phép mở rộng thêm cấu hình mới trong tương lai mà KHÔNG cần sửa code này nữa.
+        Object.keys(cfg).forEach(key => {
+            document.querySelectorAll(`[data-sync="${key}"]`).forEach(el => {
+                const val = cfg[key];
+                if (!val) return;
+                if (el.tagName === 'IMG') el.setAttribute('src', val);
+                else if (el.tagName === 'A') el.setAttribute('href', val);
+                else if (el.tagName === 'META') el.setAttribute('content', val);
+                else if (el.tagName === 'LINK') el.setAttribute('href', val);
+                else el.textContent = val;
+            });
+        });
 
     } catch(e) { console.error('[Settings]', e); }
 }

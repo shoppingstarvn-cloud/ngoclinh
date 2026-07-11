@@ -158,9 +158,51 @@
         <div id="tab-site_settings" class="tab-section">
             <div class="card"><div class="card-header"><i class="fas fa-cog text-primary"></i> Cài đặt Website</div>
             <div class="card-body">
-                <p class="text-muted mb-3">Các cặp key=value cho cấu hình website. Key là tên cấu hình (site_name, hotline, address...).</p>
-                <button class="btn btn-primary btn-sm mb-3" onclick="showAddForm('site_settings')"><i class="fas fa-plus"></i> Thêm cấu hình</button>
-                <div class="table-responsive"><table class="table" id="table-site_settings"><thead><tr><th>ID</th><th>Key</th><th>Value</th><th>Thao tác</th></tr></thead><tbody></tbody></table></div>
+                <p class="text-muted mb-3">Sửa tận gốc toàn bộ thông tin chung của website. Bấm <b>"Lưu tất cả"</b> để áp dụng ngay lập tức trên toàn bộ site (đồng bộ realtime).</p>
+                <div class="row" id="ss-form-grid">
+                    <div class="col-md-6 mb-3"><label class="form-label fw-bold">Tên website</label><input class="form-control" id="ss-site_name" placeholder="VD: CÔNG TY CỔ PHẦN THƯƠNG MẠI CỬA ÂU"></div>
+                    <div class="col-md-6 mb-3"><label class="form-label fw-bold">Hotline</label><input class="form-control" id="ss-hotline" placeholder="VD: 0934640601"></div>
+
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold">Logo website</label>
+                        <div class="upload-zone">
+                            <div class="upload-drop-area" style="border:2px dashed #0d6efd;padding:16px;text-align:center;cursor:pointer;border-radius:8px;background:rgba(13,110,253,0.05)" onclick="document.getElementById('file-ss-logo_url').click()">
+                                <p style="margin:0;color:rgba(255,255,255,0.6)">📷 Kéo thả logo hoặc click để chọn file</p>
+                                <input type="file" id="file-ss-logo_url" accept="image/*" style="display:none" onchange="handleFileSelect(this,'ss-logo_url')">
+                            </div>
+                            <div class="preview-container" id="preview-ss-logo_url" style="margin-top:10px"></div>
+                            <input type="hidden" id="ss-logo_url" value="">
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold">Favicon (icon tab trình duyệt)</label>
+                        <div class="upload-zone">
+                            <div class="upload-drop-area" style="border:2px dashed #0d6efd;padding:16px;text-align:center;cursor:pointer;border-radius:8px;background:rgba(13,110,253,0.05)" onclick="document.getElementById('file-ss-favicon_url').click()">
+                                <p style="margin:0;color:rgba(255,255,255,0.6)">📷 Kéo thả favicon hoặc click để chọn file</p>
+                                <input type="file" id="file-ss-favicon_url" accept="image/*" style="display:none" onchange="handleFileSelect(this,'ss-favicon_url')">
+                            </div>
+                            <div class="preview-container" id="preview-ss-favicon_url" style="margin-top:10px"></div>
+                            <input type="hidden" id="ss-favicon_url" value="">
+                        </div>
+                    </div>
+
+                    <div class="col-md-6 mb-3"><label class="form-label fw-bold">Địa chỉ</label><input class="form-control" id="ss-address"></div>
+                    <div class="col-md-6 mb-3"><label class="form-label fw-bold">Email</label><input class="form-control" id="ss-email"></div>
+                    <div class="col-md-6 mb-3"><label class="form-label fw-bold">Facebook URL</label><input class="form-control" id="ss-facebook_url"></div>
+                    <div class="col-md-6 mb-3"><label class="form-label fw-bold">Website URL</label><input class="form-control" id="ss-website_url"></div>
+                    <div class="col-md-12 mb-3"><label class="form-label fw-bold">Copyright footer</label><input class="form-control" id="ss-footer_copyright"></div>
+                    <div class="col-md-6 mb-3"><label class="form-label fw-bold">Meta description (SEO)</label><textarea class="form-control" id="ss-meta_description"></textarea></div>
+                    <div class="col-md-6 mb-3"><label class="form-label fw-bold">Meta keywords (SEO)</label><textarea class="form-control" id="ss-meta_keywords"></textarea></div>
+                    <div class="col-md-12 mb-3"><label class="form-label fw-bold">Đoạn giới thiệu trang chủ</label><textarea class="form-control" id="ss-intro_text" rows="5"></textarea></div>
+                </div>
+                <button class="btn btn-primary" onclick="saveSiteSettingsForm()"><i class="fas fa-save"></i> Lưu tất cả</button>
+
+                <hr style="border-color:rgba(255,255,255,0.08);margin:30px 0 15px">
+                <a class="text-muted" style="cursor:pointer;text-decoration:none" data-bs-toggle="collapse" href="#advanced-settings"><i class="fas fa-chevron-right"></i> Nâng cao: thêm cấu hình tuỳ biến khác (key/value tự do)</a>
+                <div class="collapse mt-3" id="advanced-settings">
+                    <button class="btn btn-secondary btn-sm mb-3" onclick="showAddForm('site_settings')"><i class="fas fa-plus"></i> Thêm cấu hình</button>
+                    <div class="table-responsive"><table class="table" id="table-site_settings"><thead><tr><th>ID</th><th>Key</th><th>Value</th><th>Thao tác</th></tr></thead><tbody></tbody></table></div>
+                </div>
             </div></div>
             <div class="modal fade modal-custom" id="modal-site_settings"><div class="modal-dialog"><div class="modal-content">
                 <div class="modal-header"><h5 class="modal-title" id="modalTitle-site_settings">Thêm cấu hình</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
@@ -238,6 +280,7 @@ const TABLES = [
           { key: 'name', label: 'Tên danh mục', type: 'text', required: true },
           { key: 'slug', label: 'Slug', type: 'text', required: true },
           { key: 'description', label: 'Mô tả', type: 'textarea' },
+          { key: 'thumbnail_url', label: 'Ảnh danh mục (URL)', type: 'text' },
           { key: 'type', label: 'Loại', type: 'select', options: ['product','post','project','gallery'] },
           { key: 'parent_id', label: 'Danh mục cha (ID)', type: 'number' },
           { key: 'display_order', label: 'Thứ tự', type: 'number' },
@@ -245,6 +288,7 @@ const TABLES = [
       ],
       cols: [
           { key: 'id', label: 'ID' },
+          { key: 'thumbnail_url', label: 'Ảnh', render: v => v ? `<img src="${v}" class="thumb-img">` : '' },
           { key: 'name', label: 'Tên' },
           { key: 'slug', label: 'Slug' },
           { key: 'type', label: 'Loại' },
@@ -450,6 +494,7 @@ function showTab(table, el) {
     const t = TABLES.find(x => x.name === table);
     document.getElementById('page-title').innerHTML = `<i class="fas fa-${t ? t.icon : 'table'} text-primary"></i> ${t ? t.label : table}`;
     currentTable = table;
+    if (table === 'site_settings') renderSiteSettingsForm();
     renderTable(table);
 }
 
@@ -463,6 +508,7 @@ async function loadAllData() {
             allData = result.data;
             updateStats();
             // Re-render current table
+            if (currentTable === 'site_settings') renderSiteSettingsForm();
             if (currentTable) renderTable(currentTable);
         } else {
             // Fallback: load individual tables
@@ -482,6 +528,7 @@ async function loadDirectFromSupabase() {
         } catch(e) { allData[t.name] = []; }
     }
     updateStats();
+    if (currentTable === 'site_settings') renderSiteSettingsForm();
     if (currentTable) renderTable(currentTable);
 }
 
@@ -535,6 +582,54 @@ function renderTable(table) {
             </td>
         </tr>`;
     }).join('');
+}
+
+// ======================== CÀI ĐẶT WEBSITE (form cố định) ========================
+const SITE_SETTINGS_FIXED_KEYS = ['site_name','logo_url','favicon_url','hotline','address','email','facebook_url','website_url','footer_copyright','meta_description','meta_keywords','intro_text'];
+
+function renderSiteSettingsForm() {
+    const rows = allData.site_settings || [];
+    SITE_SETTINGS_FIXED_KEYS.forEach(key => {
+        const el = document.getElementById('ss-' + key);
+        if (!el) return;
+        const row = rows.find(r => r.key === key);
+        const val = row ? (row.value || '') : '';
+        el.value = val;
+        if (key === 'logo_url' || key === 'favicon_url') {
+            const preview = document.getElementById('preview-ss-' + key);
+            if (preview) preview.innerHTML = val ? `<img src="${val}" style="width:100px;height:100px;object-fit:cover;border-radius:8px;border:2px solid rgba(255,255,255,0.1)">` : '';
+        }
+    });
+}
+
+async function saveSiteSettingsForm() {
+    const rows = allData.site_settings || [];
+    Swal.fire({title:'Đang lưu...',allowOutsideClick:false,didOpen:()=>Swal.showLoading(),background:'#1a1a2e',color:'#fff'});
+    try {
+        for (const key of SITE_SETTINGS_FIXED_KEYS) {
+            const el = document.getElementById('ss-' + key);
+            if (!el) continue;
+            const value = el.value || '';
+            const existing = rows.find(r => r.key === key);
+            if (existing) {
+                await fetch(`/api/admin/site_settings/${existing.id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type':'application/json', 'Authorization': authToken },
+                    body: JSON.stringify({ key, value })
+                });
+            } else if (value) {
+                await fetch(`/api/admin/site_settings`, {
+                    method: 'POST',
+                    headers: { 'Content-Type':'application/json', 'Authorization': authToken },
+                    body: JSON.stringify({ key, value })
+                });
+            }
+        }
+        Swal.fire({icon:'success',title:'Đã lưu toàn bộ cài đặt!',timer:1200,showConfirmButton:false,background:'#1a1a2e',color:'#fff'});
+        loadAllData();
+    } catch (e) {
+        Swal.fire({icon:'error',title:'Lưu thất bại',text:e.message,background:'#1a1a2e',color:'#fff'});
+    }
 }
 
 // ======================== SHOW ADD FORM ========================
