@@ -219,7 +219,7 @@ INSERT INTO site_settings (key, value) VALUES
   ('address',       'Thôn 6, Pháp Cổ, Xã Việt Khê, Hải Phòng'),
   ('email',         'congtycuaau8386@gmail.com'),
   ('website_url',   'https://congbetongcuaau.com'),
-  ('facebook_url',  'https://www.facebook.com/phuongbac.betong'),
+  ('facebook_url',  'https://www.facebook.com/cuaau.betong'),
   ('intro_text',    '<p><span style="font-size:12px"><strong>Với 02 nhà máy sản xuất cống hộp đúc sẵn, hố ga bê tông trên diện tích 50.000m2 tại Thôn 6, Pháp Cổ, Xã Việt Khê, Hải Phòng gồm 12 dây chuyền sản xuất và 01 nhà máy sản xuất cống tròn bê tông tại Sơn Tây, Hà Nội. CÔNG TY CỔ PHẦN THƯƠNG MẠI CỬA ÂU tự tin luôn đáp ứng được mọi yêu cầu của khách hàng về cống bê tông và các loại cấu kiện bê tông đúc sẵn khác.</strong></span></p>'),
   ('footer_copyright', 'BẢN QUYỀN THUỘC VỀ CÔNG TY CỔ PHẦN THƯƠNG MẠI CỬA ÂU')
 ON CONFLICT (key) DO NOTHING;
