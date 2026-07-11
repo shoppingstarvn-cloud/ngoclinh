@@ -105,26 +105,43 @@ async function loadTestimonials() {
 }
 
 // ============ 5. POSTS / NEWS (Bài viết tin tức) ============
+// Link bài viết tuyệt đối từ gốc (chạy đúng ở mọi độ sâu trang)
+function postHref(slug) {
+    if (!slug) return '#';
+    if (/^(https?:|\/)/.test(slug)) return /\.html?$/i.test(slug) ? slug : slug + '.html';
+    return '/' + slug + '.html';
+}
 async function loadNews() {
     try {
-        const { data } = await supabase.from('posts').select('*').eq('is_active', true).eq('status', 'published').order('display_order').limit(5);
+        const { data } = await supabase.from('posts').select('*').eq('is_active', true).eq('status', 'published').order('display_order').limit(30);
         if (!data || data.length === 0) return;
+
+        // (a) Khối tin TRANG CHỦ (.news .list_news) — nếu có
         const big = document.querySelector('.news .list_news .big_item');
         const right = document.querySelector('.news .list_news .right');
-        if (!big || !right) return;
-        // Bài đầu = big item
-        const p0 = data[0];
-        big.innerHTML = `<dl>
-            <dt><div class="swing"><figure class="effect-v7"><a href="${p0.slug}.html"><img src="${p0.thumbnail_url}" alt="${p0.title}" /></a></figure></div></dt>
-            <dd><h3><a href="${p0.slug}.html">${p0.title}</a></h3><p>${p0.excerpt || ''}</p>
-            <a href="${p0.slug}.html">Xem thêm</a><div class="clearfix"></div></dd>
-        </dl>`;
-        // Bài còn lại = right items
-        right.innerHTML = data.slice(1).map(p => `
-            <div class="col-6 item"><dl>
-                <dt><div class="swing"><figure class="effect-v7"><a href="${p.slug}.html"><img src="${p.thumbnail_url}" alt="${p.title}" /></a></figure></div></dt>
-                <dd><h3><a href="${p.slug}.html">${p.title}</a></h3><a href="${p.slug}.html"></a></dd>
-            </dl></div>`).join('');
+        if (big && right) {
+            const p0 = data[0];
+            big.innerHTML = `<dl>
+                <dt><div class="swing"><figure class="effect-v7"><a href="${postHref(p0.slug)}"><img src="${p0.thumbnail_url}" alt="${p0.title}" /></a></figure></div></dt>
+                <dd><h3><a href="${postHref(p0.slug)}">${p0.title}</a></h3><p>${p0.excerpt || ''}</p>
+                <a href="${postHref(p0.slug)}">Xem thêm</a><div class="clearfix"></div></dd>
+            </dl>`;
+            right.innerHTML = data.slice(1, 5).map(p => `
+                <div class="col-6 item"><dl>
+                    <dt><div class="swing"><figure class="effect-v7"><a href="${postHref(p.slug)}"><img src="${p.thumbnail_url}" alt="${p.title}" /></a></figure></div></dt>
+                    <dd><h3><a href="${postHref(p.slug)}">${p.title}</a></h3><a href="${postHref(p.slug)}"></a></dd>
+                </dl></div>`).join('');
+        }
+
+        // (b) Cột "TIN TỨC & SỰ KIỆN" bên phải (.news_box .slides) — nếu có
+        const newsSlides = document.querySelector('.news_box .slides');
+        if (newsSlides) {
+            newsSlides.innerHTML = data.slice(0, 6).map(p => `
+                <li><dl>
+                    <dt><a href="${postHref(p.slug)}"><img src="${p.thumbnail_url}" alt="${p.title}" /></a></dt>
+                    <dd><a href="${postHref(p.slug)}">${p.title}</a></dd>
+                </dl></li>`).join('');
+        }
     } catch(e) { console.error('[News]', e); }
 }
 
