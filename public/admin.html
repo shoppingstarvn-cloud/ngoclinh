@@ -262,14 +262,26 @@ const TABLES = [
     { name: 'menus', label: 'Menu', icon: 'bars', pk: 'id',
       fields: [
           { key: 'label', label: 'Tên menu', type: 'text', required: true },
-          { key: 'url', label: 'URL', type: 'text' },
-          { key: 'parent_id', label: 'Menu cha (ID)', type: 'number' },
+          { key: 'url', label: 'URL (đường dẫn, VD: cong-tron-c53.html hoặc # nếu chỉ là nhóm)', type: 'text' },
+          { key: 'parent_id', label: 'Menu cha (để trống = menu cấp 1)', type: 'parentselect' },
           { key: 'display_order', label: 'Thứ tự', type: 'number' },
           { key: 'is_active', label: 'Kích hoạt', type: 'checkbox' }
       ],
       cols: [
           { key: 'id', label: 'ID' },
-          { key: 'label', label: 'Tên' },
+          { key: 'label', label: 'Tên', render: (v, row) => {
+              // Thụt lề theo cấp để thấy rõ cây menu 3 cấp
+              const menus = (allData.menus || []);
+              let depth = 0, p = row.parent_id;
+              while (p) { depth++; const par = menus.find(m => m.id === p); p = par ? par.parent_id : null; if (depth > 5) break; }
+              const pad = depth ? '&nbsp;&nbsp;&nbsp;&nbsp;'.repeat(depth) + '└ ' : '';
+              return pad + (v || '');
+          }},
+          { key: 'parent_id', label: 'Menu cha', render: (v) => {
+              if (!v) return '<span class="badge bg-primary">Cấp 1 (gốc)</span>';
+              const par = (allData.menus || []).find(m => m.id === v);
+              return par ? par.label : ('#' + v);
+          }},
           { key: 'url', label: 'URL' },
           { key: 'display_order', label: 'Thứ tự' },
           { key: 'is_active', label: 'Active', render: v => v ? '<span class="text-success">✓</span>' : '<span class="text-danger">✗</span>' }
@@ -567,7 +579,7 @@ function renderTable(table) {
     
     tbody.innerHTML = data.map(row => {
         let cols = t.cols.map(c => {
-            if (c.render) return `<td>${c.render(row[c.key])}</td>`;
+            if (c.render) return `<td>${c.render(row[c.key], row)}</td>`;
             const val = row[c.key] !== undefined ? row[c.key] : '';
             if (c.key === 'id') return `<td class="text-muted">${val}</td>`;
             if (typeof val === 'boolean') return `<td>${val ? '<span class="text-success">✓</span>' : '<span class="text-danger">✗</span>'}</td>`;
@@ -648,10 +660,34 @@ function initRichEditors(table, item) {
     });
 }
 
+// ===== Tạo danh sách "Menu cha" phân cấp (cho form Menu 3 cấp) =====
+// selectedVal: id đang chọn (''/null = menu gốc). excludeId: id không cho chọn (chính nó khi sửa).
+function menuParentOptions(selectedVal, excludeId) {
+    const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+    const menus = (allData.menus || []).slice();
+    const byParent = {};
+    menus.forEach(m => { const p = m.parent_id || 0; (byParent[p] = byParent[p] || []).push(m); });
+    Object.values(byParent).forEach(arr => arr.sort((a, b) => (a.display_order || 0) - (b.display_order || 0)));
+    const sel = (selectedVal === '' || selectedVal == null) ? null : Number(selectedVal);
+    let html = `<option value="" ${sel === null ? 'selected' : ''}>— Menu gốc (cấp 1) —</option>`;
+    // Chỉ cho chọn menu cấp 1 hoặc cấp 2 làm cha (để con tối đa là cấp 3)
+    function walk(parent, depth) {
+        if (depth > 2) return;
+        (byParent[parent] || []).forEach(m => {
+            if (m.id === excludeId) return;                 // không cho chọn chính nó
+            const pad = depth === 1 ? '' : '&nbsp;&nbsp;&nbsp;&nbsp;└ ';
+            html += `<option value="${m.id}" ${sel === m.id ? 'selected' : ''}>${pad}${esc(m.label)}</option>`;
+            walk(m.id, depth + 1);
+        });
+    }
+    walk(0, 1);
+    return html;
+}
+
 function showAddForm(table) {
     const t = TABLES.find(x => x.name === table);
     if (!t) return;
-    
+
     document.getElementById('editId-' + table).value = '';
     document.getElementById('modalTitle-' + table).textContent = 'Thêm ' + t.label;
     
@@ -686,6 +722,8 @@ function showAddForm(table) {
                 input = `<input type="checkbox" class="form-check-input" id="${id}" style="width:20px;height:20px">`;
             } else if (f.type === 'select') {
                 input = `<select class="form-select" id="${id}">${f.options.map(o => `<option value="${o}">${o}</option>`).join('')}</select>`;
+            } else if (f.type === 'parentselect') {
+                input = `<select class="form-select" id="${id}">${menuParentOptions('', null)}</select>`;
             } else if (f.type === 'number') {
                 input = `<input type="number" class="form-control" id="${id}" value="0" placeholder="Nhập ${f.label.toLowerCase()}">`;
             } else {
@@ -717,6 +755,8 @@ async function saveRecord(table) {
         if (!el) continue;
         if (f.type === 'checkbox') {
             data[f.key] = el.checked;
+        } else if (f.type === 'parentselect') {
+            data[f.key] = el.value === '' ? null : parseInt(el.value);
         } else if (f.type === 'number') {
             data[f.key] = parseInt(el.value) || 0;
         } else {
@@ -800,6 +840,8 @@ function editRecord(table, id) {
                 input = `<input type="checkbox" class="form-check-input" id="${id}" ${val ? 'checked' : ''} style="width:20px;height:20px">`;
             } else if (f.type === 'select') {
                 input = `<select class="form-select" id="${id}">${f.options.map(o => `<option value="${o}" ${val === o ? 'selected' : ''}>${o}</option>`).join('')}</select>`;
+            } else if (f.type === 'parentselect') {
+                input = `<select class="form-select" id="${id}">${menuParentOptions(val, item.id)}</select>`;
             } else if (f.type === 'number') {
                 input = `<input type="number" class="form-control" id="${id}" value="${val}" placeholder="Nhập ${f.label.toLowerCase()}">`;
             } else {
