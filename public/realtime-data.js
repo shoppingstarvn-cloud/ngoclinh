@@ -162,7 +162,35 @@ async function loadMenus() {
         // Menu mobile (.menu-m) dùng cùng cây dữ liệu
         const mMenu = document.querySelector('.menu-m ul');
         if (mMenu) mMenu.innerHTML = html;
+        // Đồng bộ CỘT DANH MỤC bên trái (trang sản phẩm) theo menu "Sản phẩm"
+        syncProductSidebar(data, children);
     } catch(e) { console.error('[Menus]', e); }
+}
+
+// Đồng bộ cột "Danh mục" bên trái (.menuleft_box) = nhánh con của menu "Sản phẩm"
+function syncProductSidebar(data, children) {
+    const box = document.querySelector('.menuleft_box');
+    if (!box) return;                       // trang không có cột danh mục -> bỏ qua
+    const ul = box.querySelector('ul');
+    if (!ul) return;
+    // Tìm menu gốc "Sản phẩm" (khớp CHÍNH XÁC, tránh nhầm "Chứng nhận tiêu chuẩn sản phẩm")
+    const norm = s => (s || '').trim().toLowerCase();
+    let sanpham = data.find(m => !m.parent_id && norm(m.label) === 'sản phẩm');
+    // Dự phòng: menu gốc dạng nhóm (url '#') có nhiều con nhất
+    if (!sanpham) {
+        const roots = data.filter(m => !m.parent_id && data.some(c => c.parent_id === m.id));
+        sanpham = roots.sort((a, b) => data.filter(c => c.parent_id === b.id).length - data.filter(c => c.parent_id === a.id).length)[0];
+    }
+    if (!sanpham) return;
+    const here = (location.pathname.split('/').pop() || '').toLowerCase();
+    const toHref = (u) => (!u || /^(https?:|\/|#)/.test(u)) ? (u || '#') : ('/' + u);
+    const buildLi = (m) => {
+        const subs = children(m.id);
+        const href = toHref(m.url);
+        const active = (href.split('/').pop() || '').toLowerCase() === here && here ? ' active' : '';
+        return `<li class="${active.trim()}"><a href="${href}"><i class="fa fa-long-arrow-right"></i> ${m.label}</a>${subs.length ? `<ul>${subs.map(buildLi).join('')}</ul>` : ''}</li>`;
+    };
+    ul.innerHTML = children(sanpham.id).map(buildLi).join('');
 }
 
 // ============ 8. CATEGORIES (Danh mục - service_home) ============
