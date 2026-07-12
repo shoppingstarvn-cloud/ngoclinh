@@ -127,6 +127,7 @@ const CMS_TABLES = [
   { table: 'menus', label: 'Menu', pk: 'id', publicRead: true },
   { table: 'categories', label: 'Danh mục', pk: 'id', publicRead: true },
   { table: 'posts', label: 'Bài viết', pk: 'id', publicRead: true },
+  { table: 'projects', label: 'Dự án', pk: 'id', publicRead: true },
   { table: 'products', label: 'Sản phẩm', pk: 'id', publicRead: true },
   { table: 'slides', label: 'Slide', pk: 'id', publicRead: true },
   { table: 'images', label: 'Hình ảnh', pk: 'id', publicRead: true },

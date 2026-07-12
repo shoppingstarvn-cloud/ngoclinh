@@ -160,8 +160,8 @@ async function loadNews() {
 // ============ 6. PROJECTS (Dự án - từ categories type=project hoặc posts) ============
 async function loadProjects() {
     try {
-        // Chỉ lấy DỰ ÁN (tags='du-an')
-        const { data } = await supabase.from('posts').select('*').eq('is_active', true).eq('status', 'published').eq('tags', 'du-an').order('display_order').limit(4);
+        // Đọc từ bảng DỰ ÁN riêng
+        const { data } = await supabase.from('projects').select('*').eq('is_active', true).order('display_order').limit(4);
         if (!data || data.length === 0) return;
         const c = document.querySelector('.project .list_project');
         if (!c) return;

@@ -107,6 +107,7 @@
         <a class="nav-link" onclick="showTab('menus',this)"><i class="fas fa-bars"></i><span>Menu</span></a>
         <a class="nav-link" onclick="showTab('categories',this)"><i class="fas fa-sitemap"></i><span>Danh mục</span></a>
         <a class="nav-link" onclick="showTab('posts',this)"><i class="fas fa-newspaper"></i><span>Bài viết</span></a>
+        <a class="nav-link" onclick="showTab('projects',this)"><i class="fas fa-building"></i><span>Dự án</span></a>
         <a class="nav-link" onclick="showTab('products',this)"><i class="fas fa-box"></i><span>Sản phẩm</span></a>
         <a class="nav-link" onclick="showTab('partners',this)"><i class="fas fa-handshake"></i><span>Đối tác</span></a>
         <a class="nav-link" onclick="showTab('testimonials',this)"><i class="fas fa-comment-dots"></i><span>Đánh giá</span></a>
@@ -326,6 +327,25 @@ const TABLES = [
           { key: 'thumbnail_url', label: 'Ảnh', render: v => v ? `<img src="${v}" class="thumb-img">` : '' },
           { key: 'title', label: 'Tiêu đề' },
           { key: 'status', label: 'Trạng thái' },
+          { key: 'is_active', label: 'Active', render: v => v ? '<span class="text-success">✓</span>' : '<span class="text-danger">✗</span>' }
+      ]
+    },
+    { name: 'projects', label: 'Dự án', icon: 'building', pk: 'id',
+      fields: [
+          { key: 'title', label: 'Tên dự án', type: 'text', required: true },
+          { key: 'slug', label: 'Slug', type: 'text', required: true },
+          { key: 'link_url', label: 'Link đích khi bấm vào (để trống = tự dùng slug)', type: 'text' },
+          { key: 'excerpt', label: 'Mô tả ngắn', type: 'textarea' },
+          { key: 'content', label: 'Nội dung (soạn thảo + chèn ảnh)', type: 'richtext' },
+          { key: 'thumbnail_url', label: 'Ảnh đại diện (URL)', type: 'text' },
+          { key: 'display_order', label: 'Thứ tự', type: 'number' },
+          { key: 'is_active', label: 'Kích hoạt', type: 'checkbox' }
+      ],
+      cols: [
+          { key: 'id', label: 'ID' },
+          { key: 'thumbnail_url', label: 'Ảnh', render: v => v ? `<img src="${v}" class="thumb-img">` : '' },
+          { key: 'title', label: 'Tên dự án' },
+          { key: 'link_url', label: 'Link đích', render: (v, row) => v || (row.slug ? '/' + row.slug + '.html' : '') },
           { key: 'is_active', label: 'Active', render: v => v ? '<span class="text-success">✓</span>' : '<span class="text-danger">✗</span>' }
       ]
     },
