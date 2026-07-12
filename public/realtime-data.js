@@ -124,7 +124,8 @@ function postHref(slug) {
 }
 async function loadNews() {
     try {
-        const { data } = await supabase.from('posts').select('*').eq('is_active', true).eq('status', 'published').order('display_order').limit(30);
+        // Chỉ lấy TIN TỨC (tags='tin-tuc'), KHÔNG lẫn dự án
+        const { data } = await supabase.from('posts').select('*').eq('is_active', true).eq('status', 'published').eq('tags', 'tin-tuc').order('display_order').limit(30);
         if (!data || data.length === 0) return;
 
         // (a) Khối tin TRANG CHỦ (.news .list_news) — nếu có
@@ -159,14 +160,15 @@ async function loadNews() {
 // ============ 6. PROJECTS (Dự án - từ categories type=project hoặc posts) ============
 async function loadProjects() {
     try {
-        const { data } = await supabase.from('posts').select('*').eq('is_active', true).eq('status', 'published').order('display_order').limit(4);
+        // Chỉ lấy DỰ ÁN (tags='du-an')
+        const { data } = await supabase.from('posts').select('*').eq('is_active', true).eq('status', 'published').eq('tags', 'du-an').order('display_order').limit(4);
         if (!data || data.length === 0) return;
         const c = document.querySelector('.project .list_project');
         if (!c) return;
         c.innerHTML = data.map(p => `
             <div class="col-12 col-md-6 item"><dl>
-                <dt><div class="swing"><figure><a href="${p.slug}.html"><img src="${p.thumbnail_url}" alt="${p.title}" /></a></figure></div></dt>
-                <dd><h3><a href="${p.slug}.html">${p.title}</a></h3><p>${p.excerpt || ''}</p><a href="${p.slug}.html"></a></dd>
+                <dt><div class="swing"><figure><a href="${postHref(p.slug)}"><img src="${p.thumbnail_url}" alt="${p.title}" /></a></figure></div></dt>
+                <dd><h3><a href="${postHref(p.slug)}">${p.title}</a></h3><p>${p.excerpt || ''}</p><a href="${postHref(p.slug)}"></a></dd>
                 <div class="clearfix"></div>
             </dl></div>`).join('');
     } catch(e) { console.error('[Projects]', e); }
