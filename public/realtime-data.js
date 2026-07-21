@@ -364,6 +364,7 @@ function subscribeRealtime() {
     const map = {
         slides: loadSlides, products: loadProducts, partners: loadPartners,
         testimonials: loadTestimonials, posts: () => { loadNews(); loadProjects(); },
+        projects: loadProjects,
         menus: loadMenus, categories: loadCategories, videos: loadVideos,
         photos: loadPhotos, links: loadLinks, site_settings: loadSiteSettings
     };
@@ -375,7 +376,7 @@ function subscribeRealtime() {
             })
             .subscribe();
     });
-    console.log('✅ Realtime 12 bảng active: Admin <-> Supabase <-> Website');
+    console.log('✅ Realtime 13 bảng active (có projects): Admin <-> Supabase <-> Website');
 }
 
 // ============ INIT ============

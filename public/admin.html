@@ -786,9 +786,16 @@ async function saveRecord(table) {
             data[f.key] = el.value;
         }
     }
-    
+
+    // Mặc định thông minh cho BÀI VIẾT mới: đảm bảo hiện ngay ở khối Tin tức trang chủ
+    if (table === 'posts' && !editId) {
+        if (!data.tags || !String(data.tags).trim()) data.tags = 'tin-tuc';
+        if (!data.status || !String(data.status).trim()) data.status = 'published';
+        if (data.is_active === undefined) data.is_active = true;
+    }
+
     Swal.fire({title:'Đang lưu...',allowOutsideClick:false,didOpen:()=>Swal.showLoading(),background:'#1a1a2e',color:'#fff'});
-    
+
     try {
         let resp;
         if (editId) {
