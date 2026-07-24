@@ -38,6 +38,25 @@ Riêng `-p7.html` có 3 file; các mã `p14 p15 p16 p18 p19 p36 p41 p42 p46 p49 
 
 ---
 
+### A6. ⭐ Bấm sản phẩm/bài trên trang chủ → "Not found" (trang trống)
+**Triệu chứng:** Trang chủ hiện sản phẩm, bấm vào nhảy link nhưng ra trang trắng chữ "Not found".
+
+**Nguyên nhân:** `realtime-data.js` sinh link `/<slug>.html` (qua `itemHref`/`postHref`), nhưng file chi tiết thật nằm ở `public/index.php/...-p<n>.html` — khác chỗ. Server không thấy file ở gốc → `res.status(404).send('Not found')`. Lúc đồng bộ chưa điền `link_url`; hơn nữa `posts`/`partners` KHÔNG có cột `link_url`.
+
+**Cách sửa (đã làm 24/07/2026 — server tự chuyển hướng):**
+1. Sinh `public/_detail-map.json` = `{ slug → /index.php/....html }` bằng `scripts/build-detail-map.js` (đọc `<h1>` từng file, slugify cùng thuật toán đồng bộ; thêm cả key `slug-p<n>`; có ánh xạ thủ công cho bản ghi cũ không có file).
+2. `server.js` nạp map lúc khởi động; trong SPA fallback, trước khi trả 404 cho `.html`: lấy slug từ URL, nếu `DETAIL_MAP[slug]` tồn tại → `res.redirect(301, target)`.
+3. Sau redirect, URL thành `/index.php/...` → assets đúng, `detail-sync.js` phân loại đúng (thấy `-p<n>`), nội dung động từ DB.
+4. Khi THÊM trang chi tiết mới → chạy lại `node scripts/build-detail-map.js` rồi push.
+
+**Lưu ý:** bản ghi cũ không có file (vd product `cong-be-tong-tron`) → thêm ánh xạ thủ công trong `MANUAL` của `build-detail-map.js` (đang trỏ về `/cong-tron-c53.html`).
+
+### A7. Anon chỉ đọc được 2/7 dự án (trang chủ thiếu dự án)
+**Nguyên nhân:** bảng `projects` thiếu policy đọc công khai đầy đủ cho `anon`.
+**Cách sửa:** chạy `sql/02_FIX_PROJECTS_RLS.sql` (GRANT SELECT + policy `p_public_read USING(true)` + reload schema).
+
+---
+
 ## B. LỖI HẠ TẦNG / MẠNG
 
 ### B1. ⭐ Vercel chặn 403 TOÀN SITE

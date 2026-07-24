@@ -149,6 +149,8 @@ Việc hay làm nhất. Quy trình đã kiểm chứng thành công 142/142 bả
 | Ghi DB lỗi 400 | Bảng thiếu cột `created_at`/`updated_at` mà server tự gán | `ALTER TABLE ... ADD COLUMN IF NOT EXISTS` |
 | `photos` lỗi 400 khi gửi `true` | `photos.is_active` là **INTEGER (1/0)**, không phải boolean | Gửi `1`/`0` |
 | Fetch nhiều trang → 403 toàn site | Vercel rate limit | Tiết chế ≥400ms/trang |
+| Bấm sản phẩm/bài trang chủ → "Not found" | Link `/slug.html` không có file (file thật ở `/index.php/...`) | `server.js` nạp `public/_detail-map.json` → redirect 301 slug→file thật. Thêm trang mới: chạy `node scripts/build-detail-map.js` |
+| Anon chỉ thấy 2/7 dự án | `projects` thiếu policy đọc công khai | chạy `sql/02_FIX_PROJECTS_RLS.sql` |
 
 👉 Danh sách đầy đủ + chi tiết: đọc `references/04-loi-da-gap.md`
 
