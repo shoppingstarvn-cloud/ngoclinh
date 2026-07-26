@@ -1,2 +1,23 @@
+# Next.js
+.next/
+out/
+build/
+
+# Dependencies
+node_modules/
+
+# Env — KHÔNG BAO GIỜ commit khoá thật
+.env
+.env*.local
+
+# Vercel
 .vercel
+
+# Uploads local (fallback) — dữ liệu thật nằm ở Supabase Storage
+/uploads/*
+!/uploads/.gitkeep
+
+# Logs & misc
+*.log
+.DS_Store
 webbetonglammau_PROJECT_MEMORY.md

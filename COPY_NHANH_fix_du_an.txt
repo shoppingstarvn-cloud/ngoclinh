@@ -1,0 +1,27 @@
+========================================================
+  FIX DỰ ÁN — anon chỉ thấy 2/7 dự án → trang chủ thiếu dự án
+  Cách chạy: mở link SQL Editor bên dưới → dán TOÀN BỘ khối
+  giữa 2 đường kẻ → bấm nút RUN (hoặc Ctrl + Enter)
+========================================================
+
+--------- COPY TỪ ĐÂY ---------
+GRANT SELECT ON public.projects TO anon, authenticated;
+
+ALTER TABLE public.projects ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS p_public_read ON public.projects;
+CREATE POLICY p_public_read ON public.projects
+  FOR SELECT TO anon, authenticated USING (true);
+
+NOTIFY pgrst, 'reload schema';
+
+SELECT count(*) AS projects_tong FROM public.projects;
+--------- COPY ĐẾN ĐÂY ---------
+
+Kết quả đúng: dòng projects_tong hiện đúng tổng số dự án thật
+(khoảng 7). Chạy lại nhiều lần đều an toàn.
+
+
+========================================================
+  LINK SQL EDITOR (bấm mở, tạo query mới):
+  https://supabase.com/dashboard/project/bfruxinvvvaqufghtigw/sql/new
+========================================================

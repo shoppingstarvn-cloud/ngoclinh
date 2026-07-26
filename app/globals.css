@@ -1,0 +1,30 @@
+/* Bổ sung tối thiểu — CSS legacy nằm trong public/css */
+@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Roboto+Condensed:ital,wght@0,400;0,700;1,400&display=swap');
+
+:root {
+  --color-primary: #0d6efd;
+  --color-gold: #ffd700;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+/* Carousel React thay Owl — giữ class cũ cho CSS tương thích */
+.product-carousel .item dl,
+.partner-carousel .item {
+  margin: 0;
+}
+
+.detail-content img {
+  max-width: 100%;
+  height: auto;
+}
+
+.detail-content table {
+  max-width: 100%;
+  overflow-x: auto;
+  display: block;
+}

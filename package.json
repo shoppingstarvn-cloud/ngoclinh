@@ -1,21 +1,33 @@
 {
   "name": "webbetonglammau",
-  "version": "1.0.0",
-  "description": "",
-  "main": "server.js",
+  "version": "2.0.0",
+  "private": true,
+  "description": "Website Cửa Âu — Next.js App Router + Supabase CMS",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node server.js"
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "build:detail-map": "node scripts/build-detail-map.js"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "type": "commonjs",
   "dependencies": {
-    "@supabase/supabase-js": "^2.108.2",
-    "cors": "^2.8.6",
-    "dotenv": "^17.4.2",
-    "express": "^5.2.1",
-    "multer": "^2.2.0"
+    "@supabase/ssr": "^0.6.1",
+    "@supabase/supabase-js": "^2.49.8",
+    "jose": "^6.0.11",
+    "next": "^15.3.3",
+    "quill": "^2.0.3",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "sweetalert2": "^11.15.10",
+    "swiper": "^11.2.8"
+  },
+  "devDependencies": {
+    "@eslint/eslintrc": "^3.2.0",
+    "@types/node": "^22.15.21",
+    "@types/react": "^19.1.6",
+    "@types/react-dom": "^19.1.5",
+    "eslint": "^9.27.0",
+    "eslint-config-next": "^15.3.3",
+    "typescript": "^5.8.3"
   }
 }
