@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { applyAdminFilters, stripSystemFields } from '@/lib/cms/crud';
 import { isValidTable } from '@/lib/cms/tables';
@@ -45,6 +46,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
     const supabase = createAdminClient();
     const { data, error } = await supabase.from(table).insert(body).select();
     if (error) throw error;
+    revalidatePath('/', 'layout');
     return NextResponse.json({ success: true, data: data?.[0] ?? data });
   } catch (e) {
     const message = e instanceof Error ? e.message : 'Tạo thất bại';

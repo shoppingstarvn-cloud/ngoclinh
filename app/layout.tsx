@@ -22,6 +22,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           rel="stylesheet"
           href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.4.0/css/font-awesome.min.css"
         />
+        {/* Font gốc của theme (Oswald + Roboto Condensed) — thiếu font này làm vỡ toàn bộ typography/spacing */}
+        <link
+          href="https://fonts.googleapis.com/css?family=Oswald:400,500,600,700|Roboto+Condensed:400,400i,700&subset=vietnamese"
+          rel="stylesheet"
+        />
         <link
           rel="stylesheet"
           href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.0/css/bootstrap.min.css"
@@ -37,9 +42,18 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body>
         {children}
+        {/* jQuery PHẢI nạp trước Bootstrap JS và Owl Carousel JS (giữ đúng thứ tự như bản tĩnh cũ) */}
+        <Script
+          src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.js"
+          strategy="beforeInteractive"
+        />
         <Script
           src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.0/js/bootstrap.min.js"
-          strategy="lazyOnload"
+          strategy="afterInteractive"
+        />
+        <Script
+          src="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/owl.carousel.min.js"
+          strategy="afterInteractive"
         />
       </body>
     </html>

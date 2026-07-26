@@ -26,6 +26,21 @@ export function itemHref(item: {
   return '#';
 }
 
+/**
+ * Chuẩn hoá URL ảnh/video lấy từ Supabase (site_settings, categories...).
+ * Một số bản ghi cũ lưu đường dẫn thiếu dấu "/" đầu (VD: "images/logo.png"),
+ * khiến trình duyệt hiểu nhầm thành đường dẫn CON của trang hiện tại (ví dụ
+ * trang "/san-pham-abc.html" sẽ tìm nhầm "/images/logo.png" thành lỗi ở các
+ * URL lồng nhiều cấp) → ảnh vỡ tuỳ trang. Luôn trả về URL tuyệt đối từ gốc
+ * domain hoặc giữ nguyên nếu đã là http(s)/data URL.
+ */
+export function assetUrl(u?: string | null): string {
+  const v = (u || '').trim();
+  if (!v) return '';
+  if (/^(https?:|data:|blob:|\/)/i.test(v)) return v;
+  return `/${v}`;
+}
+
 export function postHref(slug?: string | null): string {
   if (!slug) return '#';
   if (/^(https?:|\/)/.test(slug)) {

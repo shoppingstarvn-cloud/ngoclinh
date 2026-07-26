@@ -2,13 +2,20 @@ import type { Metadata } from 'next';
 import { SiteShell } from '@/components/layout/SiteShell';
 import { getHomepageData } from '@/lib/data/homepage';
 import {
+  AboutLink,
   CategoryGrid,
-  NewsBlock,
-  PartnerCarousel,
-  ProductCarousel,
-  ProjectList,
+  NewsSection,
+  PartnerSection,
+  ProductSection,
+  ProjectSection,
   SlideCarousel,
+  TestimonialSection,
 } from '@/components/home/HomeSections';
+
+// Luôn render động (không dùng Full Route Cache) để mọi thay đổi từ Super Admin
+// (qua Server Actions + revalidatePath) phản ánh NGAY LẬP TỨC trên trang chủ,
+// kể cả sau khi đã build/deploy — không cần rebuild lại.
+export const dynamic = 'force-dynamic';
 
 export async function generateMetadata(): Promise<Metadata> {
   const { settings } = await getHomepageData();
@@ -21,38 +28,18 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function HomePage() {
   const data = await getHomepageData();
+  const companyName = data.settings.site_name || 'CÔNG TY CỔ PHẦN THƯƠNG MẠI CỬA ÂU';
 
   return (
     <SiteShell settings={data.settings} menus={data.menus}>
       <SlideCarousel slides={data.slides} />
-
-      {data.settings.intro_text && (
-        <section
-          id="dynamic-intro"
-          className="container"
-          dangerouslySetInnerHTML={{ __html: data.settings.intro_text }}
-        />
-      )}
-
-      <section className="container service_home">
-        <CategoryGrid categories={data.categories} />
-      </section>
-
-      <section className="container">
-        <ProductCarousel products={data.products} />
-      </section>
-
-      <section className="container">
-        <NewsBlock posts={data.posts} />
-      </section>
-
-      <section className="container">
-        <ProjectList projects={data.projects} />
-      </section>
-
-      <section className="container">
-        <PartnerCarousel partners={data.partners} />
-      </section>
+      <AboutLink companyName={companyName} introHtml={data.settings.intro_text} />
+      <CategoryGrid categories={data.categories} />
+      <ProductSection products={data.products} />
+      <ProjectSection projects={data.projects} />
+      <PartnerSection partners={data.partners} />
+      <TestimonialSection testimonials={data.testimonials} />
+      <NewsSection posts={data.posts} />
     </SiteShell>
   );
 }

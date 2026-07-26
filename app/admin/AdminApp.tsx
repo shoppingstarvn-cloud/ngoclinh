@@ -9,6 +9,7 @@ import DataTable from '@/components/admin/DataTable';
 import SiteSettingsPanel from '@/components/admin/SiteSettingsPanel';
 import RecordFormModal from '@/components/admin/RecordFormModal';
 import { ADMIN_TABLES, AdminRow } from '@/lib/cms/admin-schema';
+import { deleteRecordAction } from '@/lib/actions/admin-actions';
 
 const swalDark = { background: '#1a1a2e', color: '#fff' };
 const TOKEN_STORAGE_KEY = 'admin_token';
@@ -115,11 +116,7 @@ export default function AdminApp() {
     });
     if (!confirm.isConfirmed) return;
     try {
-      const resp = await fetch(`/api/admin/${tableName}/${row.id}`, {
-        method: 'DELETE',
-        headers: { Authorization: authHeader },
-      });
-      const result = await resp.json();
+      const result = await deleteRecordAction(tableName, row.id as string | number);
       if (!result.success) throw new Error(result.error || 'Xóa thất bại');
       Swal.fire({ icon: 'success', title: 'Đã xóa!', timer: 1000, showConfirmButton: false, ...swalDark });
       loadAllData(authHeader);
@@ -171,7 +168,6 @@ export default function AdminApp() {
         {activeTab === 'site_settings' && (
           <SiteSettingsPanel
             rows={allData.site_settings || []}
-            token={authHeader}
             onSaved={() => {
               Swal.fire({ icon: 'success', title: 'Đã lưu toàn bộ cài đặt!', timer: 1200, showConfirmButton: false, ...swalDark });
               loadAllData(authHeader);
@@ -197,7 +193,6 @@ export default function AdminApp() {
           table={modalState.table}
           item={modalState.item}
           menus={allData.menus || []}
-          token={authHeader}
           onClose={() => setModalState(null)}
           onSaved={() => {
             Swal.fire({ icon: 'success', title: 'Đã lưu!', timer: 1000, showConfirmButton: false, ...swalDark });

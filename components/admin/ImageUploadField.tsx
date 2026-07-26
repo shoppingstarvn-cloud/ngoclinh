@@ -1,14 +1,14 @@
 'use client';
 
 import { useCallback, useRef, useState } from 'react';
+import { uploadFileAction } from '@/lib/actions/admin-actions';
 
 interface ImageUploadFieldProps {
   value: string;
   onChange: (url: string) => void;
-  token: string;
 }
 
-export default function ImageUploadField({ value, onChange, token }: ImageUploadFieldProps) {
+export default function ImageUploadField({ value, onChange }: ImageUploadFieldProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [dragOver, setDragOver] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -21,12 +21,7 @@ export default function ImageUploadField({ value, onChange, token }: ImageUpload
       try {
         const formData = new FormData();
         formData.append('file', file);
-        const resp = await fetch('/api/upload', {
-          method: 'POST',
-          headers: { Authorization: token },
-          body: formData,
-        });
-        const result = await resp.json();
+        const result = await uploadFileAction(formData);
         if (result.success && result.url) {
           onChange(result.url);
         } else {
@@ -38,7 +33,7 @@ export default function ImageUploadField({ value, onChange, token }: ImageUpload
         setUploading(false);
       }
     },
-    [onChange, token],
+    [onChange],
   );
 
   return (

@@ -9,6 +9,7 @@ node_modules/
 # Env — KHÔNG BAO GIỜ commit khoá thật
 .env
 .env*.local
+tsconfig.tsbuildinfo
 
 # Vercel
 .vercel

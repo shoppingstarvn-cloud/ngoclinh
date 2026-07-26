@@ -6,6 +6,7 @@ import ImageUploadField from './ImageUploadField';
 import RichTextEditor from './RichTextEditor';
 import { AdminField, AdminRow, AdminTableDef, isImageField } from '@/lib/cms/admin-schema';
 import { slugify } from '@/lib/slug';
+import { createRecordAction, updateRecordAction } from '@/lib/actions/admin-actions';
 
 interface MenuOption {
   id: number;
@@ -49,12 +50,11 @@ interface RecordFormModalProps {
   table: AdminTableDef;
   item: AdminRow | null;
   menus: AdminRow[];
-  token: string;
   onClose: () => void;
   onSaved: () => void;
 }
 
-export default function RecordFormModal({ open, table, item, menus, token, onClose, onSaved }: RecordFormModalProps) {
+export default function RecordFormModal({ open, table, item, menus, onClose, onSaved }: RecordFormModalProps) {
   const [formData, setFormData] = useState<Record<string, unknown>>({});
   const [autoSlug, setAutoSlug] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -112,13 +112,9 @@ export default function RecordFormModal({ open, table, item, menus, token, onClo
     }
 
     try {
-      const url = item ? `/api/admin/${table.name}/${item.id}` : `/api/admin/${table.name}`;
-      const resp = await fetch(url, {
-        method: item ? 'PUT' : 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: token },
-        body: JSON.stringify(payload),
-      });
-      const result = await resp.json();
+      const result = item
+        ? await updateRecordAction(table.name, item.id as string | number, payload)
+        : await createRecordAction(table.name, payload);
       if (!result.success) throw new Error(result.error || 'Lưu thất bại');
       onSaved();
       onClose();
@@ -154,7 +150,7 @@ export default function RecordFormModal({ open, table, item, menus, token, onClo
               {f.required && <span className="text-danger"> *</span>}
             </label>
             {isImg ? (
-              <ImageUploadField value={String(value ?? '')} onChange={(url) => setField(f.key, url)} token={token} />
+              <ImageUploadField value={String(value ?? '')} onChange={(url) => setField(f.key, url)} />
             ) : f.type === 'richtext' ? (
               <RichTextEditor initialValue={String(value ?? '')} onChange={(html) => setField(f.key, html)} />
             ) : f.type === 'textarea' ? (

@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { AdminRow, SITE_SETTINGS_FIXED_KEYS } from '@/lib/cms/admin-schema';
 import ImageUploadField from './ImageUploadField';
+import { saveSiteSettingsAction } from '@/lib/actions/admin-actions';
 
 const LABELS: Record<(typeof SITE_SETTINGS_FIXED_KEYS)[number], string> = {
   site_name: 'Tên website',
@@ -21,13 +22,13 @@ const LABELS: Record<(typeof SITE_SETTINGS_FIXED_KEYS)[number], string> = {
 
 interface SiteSettingsPanelProps {
   rows: AdminRow[];
-  token: string;
   onSaved: () => void;
 }
 
-export default function SiteSettingsPanel({ rows, token, onSaved }: SiteSettingsPanelProps) {
+export default function SiteSettingsPanel({ rows, onSaved }: SiteSettingsPanelProps) {
   const [values, setValues] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     const next: Record<string, string> = {};
@@ -44,25 +45,13 @@ export default function SiteSettingsPanel({ rows, token, onSaved }: SiteSettings
 
   async function saveAll() {
     setSaving(true);
+    setError('');
     try {
-      for (const key of SITE_SETTINGS_FIXED_KEYS) {
-        const value = values[key] || '';
-        const existing = rows.find((r) => r.key === key);
-        if (existing) {
-          await fetch(`/api/admin/site_settings/${existing.id}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json', Authorization: token },
-            body: JSON.stringify({ key, value }),
-          });
-        } else if (value) {
-          await fetch('/api/admin/site_settings', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', Authorization: token },
-            body: JSON.stringify({ key, value }),
-          });
-        }
-      }
+      const result = await saveSiteSettingsAction(values);
+      if (!result.success) throw new Error(result.error || 'Lưu cài đặt thất bại');
       onSaved();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Lưu cài đặt thất bại');
     } finally {
       setSaving(false);
     }
@@ -96,11 +85,11 @@ export default function SiteSettingsPanel({ rows, token, onSaved }: SiteSettings
 
           <div className="col-md-6 mb-3">
             <label className="form-label fw-bold">{LABELS.logo_url}</label>
-            <ImageUploadField value={values.logo_url || ''} onChange={(url) => set('logo_url', url)} token={token} />
+            <ImageUploadField value={values.logo_url || ''} onChange={(url) => set('logo_url', url)} />
           </div>
           <div className="col-md-6 mb-3">
             <label className="form-label fw-bold">{LABELS.favicon_url}</label>
-            <ImageUploadField value={values.favicon_url || ''} onChange={(url) => set('favicon_url', url)} token={token} />
+            <ImageUploadField value={values.favicon_url || ''} onChange={(url) => set('favicon_url', url)} />
           </div>
 
           <div className="col-md-12 mb-3">
@@ -120,6 +109,11 @@ export default function SiteSettingsPanel({ rows, token, onSaved }: SiteSettings
             <textarea className="form-control" rows={5} value={values.intro_text || ''} onChange={(e) => set('intro_text', e.target.value)} />
           </div>
         </div>
+        {error && (
+          <div className="alert alert-danger" role="alert">
+            {error}
+          </div>
+        )}
         <button className="btn btn-primary" onClick={saveAll} disabled={saving}>
           <i className="fas fa-save" /> {saving ? 'Đang lưu...' : 'Lưu tất cả'}
         </button>

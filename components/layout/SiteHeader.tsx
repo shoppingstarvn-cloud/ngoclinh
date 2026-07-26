@@ -1,7 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, type CSSProperties } from 'react';
 import Link from 'next/link';
+import { assetUrl } from '@/lib/slug';
 
 export interface MenuItem {
   id: number;
@@ -31,7 +32,7 @@ export function SiteHeader({
   const [mobileOpen, setMobileOpen] = useState(false);
   const { roots, children } = buildMenuTree(menus);
   const siteName = settings.site_name || 'CÔNG TY CỔ PHẦN THƯƠNG MẠI CỬA ÂU';
-  const logo = settings.logo_url || '/images/contact/4174logo_bt.png';
+  const logo = assetUrl(settings.logo_url) || '/images/contact/4174logo_bt.png';
 
   const renderMenu = (mobile = false) =>
     roots.map((m) => {
@@ -78,6 +79,16 @@ export function SiteHeader({
             <Link className="logo" href="/">
               <img src={logo} alt={siteName} />
             </Link>
+            <form
+              className="search_form"
+              action="https://congbetongcuaau.com/index.php/tim-kiem.html"
+              method="GET"
+            >
+              <input type="text" name="txtkeyword" placeholder="Từ khóa tìm kiếm..." autoComplete="off" />
+              <button type="submit">
+                <i className="fa fa-search" />
+              </button>
+            </form>
           </div>
           <div className="padding-m" />
         </div>
@@ -86,15 +97,38 @@ export function SiteHeader({
       <div className="top_page d-none d-md-block">
         <div className="container">
           <div className="row no-gutters">
-            <div className="col-6">
+            <div className="col-6 wow bounceInLeft">
               <p className="welcome">{siteName}</p>
             </div>
+
             <div className="col-6 right">
               <div className="row no-gutters">
+                <div className="search">
+                  <form action="https://congbetongcuaau.com/index.php/tim-kiem.html" method="GET">
+                    <input
+                      type="text"
+                      name="txtkeyword"
+                      placeholder="Từ khóa tìm kiếm..."
+                      autoComplete="off"
+                    />
+                    <button type="submit">
+                      <i className="fa fa-search" />
+                    </button>
+                  </form>
+                </div>
                 <div className="">
                   <div className="social">
-                    <a href={settings.facebook_url || '#'} target="_blank" rel="noreferrer">
-                      <i className="fa fa-facebook" />
+                    {settings.facebook_url ? (
+                      <a href={settings.facebook_url} target="_blank" rel="noreferrer">
+                        <i className="fa fa-facebook" />
+                      </a>
+                    ) : (
+                      <a href="#" target="_blank" rel="noreferrer">
+                        <i className="fa fa-twitter" />
+                      </a>
+                    )}
+                    <a href="#" target="_blank" rel="noreferrer">
+                      <i className="fa fa-google-plus" />
                     </a>
                   </div>
                 </div>
@@ -132,16 +166,199 @@ export function SiteHeader({
 }
 
 export function SiteFooter({ settings }: { settings: Record<string, string> }) {
+  const siteName = settings.site_name || 'CÔNG TY CỔ PHẦN THƯƠNG MẠI CỬA ÂU';
+  const logo = assetUrl(settings.logo_url) || '/images/contact/4174logo_bt.png';
+  const linkStyle: CSSProperties = {
+    color: '#ccc',
+    textDecoration: 'none',
+    transition: 'color 0.3s',
+    display: 'block',
+    padding: '5px 0',
+    cursor: 'pointer',
+    position: 'relative',
+    zIndex: 9999,
+  };
+
   return (
-    <footer className="footer">
-      <div className="container">
-        <p id="footer-address">{settings.address}</p>
-        <p id="footer-phone">{settings.hotline}</p>
-        <p id="footer-email">{settings.email}</p>
-        <p id="footer-copyright">
-          {settings.footer_copyright ||
-            'BẢN QUYỀN THUỘC VỀ CÔNG TY CỔ PHẦN THƯƠNG MẠI CỬA ÂU'}
-        </p>
+    <footer>
+      <div
+        style={{
+          backgroundColor: '#004d00',
+          color: '#ffffff',
+          padding: '50px 0 20px 0',
+          width: '100%',
+          clear: 'both',
+          position: 'relative',
+          zIndex: 9999,
+          pointerEvents: 'auto',
+        }}
+      >
+        <div className="container">
+          <div className="row">
+            <div className="col-12 col-md-3 mb-4">
+              <Link href="/" style={{ display: 'inline-block' }}>
+                <img
+                  src={logo}
+                  alt={siteName}
+                  style={{
+                    maxWidth: 150,
+                    background: '#fff',
+                    padding: 5,
+                    borderRadius: 5,
+                    boxShadow: '0 0 10px rgba(0,0,0,0.3)',
+                  }}
+                />
+              </Link>
+              <div style={{ marginTop: 20 }}>
+                <a
+                  href="#"
+                  style={{ color: '#fff', marginRight: 15, fontSize: 24, display: 'inline-block', padding: 5, cursor: 'pointer' }}
+                >
+                  <i className="fa fa-twitter" />
+                </a>
+                <a
+                  href="#"
+                  style={{ color: '#fff', fontSize: 24, display: 'inline-block', padding: 5, cursor: 'pointer' }}
+                >
+                  <i className="fa fa-google-plus" />
+                </a>
+              </div>
+            </div>
+
+            <div className="col-12 col-md-5 mb-4">
+              <h5 style={{ fontWeight: 'bold', textTransform: 'uppercase', marginBottom: 20, color: '#fff' }}>
+                {siteName}
+              </h5>
+              <ul style={{ listStyle: 'none', padding: 0, margin: 0, lineHeight: 2 }}>
+                <li>
+                  <i className="fa fa-map-marker" style={{ width: 25 }} /> Địa chỉ:{' '}
+                  <span id="footer-address">{settings.address}</span>
+                </li>
+                <li>
+                  <i className="fa fa-phone" style={{ width: 25 }} /> Điện thoại:{' '}
+                  <span id="footer-phone">{settings.hotline}</span>
+                </li>
+                <li>
+                  <i className="fa fa-envelope" style={{ width: 25 }} /> Email:{' '}
+                  <span id="footer-email">{settings.email}</span>
+                </li>
+                {settings.website_url && (
+                  <li>
+                    <i className="fa fa-globe" style={{ width: 25 }} /> Website:{' '}
+                    <a href={settings.website_url} style={{ color: '#fff', textDecoration: 'none', cursor: 'pointer' }}>
+                      {settings.website_url}
+                    </a>
+                  </li>
+                )}
+              </ul>
+            </div>
+
+            <div className="col-12 col-md-2 mb-4">
+              <h5 style={{ fontWeight: 'bold', textTransform: 'uppercase', marginBottom: 20, color: '#fff' }}>
+                DỊCH VỤ
+              </h5>
+              <ul style={{ listStyle: 'none', padding: 0, margin: 0, lineHeight: 2 }}>
+                <li>
+                  <Link href="/gioi-thieu-a1.html" style={linkStyle}>
+                    • Giới thiệu công ty
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/du-an-a3.html" style={linkStyle}>
+                    • Dự án tiêu biểu
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/lien-he.html" style={linkStyle}>
+                    • Liên hệ vận tải
+                  </Link>
+                </li>
+              </ul>
+            </div>
+
+            <div className="col-12 col-md-2 mb-4">
+              <h5 style={{ fontWeight: 'bold', textTransform: 'uppercase', marginBottom: 20, color: '#fff' }}>
+                SẢN PHẨM
+              </h5>
+              <ul style={{ listStyle: 'none', padding: 0, margin: 0, lineHeight: 2 }}>
+                <li>
+                  <Link href="/ho-ga-duc-san-c48.html" style={linkStyle}>
+                    • Hố ga bê tông
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/cong-hop--c54.html" style={linkStyle}>
+                    • Cống hộp đúc sẵn
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/cong-tron-c53.html" style={linkStyle}>
+                    • Cống tròn bê tông
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/index.php/cac-san-pham-khac-c51.html" style={linkStyle}>
+                    • Rãnh thoát nước
+                  </Link>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div
+        style={{
+          backgroundColor: '#003300',
+          color: '#ffffff',
+          padding: '15px 0',
+          width: '100%',
+          clear: 'both',
+          borderTop: '1px solid #005900',
+          position: 'relative',
+          zIndex: 9999,
+          pointerEvents: 'auto',
+        }}
+      >
+        <div className="container">
+          <div className="row align-items-center">
+            <div className="col-12 col-md-9 mb-3 mb-md-0 text-center text-md-left">
+              <p style={{ margin: 0, fontSize: 14, opacity: 0.8 }} id="footer-copyright">
+                {settings.footer_copyright ||
+                  'BẢN QUYỀN THUỘC VỀ CÔNG TY CỔ PHẦN THƯƠNG MẠI CỬA ÂU'}
+              </p>
+            </div>
+            <div className="col-12 col-md-3 text-center text-md-right">
+              <a
+                href="http://online.gov.vn/HomePage/CustomWebsiteDisplay.aspx?DocId=57677"
+                target="_blank"
+                rel="noreferrer"
+                style={{ display: 'inline-block', cursor: 'pointer' }}
+              >
+                <img
+                  src="/images/contact/2171da-thong-bao-bct.png"
+                  alt="Bộ Công Thương"
+                  style={{ height: 40, marginRight: 15, display: 'inline-block' }}
+                />
+              </a>
+              <a
+                href="#top"
+                className="go-top"
+                style={{
+                  color: '#fff',
+                  background: '#444',
+                  padding: '5px 12px',
+                  borderRadius: 3,
+                  display: 'inline-block',
+                  textDecoration: 'none',
+                  cursor: 'pointer',
+                }}
+              >
+                <i className="fa fa-arrow-up" />
+              </a>
+            </div>
+          </div>
+        </div>
       </div>
     </footer>
   );

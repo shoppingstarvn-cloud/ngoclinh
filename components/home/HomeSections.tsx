@@ -1,8 +1,8 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
-import { postHref, itemHref } from '@/lib/slug';
+import { postHref, itemHref, assetUrl } from '@/lib/slug';
+import { useOwlCarousel } from '@/lib/hooks/useOwlCarousel';
 
 interface Slide {
   id: number;
@@ -13,156 +13,34 @@ interface Slide {
 }
 
 export function SlideCarousel({ slides }: { slides: Slide[] }) {
-  const [index, setIndex] = useState(0);
-
-  const next = useCallback(() => {
-    setIndex((i) => (i + 1) % Math.max(slides.length, 1));
-  }, [slides.length]);
-
-  useEffect(() => {
-    if (slides.length <= 1) return;
-    const t = setInterval(next, 5000);
-    return () => clearInterval(t);
-  }, [slides.length, next]);
-
-  if (!slides.length) return null;
-
-  const slide = slides[index];
-
-  return (
-    <div id="slide-container" className="slide-carousel">
-      <div className="item">
-        <Link href={slide.link_url || '#'}>
-          <img src={slide.image_url} alt={slide.title || 'Slide'} />
-        </Link>
-        {slide.title && (
-          <div>
-            <h3>{slide.title}</h3>
-            <p>{slide.subtitle}</p>
-          </div>
-        )}
-      </div>
-    </div>
+  useOwlCarousel(
+    '#slide-container',
+    {
+      loop: slides.length > 1,
+      autoplay: true,
+      margin: 0,
+      responsiveClass: true,
+      responsive: { 0: { items: 1, dots: true }, 1000: { items: 1, dots: true } },
+    },
+    [slides.length],
   );
-}
 
-interface Product {
-  id: number;
-  name: string;
-  slug?: string;
-  link_url?: string;
-  thumbnail_url?: string;
-  price?: string;
-}
-
-export function ProductCarousel({ products }: { products: Product[] }) {
-  if (!products.length) return null;
-  return (
-    <div className="product-carousel owl-carousel">
-      {products.map((p) => (
-        <div key={p.id} className="item">
-          <dl>
-            <dt>
-              <img
-                src={p.thumbnail_url || '/images/placeholder.jpg'}
-                alt={p.name}
-                title={p.name}
-              />
-            </dt>
-            <dd>
-              <h3>{p.name}</h3>
-              {p.price && <p className="price">{p.price}</p>}
-              <Link href={itemHref(p)} title={p.name} style={{ position: 'absolute', inset: 0 }} />
-            </dd>
-          </dl>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-interface Post {
-  id: number;
-  title: string;
-  slug: string;
-  excerpt?: string;
-  thumbnail_url?: string;
-}
-
-export function NewsBlock({ posts }: { posts: Post[] }) {
-  if (!posts.length) return null;
-  const [first, ...rest] = posts;
+  if (!slides.length) return <div className="slider_box" />;
 
   return (
-    <div className="news">
-      <div className="list_news">
-        <div className="big_item">
-          <dl>
-            <dt>
-              <Link href={postHref(first.slug)}>
-                {first.thumbnail_url && <img src={first.thumbnail_url} alt={first.title} />}
-              </Link>
-            </dt>
-            <dd>
-              <h3>
-                <Link href={postHref(first.slug)}>{first.title}</Link>
-              </h3>
-              <p>{first.excerpt}</p>
-              <Link href={postHref(first.slug)}>Xem thêm</Link>
-            </dd>
-          </dl>
-        </div>
-        <div className="right">
-          {rest.slice(0, 4).map((p) => (
-            <div key={p.id} className="col-6 item">
-              <dl>
-                <dt>
-                  <Link href={postHref(p.slug)}>
-                    {p.thumbnail_url && <img src={p.thumbnail_url} alt={p.title} />}
-                  </Link>
-                </dt>
-                <dd>
-                  <h3>
-                    <Link href={postHref(p.slug)}>{p.title}</Link>
-                  </h3>
-                </dd>
-              </dl>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-interface Project {
-  id: number;
-  title: string;
-  slug: string;
-  excerpt?: string;
-  thumbnail_url?: string;
-}
-
-export function ProjectList({ projects }: { projects: Project[] }) {
-  if (!projects.length) return null;
-  return (
-    <div className="project">
-      <div className="list_project row">
-        {projects.map((p) => (
-          <div key={p.id} className="col-12 col-md-6 item">
-            <dl>
-              <dt>
-                <Link href={postHref(p.slug)}>
-                  {p.thumbnail_url && <img src={p.thumbnail_url} alt={p.title} />}
-                </Link>
-              </dt>
-              <dd>
-                <h3>
-                  <Link href={postHref(p.slug)}>{p.title}</Link>
-                </h3>
-                <p>{p.excerpt}</p>
-              </dd>
-            </dl>
+    <div className="slider_box">
+      <div id="slide-container" className="owl-carousel owl-theme slide-carousel">
+        {slides.map((s) => (
+          <div key={s.id} className="item">
+            <Link href={s.link_url || '#'}>
+              <img src={assetUrl(s.image_url)} alt={s.title || 'Slide'} />
+            </Link>
+            {s.title && (
+              <div>
+                <h3>{s.title}</h3>
+                <p>{s.subtitle}</p>
+              </div>
+            )}
           </div>
         ))}
       </div>
@@ -170,24 +48,33 @@ export function ProjectList({ projects }: { projects: Project[] }) {
   );
 }
 
-interface Partner {
-  id: number;
-  name: string;
-  logo_url?: string;
-  website_url?: string;
-}
-
-export function PartnerCarousel({ partners }: { partners: Partner[] }) {
-  if (!partners.length) return null;
+export function AboutLink({
+  companyName,
+  introHtml,
+}: {
+  companyName: string;
+  introHtml?: string;
+}) {
+  if (!introHtml) return null;
   return (
-    <div className="partner-carousel owl-carousel">
-      {partners.map((p) => (
-        <div key={p.id} className="item">
-          <a href={p.website_url || '#'} target="_blank" rel="noreferrer" title={p.name}>
-            {p.logo_url && <img src={p.logo_url} alt={p.name} />}
-          </a>
+    <div className="about_link">
+      <div className="container">
+        <div className="title">
+          <p>Giới thiệu về chúng tôi</p>
         </div>
-      ))}
+        <div className="row">
+          <div className="col-12 col-md-6 wow fadeInRight left" data-wow-delay="0.3s">
+            <div className="name_company">
+              <h2>{companyName}</h2>
+            </div>
+          </div>
+          <div
+            className="content"
+            id="dynamic-intro"
+            dangerouslySetInnerHTML={{ __html: introHtml }}
+          />
+        </div>
+      </div>
     </div>
   );
 }
@@ -206,27 +93,314 @@ export function CategoryGrid({ categories }: { categories: Category[] }) {
   if (!categories.length) return null;
   return (
     <div className="service_home">
-      <div className="row">
-        {categories.map((cat) => (
-          <div key={cat.id} className="col-12 col-md-4 item_s">
+      <div className="container">
+        <div className="row">
+          {categories.map((cat) => (
+            <div key={cat.id} className="col-12 col-md-4 item_s">
+              <dl>
+                <dt>
+                  <Link href={itemHref(cat)} title={cat.name}>
+                    <img
+                      src={assetUrl(cat.thumbnail_url || cat.image_url) || '/images/placeholder.jpg'}
+                      alt={cat.name}
+                    />
+                  </Link>
+                </dt>
+                <dd>
+                  <h3>
+                    <Link href={itemHref(cat)}>{cat.name}</Link>
+                  </h3>
+                  <div>{cat.description}</div>
+                </dd>
+              </dl>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+interface Product {
+  id: number;
+  name: string;
+  slug?: string;
+  link_url?: string;
+  thumbnail_url?: string;
+  price?: string;
+}
+
+export function ProductSection({ products }: { products: Product[] }) {
+  useOwlCarousel(
+    '.product-carousel',
+    {
+      loop: true,
+      autoplay: true,
+      margin: 20,
+      responsiveClass: true,
+      responsive: { 0: { items: 1, dots: true }, 600: { items: 2, dots: true }, 1000: { items: 3, dots: true } },
+    },
+    [products.length],
+  );
+
+  if (!products.length) return null;
+
+  return (
+    <div className="product">
+      <div className="container">
+        <div className="title">
+          <p>
+            <span>Sản phẩm của chúng tôi</span>
+          </p>
+        </div>
+        <div className="brief">
+          <p>
+            <em>
+              <strong>
+                Cung cấp đa dạng các sản phẩm ống cống bê tông, cống hộp, hố ga, tấm tường bê
+                tông acotec
+              </strong>
+            </em>
+          </p>
+        </div>
+        <div className="row">
+          <div className="owl-carousel owl-theme product-carousel">
+            {products.map((p) => (
+              <div key={p.id} className="item">
+                <dl>
+                  <dt>
+                    <img
+                      src={assetUrl(p.thumbnail_url) || '/images/placeholder.jpg'}
+                      alt={p.name}
+                      title={p.name}
+                    />
+                  </dt>
+                  <dd>
+                    <h3>{p.name}</h3>
+                    {p.price && <p className="price">{p.price}</p>}
+                    {/* Lớp phủ 100%×100% giống bản gốc (realtime-data.js) — bấm bất kỳ
+                        đâu trên thẻ (kể cả ảnh ở <dt>) đều nhảy đúng trang chi tiết. */}
+                    <Link
+                      href={itemHref(p)}
+                      title={p.name}
+                      style={{ left: 0, top: 0, width: '100%', height: '100%' }}
+                    />
+                  </dd>
+                </dl>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+interface Project {
+  id: number;
+  title: string;
+  slug: string;
+  excerpt?: string;
+  thumbnail_url?: string;
+}
+
+export function ProjectSection({ projects }: { projects: Project[] }) {
+  if (!projects.length) return null;
+  return (
+    <div className="project">
+      <div className="container">
+        <div className="title">
+          <p>
+            <span>Những dự án</span>
+            <br /> đã hợp tác
+          </p>
+        </div>
+        <div className="brief" />
+        <div className="row list_project">
+          {projects.map((p) => (
+            <div key={p.id} className="col-12 col-md-6 item">
+              <dl>
+                <dt>
+                  <div className="swing">
+                    <figure>
+                      <Link href={postHref(p.slug)}>
+                        {p.thumbnail_url && <img src={assetUrl(p.thumbnail_url)} alt={p.title} />}
+                      </Link>
+                    </figure>
+                  </div>
+                </dt>
+                <dd>
+                  <h3>
+                    <Link href={postHref(p.slug)}>{p.title}</Link>
+                  </h3>
+                  <p>{p.excerpt}</p>
+                  <Link href={postHref(p.slug)} />
+                </dd>
+                <div className="clearfix" />
+              </dl>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+interface Partner {
+  id: number;
+  name: string;
+  logo_url?: string;
+  website_url?: string;
+}
+
+export function PartnerSection({ partners }: { partners: Partner[] }) {
+  useOwlCarousel(
+    '.partner-carousel',
+    {
+      loop: true,
+      autoplay: true,
+      margin: 20,
+      responsiveClass: true,
+      responsive: { 0: { items: 2, dots: true }, 600: { items: 3, dots: true }, 1000: { items: 6, dots: true } },
+    },
+    [partners.length],
+  );
+
+  if (!partners.length) return null;
+
+  return (
+    <div className="partner">
+      <div className="container">
+        <div className="owl-carousel owl-theme partner-carousel">
+          {partners.map((p) => (
+            <div key={p.id} className="item">
+              <a href={p.website_url || '#'} target="_blank" rel="noreferrer" title={p.name}>
+                {p.logo_url && <img src={assetUrl(p.logo_url)} alt={p.name} title={p.name} />}
+              </a>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+interface Testimonial {
+  id: number;
+  name: string;
+  content: string;
+  avatar_url?: string;
+}
+
+export function TestimonialSection({ testimonials }: { testimonials: Testimonial[] }) {
+  useOwlCarousel(
+    '.comment-carousel',
+    {
+      loop: true,
+      autoplay: true,
+      autoplayTimeout: 4000,
+      margin: 10,
+      responsiveClass: true,
+      nav: true,
+      responsive: { 0: { items: 1, dots: true }, 1000: { items: 2, nav: true, dots: true } },
+    },
+    [testimonials.length],
+  );
+
+  if (!testimonials.length) return null;
+
+  return (
+    <div className="comment_home">
+      <div className="container">
+        <div>
+          <div className="owl-carousel owl-theme comment-carousel">
+            {testimonials.map((t) => (
+              <div key={t.id} className="item">
+                <div>
+                  {t.avatar_url && (
+                    <a>
+                      <img src={assetUrl(t.avatar_url)} alt={t.name} />
+                    </a>
+                  )}
+                  <h3>{t.name}</h3>
+                  <div>{t.content}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+interface Post {
+  id: number;
+  title: string;
+  slug: string;
+  excerpt?: string;
+  thumbnail_url?: string;
+}
+
+export function NewsSection({ posts }: { posts: Post[] }) {
+  if (!posts.length) return null;
+  const [first, ...rest] = posts;
+
+  return (
+    <div className="news">
+      <div className="container">
+        <div className="title">
+          <p>Tin tức mới nhất</p>
+        </div>
+        <div className="row list_news">
+          <div className="col-12 col-md-6 big_item">
             <dl>
               <dt>
-                <Link href={itemHref(cat)} title={cat.name}>
-                  <img
-                    src={cat.thumbnail_url || cat.image_url || '/images/placeholder.jpg'}
-                    alt={cat.name}
-                  />
-                </Link>
+                <div className="swing">
+                  <figure className="effect-v7">
+                    <Link href={postHref(first.slug)}>
+                      {first.thumbnail_url && (
+                        <img src={assetUrl(first.thumbnail_url)} alt={first.title} />
+                      )}
+                    </Link>
+                  </figure>
+                </div>
               </dt>
               <dd>
                 <h3>
-                  <Link href={itemHref(cat)}>{cat.name}</Link>
+                  <Link href={postHref(first.slug)}>{first.title}</Link>
                 </h3>
-                <div>{cat.description}</div>
+                <p>{first.excerpt}</p>
+                <Link href={postHref(first.slug)}>Xem thêm</Link>
+                <div className="clearfix" />
               </dd>
             </dl>
           </div>
-        ))}
+
+          <div className="col-12 col-md-6 right">
+            {rest.slice(0, 4).map((p) => (
+              <div key={p.id} className="col-6 item">
+                <dl>
+                  <dt>
+                    <div className="swing">
+                      <figure className="effect-v7">
+                        <Link href={postHref(p.slug)}>
+                          {p.thumbnail_url && <img src={assetUrl(p.thumbnail_url)} alt={p.title} />}
+                        </Link>
+                      </figure>
+                    </div>
+                  </dt>
+                  <dd>
+                    <h3>
+                      <Link href={postHref(p.slug)}>{p.title}</Link>
+                    </h3>
+                    <Link href={postHref(p.slug)} />
+                  </dd>
+                </dl>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     </div>
   );
