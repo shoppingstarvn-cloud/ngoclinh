@@ -251,12 +251,15 @@ interface Partner {
   name: string;
   logo_url?: string;
   website_url?: string;
+  is_active?: boolean;
 }
 
 export function PartnerSection({ partners }: { partners: Partner[] }) {
-  // Chỉ hiện đối tác CÓ logo hợp lệ — tránh hiện tên dạng link xanh
-  // (nhầm với khối "Những dự án") khi logo_url rỗng/hỏng.
-  const visible = partners.filter((p) => isValidAssetUrl(p.logo_url));
+  // Chỉ hiện đối tác active + có logo hợp lệ — nguồn duy nhất = Supabase (Admin).
+  // Không bao giờ fallback HTML tĩnh / hardcode.
+  const visible = partners.filter(
+    (p) => p.is_active !== false && isValidAssetUrl(p.logo_url),
+  );
 
   useOwlCarousel(
     '.partner-carousel',

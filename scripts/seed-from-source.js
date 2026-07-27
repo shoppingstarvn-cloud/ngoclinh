@@ -23,6 +23,7 @@ if (!SUPABASE_SERVICE_KEY) {
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
 const PUBLIC_DIR = path.join(__dirname, '..', 'public');
+const ROOT_DIR = path.join(__dirname, '..');
 const UPLOADS_DIR = path.join(__dirname, '..', 'uploads');
 
 const report = {};
@@ -39,7 +40,7 @@ async function upsert(table, data, conflictKey = 'id') {
 
 async function seedSiteSettings() {
   // Đọc index.html để lấy thông tin
-  const indexPath = path.join(PUBLIC_DIR, 'index.html');
+  const indexPath = path.join(ROOT_DIR || path.join(__dirname, '..'), 'legacy-html', 'index.html');
   let html = '';
   try { html = fs.readFileSync(indexPath, 'utf8'); } catch(e) {}
 
@@ -204,7 +205,7 @@ async function seedVideos() {
 
 async function seedTestimonials() {
   // Đọc index.html để tìm testimonials
-  const indexPath = path.join(PUBLIC_DIR, 'index.html');
+  const indexPath = path.join(ROOT_DIR || path.join(__dirname, '..'), 'legacy-html', 'index.html');
   let html = '';
   try { html = fs.readFileSync(indexPath, 'utf8'); } catch(e) {}
 

@@ -34,6 +34,13 @@ export function middleware(request: NextRequest) {
     return NextResponse.rewrite(url);
   }
 
+  // Chặn phục vụ HTML tĩnh trang chủ cũ (nếu còn sót trong public) — luôn dùng App Router.
+  if (pathname === '/index.html' || pathname === '/index-2.html') {
+    const url = request.nextUrl.clone();
+    url.pathname = '/';
+    return NextResponse.redirect(url, 301);
+  }
+
   // Legacy: /slug.html → giữ URL, rewrite nội bộ sang /slug (App Router)
   if (pathname.endsWith('.html') && pathname !== '/admin.html' && pathname !== '/superadmin.html') {
     const slug = decodeURIComponent(pathname.slice(1, -5));

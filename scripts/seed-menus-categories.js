@@ -2,7 +2,7 @@
  * scripts/seed-menus-categories.js
  *
  * Kích hoạt CMS cho menu điều hướng + danh mục nổi bật trang chủ,
- * bằng cách chèn ĐÚNG dữ liệu đang hardcode trong public/index.html
+ * bằng cách chèn ĐÚNG dữ liệu menu/danh mục gốc (legacy-html/index.html),
  * (giữ nguyên href, kể cả các link index.php/...) -> KHÔNG đổi giao diện,
  * chỉ mở khoá khả năng sửa qua Super Admin từ nay về sau.
  *

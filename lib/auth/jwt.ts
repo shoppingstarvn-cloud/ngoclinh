@@ -12,8 +12,10 @@ export interface AdminPayload {
 }
 
 function getSecret() {
-  const secret = process.env.JWT_SECRET;
-  if (!secret) throw new Error('JWT_SECRET chưa được cấu hình');
+  // Fallback chỉ để Admin không chết cứng khi thiếu env trên Vercel;
+  // production nên set JWT_SECRET riêng trong Project Settings.
+  const secret =
+    process.env.JWT_SECRET || 'cuaau-superadmin-secret-2026-webbetonglammau';
   return new TextEncoder().encode(secret);
 }
 

@@ -136,10 +136,10 @@ async function repairPartners() {
 }
 
 async function syncProjectsFromIndex() {
-  console.log('\n📦 Đồng bộ projects từ public/index.html (chỉ bổ sung thiếu, không xóa)…');
-  const indexPath = path.join(PUBLIC, 'index.html');
+  console.log('\n📦 Đồng bộ projects từ legacy-html/index.html (chỉ bổ sung thiếu, không xóa)…');
+  const indexPath = path.join(ROOT, 'legacy-html', 'index.html');
   if (!fs.existsSync(indexPath)) {
-    console.log('  (không có index.html — bỏ qua)');
+    console.log('  (không có legacy-html/index.html — bỏ qua)');
     return;
   }
   const html = fs.readFileSync(indexPath, 'utf8');
