@@ -22,17 +22,29 @@ function toHref(url: string) {
   return /^(https?:|\/)/.test(url) ? url : `/${url}`;
 }
 
+export interface CmsLink {
+  id: number;
+  label: string;
+  url: string;
+  icon?: string | null;
+  link_group?: string | null;
+}
+
 export function SiteHeader({
   menus,
   settings,
+  links = [],
 }: {
   menus: MenuItem[];
   settings: Record<string, string>;
+  links?: CmsLink[];
 }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const { roots, children } = buildMenuTree(menus);
   const siteName = settings.site_name || 'CÔNG TY CỔ PHẦN THƯƠNG MẠI CỬA ÂU';
   const logo = assetUrl(settings.logo_url) || '/images/contact/4174logo_bt.png';
+  const socialLinks = links.filter((l) => l.link_group === 'social');
+  const facebookHref = settings.facebook_url || socialLinks.find((l) => /facebook/i.test(l.label + l.url))?.url;
 
   const renderMenu = (mobile = false) =>
     roots.map((m) => {
@@ -118,18 +130,18 @@ export function SiteHeader({
                 </div>
                 <div className="">
                   <div className="social">
-                    {settings.facebook_url ? (
-                      <a href={settings.facebook_url} target="_blank" rel="noreferrer">
+                    {facebookHref ? (
+                      <a href={facebookHref} target="_blank" rel="noreferrer" aria-label="Facebook">
                         <i className="fa fa-facebook" />
                       </a>
-                    ) : (
-                      <a href="#" target="_blank" rel="noreferrer">
-                        <i className="fa fa-twitter" />
-                      </a>
-                    )}
-                    <a href="#" target="_blank" rel="noreferrer">
-                      <i className="fa fa-google-plus" />
-                    </a>
+                    ) : null}
+                    {socialLinks
+                      .filter((l) => l.url !== facebookHref)
+                      .map((l) => (
+                        <a key={l.id} href={toHref(l.url)} target="_blank" rel="noreferrer" title={l.label}>
+                          <i className={l.icon || 'fa fa-link'} />
+                        </a>
+                      ))}
                   </div>
                 </div>
               </div>
@@ -165,7 +177,15 @@ export function SiteHeader({
   );
 }
 
-export function SiteFooter({ settings }: { settings: Record<string, string> }) {
+export function SiteFooter({
+  settings,
+  links = [],
+  categories = [],
+}: {
+  settings: Record<string, string>;
+  links?: CmsLink[];
+  categories?: Array<{ id: number; name: string; slug: string }>;
+}) {
   const siteName = settings.site_name || 'CÔNG TY CỔ PHẦN THƯƠNG MẠI CỬA ÂU';
   const logo = assetUrl(settings.logo_url) || '/images/contact/4174logo_bt.png';
   const linkStyle: CSSProperties = {
@@ -178,6 +198,29 @@ export function SiteFooter({ settings }: { settings: Record<string, string> }) {
     position: 'relative',
     zIndex: 9999,
   };
+
+  const footerLinks = links.filter((l) => l.link_group === 'footer' || l.link_group === 'quick');
+  const socialLinks = links.filter((l) => l.link_group === 'social');
+  const serviceLinks =
+    footerLinks.length > 0
+      ? footerLinks.slice(0, 6)
+      : [
+          { id: -1, label: 'Giới thiệu công ty', url: '/gioi-thieu-a1.html' },
+          { id: -2, label: 'Dự án tiêu biểu', url: '/du-an-a3.html' },
+          { id: -3, label: 'Liên hệ', url: '/lien-he.html' },
+        ];
+  const productLinks =
+    categories.length > 0
+      ? categories.slice(0, 6).map((c) => ({
+          id: c.id,
+          label: c.name,
+          url: c.slug?.includes('.html') ? `/${c.slug.replace(/^\//, '')}` : `/${c.slug}.html`,
+        }))
+      : [
+          { id: -11, label: 'Hố ga bê tông', url: '/ho-ga-duc-san-c48.html' },
+          { id: -12, label: 'Cống hộp đúc sẵn', url: '/cong-hop--c54.html' },
+          { id: -13, label: 'Cống tròn bê tông', url: '/cong-tron-c53.html' },
+        ];
 
   return (
     <footer>
@@ -210,18 +253,28 @@ export function SiteFooter({ settings }: { settings: Record<string, string> }) {
                 />
               </Link>
               <div style={{ marginTop: 20 }}>
-                <a
-                  href="#"
-                  style={{ color: '#fff', marginRight: 15, fontSize: 24, display: 'inline-block', padding: 5, cursor: 'pointer' }}
-                >
-                  <i className="fa fa-twitter" />
-                </a>
-                <a
-                  href="#"
-                  style={{ color: '#fff', fontSize: 24, display: 'inline-block', padding: 5, cursor: 'pointer' }}
-                >
-                  <i className="fa fa-google-plus" />
-                </a>
+                {settings.facebook_url && (
+                  <a
+                    href={settings.facebook_url}
+                    target="_blank"
+                    rel="noreferrer"
+                    style={{ color: '#fff', marginRight: 15, fontSize: 24, display: 'inline-block', padding: 5 }}
+                  >
+                    <i className="fa fa-facebook" />
+                  </a>
+                )}
+                {socialLinks.map((l) => (
+                  <a
+                    key={l.id}
+                    href={toHref(l.url)}
+                    target="_blank"
+                    rel="noreferrer"
+                    title={l.label}
+                    style={{ color: '#fff', marginRight: 12, fontSize: 24, display: 'inline-block', padding: 5 }}
+                  >
+                    <i className={l.icon || 'fa fa-link'} />
+                  </a>
+                ))}
               </div>
             </div>
 
@@ -245,7 +298,7 @@ export function SiteFooter({ settings }: { settings: Record<string, string> }) {
                 {settings.website_url && (
                   <li>
                     <i className="fa fa-globe" style={{ width: 25 }} /> Website:{' '}
-                    <a href={settings.website_url} style={{ color: '#fff', textDecoration: 'none', cursor: 'pointer' }}>
+                    <a href={settings.website_url} style={{ color: '#fff', textDecoration: 'none' }}>
                       {settings.website_url}
                     </a>
                   </li>
@@ -258,21 +311,13 @@ export function SiteFooter({ settings }: { settings: Record<string, string> }) {
                 DỊCH VỤ
               </h5>
               <ul style={{ listStyle: 'none', padding: 0, margin: 0, lineHeight: 2 }}>
-                <li>
-                  <Link href="/gioi-thieu-a1.html" style={linkStyle}>
-                    • Giới thiệu công ty
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/du-an-a3.html" style={linkStyle}>
-                    • Dự án tiêu biểu
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/lien-he.html" style={linkStyle}>
-                    • Liên hệ vận tải
-                  </Link>
-                </li>
+                {serviceLinks.map((l) => (
+                  <li key={l.id}>
+                    <Link href={toHref(l.url)} style={linkStyle}>
+                      • {l.label}
+                    </Link>
+                  </li>
+                ))}
               </ul>
             </div>
 
@@ -281,26 +326,13 @@ export function SiteFooter({ settings }: { settings: Record<string, string> }) {
                 SẢN PHẨM
               </h5>
               <ul style={{ listStyle: 'none', padding: 0, margin: 0, lineHeight: 2 }}>
-                <li>
-                  <Link href="/ho-ga-duc-san-c48.html" style={linkStyle}>
-                    • Hố ga bê tông
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/cong-hop--c54.html" style={linkStyle}>
-                    • Cống hộp đúc sẵn
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/cong-tron-c53.html" style={linkStyle}>
-                    • Cống tròn bê tông
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/index.php/cac-san-pham-khac-c51.html" style={linkStyle}>
-                    • Rãnh thoát nước
-                  </Link>
-                </li>
+                {productLinks.map((l) => (
+                  <li key={l.id}>
+                    <Link href={toHref(l.url)} style={linkStyle}>
+                      • {l.label}
+                    </Link>
+                  </li>
+                ))}
               </ul>
             </div>
           </div>

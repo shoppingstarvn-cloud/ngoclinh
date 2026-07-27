@@ -162,7 +162,12 @@ export default function AdminApp() {
         </div>
 
         {activeTab === 'dashboard' && (
-          <Dashboard allData={allData} onSelectTab={setActiveTab} onQuickAdd={openAddForm} />
+          <Dashboard
+            allData={allData}
+            onSelectTab={setActiveTab}
+            onQuickAdd={openAddForm}
+            onDataReload={() => loadAllData(authHeader)}
+          />
         )}
 
         {activeTab === 'site_settings' && (

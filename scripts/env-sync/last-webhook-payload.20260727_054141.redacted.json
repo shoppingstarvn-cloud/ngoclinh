@@ -1,0 +1,56 @@
+﻿{
+    "source":  "webbetonglammau-powershell",
+    "timestamp":  "2026-07-26T22:41:41.0712626Z",
+    "vercelProjectName":  "webbetonglammau",
+    "vercelProjectId":  "",
+    "environments":  [
+                         {
+                             "key":  "NEXT_PUBLIC_SUPABASE_URL",
+                             "type":  "plain",
+                             "secret":  false,
+                             "value":  "https://bfruxinvvvaqufghtigw.supabase.co"
+                         },
+                         {
+                             "key":  "NEXT_PUBLIC_SUPABASE_ANON_KEY",
+                             "type":  "plain",
+                             "secret":  false,
+                             "value":  "sb_publishable_QUYv4qEJntioJJ-XWtHkdA_haHovSml"
+                         },
+                         {
+                             "key":  "SUPABASE_SERVICE_KEY",
+                             "type":  "encrypted",
+                             "secret":  true,
+                             "value":  "***REDACTED***"
+                         },
+                         {
+                             "key":  "SUPABASE_BUCKET",
+                             "type":  "plain",
+                             "secret":  false,
+                             "value":  "uploads"
+                         },
+                         {
+                             "key":  "JWT_SECRET",
+                             "type":  "encrypted",
+                             "secret":  true,
+                             "value":  "***REDACTED***"
+                         },
+                         {
+                             "key":  "NEXT_PUBLIC_SITE_URL",
+                             "type":  "plain",
+                             "secret":  false,
+                             "value":  "https://webbetonglammau.vercel.app"
+                         }
+                     ],
+    "NEXT_PUBLIC_SUPABASE_URL":  "https://bfruxinvvvaqufghtigw.supabase.co",
+    "NEXT_PUBLIC_SUPABASE_ANON_KEY":  "sb_publishable_QUYv4qEJntioJJ-XWtHkdA_haHovSml",
+    "SUPABASE_SERVICE_KEY":  "***REDACTED***",
+    "SUPABASE_BUCKET":  "uploads",
+    "JWT_SECRET":  "***REDACTED***",
+    "NEXT_PUBLIC_SITE_URL":  "https://webbetonglammau.vercel.app",
+    "targets":  [
+                    "production",
+                    "preview",
+                    "development"
+                ],
+    "action":  "upsert_env_and_redeploy"
+}

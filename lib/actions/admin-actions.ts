@@ -146,6 +146,79 @@ export interface UploadResult extends ActionResult {
   url?: string;
 }
 
+/**
+ * Sửa tận gốc logo đối tác hỏng + đồng bộ cache site.
+ * - Sửa `/https://...` → `https://...`
+ * - Map tên đối tác → logo local trong /images/partner
+ * - Tắt is_active nếu không còn logo hợp lệ (tránh hiện tên xanh dưới khối dự án)
+ */
+export async function repairPartnersAndSyncAction(): Promise<
+  ActionResult<{ fixed: number; deactivated: number; total: number }>
+> {
+  try {
+    await requireAdminAction();
+    const { resolvePartnerLogo } = await import('@/lib/cms/partner-logos');
+    const { isValidAssetUrl } = await import('@/lib/slug');
+    const supabase = createAdminClient();
+
+    const { data: partners, error } = await supabase.from('partners').select('*');
+    if (error) throw new Error(error.message);
+
+    let fixed = 0;
+    let deactivated = 0;
+
+    for (const p of partners || []) {
+      const name = String(p.name || '');
+      const nextLogo = resolvePartnerLogo(name, p.logo_url as string | null);
+      const patch: Record<string, unknown> = {};
+
+      if (nextLogo !== (p.logo_url || '')) {
+        patch.logo_url = nextLogo || null;
+        fixed++;
+      }
+
+      const logoOk = isValidAssetUrl(nextLogo || (p.logo_url as string));
+      if (!logoOk && p.is_active) {
+        patch.is_active = false;
+        deactivated++;
+      } else if (logoOk && !p.is_active && nextLogo) {
+        // Bật lại nếu vừa gắn được logo hợp lệ
+        patch.is_active = true;
+      }
+
+      if (Object.keys(patch).length) {
+        const { error: upErr } = await supabase
+          .from('partners')
+          .update({ ...patch, updated_at: new Date().toISOString() })
+          .eq('id', p.id);
+        if (upErr) throw new Error(upErr.message);
+      }
+    }
+
+    syncSite();
+    return {
+      success: true,
+      data: { fixed, deactivated, total: (partners || []).length },
+    };
+  } catch (e) {
+    return {
+      success: false,
+      error: e instanceof Error ? e.message : 'Sửa đối tác thất bại',
+    };
+  }
+}
+
+/** Revalidate toàn site sau khi sync script chạy xong. */
+export async function revalidateSiteAction(): Promise<ActionResult> {
+  try {
+    await requireAdminAction();
+    syncSite();
+    return { success: true };
+  } catch (e) {
+    return { success: false, error: e instanceof Error ? e.message : 'Revalidate thất bại' };
+  }
+}
+
 /** Upload ảnh/video lên Supabase Storage — thay thế /api/upload. */
 export async function uploadFileAction(formData: FormData): Promise<UploadResult> {
   try {

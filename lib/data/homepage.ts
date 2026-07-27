@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server';
+import { isValidAssetUrl } from '@/lib/slug';
 
 export async function getSiteSettings(): Promise<Record<string, string>> {
   const supabase = await createClient();
@@ -22,6 +23,7 @@ export async function getHomepageData() {
     projects,
     menus,
     categories,
+    links,
     settingsRows,
   ] = await Promise.all([
     supabase
@@ -61,7 +63,7 @@ export async function getHomepageData() {
       .select('*')
       .eq('is_active', true)
       .order('display_order')
-      .limit(4),
+      .limit(12),
     supabase
       .from('menus')
       .select('*')
@@ -72,7 +74,13 @@ export async function getHomepageData() {
       .select('*')
       .eq('is_active', true)
       .order('display_order')
-      .limit(6),
+      .limit(12),
+    supabase
+      .from('links')
+      .select('*')
+      .eq('is_active', true)
+      .order('display_order')
+      .limit(40),
     supabase.from('site_settings').select('*'),
   ]);
 
@@ -84,12 +92,14 @@ export async function getHomepageData() {
   return {
     slides: slides.data ?? [],
     products: products.data ?? [],
-    partners: partners.data ?? [],
+    // Chỉ đối tác có logo ảnh hợp lệ — tránh hiện tên xanh dưới khối dự án
+    partners: (partners.data ?? []).filter((p) => isValidAssetUrl(p.logo_url)),
     testimonials: testimonials.data ?? [],
     posts: posts.data ?? [],
     projects: projects.data ?? [],
     menus: menus.data ?? [],
     categories: categories.data ?? [],
+    links: links.data ?? [],
     settings,
   };
 }

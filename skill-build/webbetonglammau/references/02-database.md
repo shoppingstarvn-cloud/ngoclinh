@@ -161,7 +161,7 @@ Không chạy lệnh này → PostgREST vẫn dùng schema cũ → API báo "col
 | File | Nội dung |
 |---|---|
 | `public/schema_dynamic.sql` | Schema gốc 12 bảng |
-| `db/schema.sql` | Bản schema đầy đủ |
+| `supabase/schema.sql` | **Nguồn chuẩn DUY NHẤT hiện tại** — `db/schema.sql` (bản cũ) đã bị xóa để tránh nhầm lẫn |
 | `supabase_projects_table.sql` | Tách `projects` khỏi `posts` |
 | `supabase_security_lockdown.sql` | Siết RLS (anon chỉ đọc) |
 | `supabase_security_ROLLBACK.sql` | Hoàn tác siết RLS |

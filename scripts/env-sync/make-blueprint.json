@@ -1,0 +1,175 @@
+{
+  "name": "webbetonglammau — Env Sync → Vercel (NO Elmony)",
+  "description": "Nhận webhook từ SETUP-ENV-LOCAL.ps1 → Upsert 6 env vars lên Vercel (Production+Preview+Development) → Redeploy production.",
+  "flow": [
+    {
+      "id": 1,
+      "module": "gateway:CustomWebHook",
+      "version": 1,
+      "parameters": {
+        "hook": "{{CREATE_CUSTOM_WEBHOOK_IN_MAKE}}",
+        "maxResults": 1
+      },
+      "mapper": {},
+      "metadata": {
+        "designer": { "x": 0, "y": 0 },
+        "restore": {},
+        "parameters": [
+          {
+            "name": "hook",
+            "type": "hook:gateway-webhook",
+            "label": "Webhook",
+            "required": true
+          }
+        ],
+        "expect": [
+          { "name": "NEXT_PUBLIC_SUPABASE_URL", "type": "text" },
+          { "name": "NEXT_PUBLIC_SUPABASE_ANON_KEY", "type": "text" },
+          { "name": "SUPABASE_SERVICE_KEY", "type": "text" },
+          { "name": "SUPABASE_BUCKET", "type": "text" },
+          { "name": "JWT_SECRET", "type": "text" },
+          { "name": "NEXT_PUBLIC_SITE_URL", "type": "text" },
+          { "name": "vercelProjectName", "type": "text" },
+          { "name": "vercelProjectId", "type": "text" },
+          { "name": "environments", "type": "array" },
+          { "name": "targets", "type": "array" },
+          { "name": "action", "type": "text" }
+        ]
+      }
+    },
+    {
+      "id": 2,
+      "module": "http:ActionSendData",
+      "version": 3,
+      "parameters": {
+        "handleErrors": false,
+        "useNewZLibDeCompress": true
+      },
+      "mapper": {
+        "url": "https://api.vercel.com/v10/projects/{{if(1.vercelProjectId; 1.vercelProjectId; 1.vercelProjectName)}}/env",
+        "method": "post",
+        "headers": [
+          { "name": "Authorization", "value": "Bearer {{VERCEL_TOKEN}}" },
+          { "name": "Content-Type", "value": "application/json" }
+        ],
+        "qs": [],
+        "bodyType": "raw",
+        "parseResponse": true,
+        "contentType": "application/json",
+        "data": "[\n  {\"key\":\"NEXT_PUBLIC_SUPABASE_URL\",\"value\":\"{{1.NEXT_PUBLIC_SUPABASE_URL}}\",\"type\":\"plain\",\"target\":[\"production\",\"preview\",\"development\"],\"upsert\":true},\n  {\"key\":\"NEXT_PUBLIC_SUPABASE_ANON_KEY\",\"value\":\"{{1.NEXT_PUBLIC_SUPABASE_ANON_KEY}}\",\"type\":\"plain\",\"target\":[\"production\",\"preview\",\"development\"],\"upsert\":true},\n  {\"key\":\"SUPABASE_SERVICE_KEY\",\"value\":\"{{1.SUPABASE_SERVICE_KEY}}\",\"type\":\"encrypted\",\"target\":[\"production\",\"preview\",\"development\"],\"upsert\":true},\n  {\"key\":\"SUPABASE_BUCKET\",\"value\":\"{{1.SUPABASE_BUCKET}}\",\"type\":\"plain\",\"target\":[\"production\",\"preview\",\"development\"],\"upsert\":true},\n  {\"key\":\"JWT_SECRET\",\"value\":\"{{1.JWT_SECRET}}\",\"type\":\"encrypted\",\"target\":[\"production\",\"preview\",\"development\"],\"upsert\":true},\n  {\"key\":\"NEXT_PUBLIC_SITE_URL\",\"value\":\"{{1.NEXT_PUBLIC_SITE_URL}}\",\"type\":\"plain\",\"target\":[\"production\",\"preview\",\"development\"],\"upsert\":true}\n]"
+      },
+      "metadata": {
+        "designer": { "x": 300, "y": 0 },
+        "restore": { "expect": { "method": { "mode": "chose" } } },
+        "expect": [
+          { "name": "url", "type": "url", "required": true },
+          { "name": "method", "type": "select", "required": true }
+        ]
+      }
+    },
+    {
+      "id": 3,
+      "module": "http:ActionSendData",
+      "version": 3,
+      "parameters": {
+        "handleErrors": false
+      },
+      "mapper": {
+        "url": "https://api.vercel.com/v6/deployments",
+        "method": "get",
+        "headers": [
+          { "name": "Authorization", "value": "Bearer {{VERCEL_TOKEN}}" }
+        ],
+        "qs": [
+          { "name": "projectId", "value": "{{if(1.vercelProjectId; 1.vercelProjectId; 1.vercelProjectName)}}" },
+          { "name": "target", "value": "production" },
+          { "name": "limit", "value": "1" },
+          { "name": "state", "value": "READY" }
+        ],
+        "parseResponse": true
+      },
+      "metadata": {
+        "designer": { "x": 600, "y": 0 }
+      }
+    },
+    {
+      "id": 4,
+      "module": "http:ActionSendData",
+      "version": 3,
+      "parameters": {
+        "handleErrors": false
+      },
+      "mapper": {
+        "url": "https://api.vercel.com/v13/deployments/{{3.data[].uid}}/redeploy",
+        "method": "post",
+        "headers": [
+          { "name": "Authorization", "value": "Bearer {{VERCEL_TOKEN}}" },
+          { "name": "Content-Type", "value": "application/json" }
+        ],
+        "bodyType": "raw",
+        "contentType": "application/json",
+        "data": "{\"name\":\"{{1.vercelProjectName}}\",\"target\":\"production\"}",
+        "parseResponse": true
+      },
+      "metadata": {
+        "designer": { "x": 900, "y": 0 }
+      }
+    }
+  ],
+  "metadata": {
+    "instant": true,
+    "version": 1,
+    "scenario": {
+      "roundtrips": 1,
+      "maxErrors": 3,
+      "autoCommit": true,
+      "sequential": true,
+      "confidential": true,
+      "dataloss": false,
+      "dlq": false
+    },
+    "notes": [
+      "1) Tạo Custom Webhook → copy URL vào env-sync.config.json (webhookUrl).",
+      "2) Tạo biến Make: VERCEL_TOKEN = token từ https://vercel.com/account/tokens (scope Full Account).",
+      "3) Thay {{VERCEL_TOKEN}} bằng biến Make (hoặc dán token vào Authorization — kém an toàn hơn).",
+      "4) Nếu project dùng Team: thêm query ?teamId=team_xxx vào mọi URL Vercel.",
+      "5) Không dùng Elmony — chỉ Vercel REST API."
+    ]
+  },
+  "vercel_api_reference": {
+    "upsert_env": {
+      "method": "POST",
+      "url": "https://api.vercel.com/v10/projects/{projectIdOrName}/env",
+      "headers": {
+        "Authorization": "Bearer <VERCEL_TOKEN>",
+        "Content-Type": "application/json"
+      },
+      "body_example": [
+        {
+          "key": "SUPABASE_SERVICE_KEY",
+          "value": "eyJ...",
+          "type": "encrypted",
+          "target": ["production", "preview", "development"],
+          "upsert": true
+        }
+      ]
+    },
+    "list_latest_deployment": {
+      "method": "GET",
+      "url": "https://api.vercel.com/v6/deployments?projectId={id}&target=production&limit=1&state=READY"
+    },
+    "redeploy": {
+      "method": "POST",
+      "url": "https://api.vercel.com/v13/deployments/{deploymentId}/redeploy",
+      "body_example": {
+        "name": "webbetonglammau",
+        "target": "production"
+      }
+    },
+    "alternative_deploy_hook": {
+      "note": "Nếu anh tạo Deploy Hook trong Vercel → Project → Settings → Git → Deploy Hooks, chỉ cần POST URL hook (không cần redeploy API).",
+      "method": "POST",
+      "url": "https://api.vercel.com/v1/integrations/deploy/{HOOK_ID}"
+    }
+  }
+}

@@ -1,0 +1,157 @@
+{
+  "name": "webbetonglammau Env Sync → Vercel",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "webbetonglammau-env-sync",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "webhook-trigger",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [0, 0],
+      "webhookId": "webbetonglammau-env-sync"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.vercel.com/v10/projects/{{$json.vercelProjectId || $json.vercelProjectName}}/env",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "=[\n  {\"key\":\"NEXT_PUBLIC_SUPABASE_URL\",\"value\":\"{{$json.NEXT_PUBLIC_SUPABASE_URL}}\",\"type\":\"plain\",\"target\":[\"production\",\"preview\",\"development\"],\"upsert\":true},\n  {\"key\":\"NEXT_PUBLIC_SUPABASE_ANON_KEY\",\"value\":\"{{$json.NEXT_PUBLIC_SUPABASE_ANON_KEY}}\",\"type\":\"plain\",\"target\":[\"production\",\"preview\",\"development\"],\"upsert\":true},\n  {\"key\":\"SUPABASE_SERVICE_KEY\",\"value\":\"{{$json.SUPABASE_SERVICE_KEY}}\",\"type\":\"encrypted\",\"target\":[\"production\",\"preview\",\"development\"],\"upsert\":true},\n  {\"key\":\"SUPABASE_BUCKET\",\"value\":\"{{$json.SUPABASE_BUCKET}}\",\"type\":\"plain\",\"target\":[\"production\",\"preview\",\"development\"],\"upsert\":true},\n  {\"key\":\"JWT_SECRET\",\"value\":\"{{$json.JWT_SECRET}}\",\"type\":\"encrypted\",\"target\":[\"production\",\"preview\",\"development\"],\"upsert\":true},\n  {\"key\":\"NEXT_PUBLIC_SITE_URL\",\"value\":\"{{$json.NEXT_PUBLIC_SITE_URL}}\",\"type\":\"plain\",\"target\":[\"production\",\"preview\",\"development\"],\"upsert\":true}\n]",
+        "options": {}
+      },
+      "id": "vercel-upsert-env",
+      "name": "Vercel Upsert Env Vars",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [280, 0],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "REPLACE_WITH_VERCEL_HEADER_AUTH",
+          "name": "Vercel Bearer Token"
+        }
+      },
+      "notes": "Credential: Header Auth → Name=Authorization, Value=Bearer <VERCEL_TOKEN>"
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "=https://api.vercel.com/v6/deployments",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "projectId",
+              "value": "={{$('Webhook').item.json.vercelProjectId || $('Webhook').item.json.vercelProjectName}}"
+            },
+            {
+              "name": "target",
+              "value": "production"
+            },
+            {
+              "name": "limit",
+              "value": "1"
+            },
+            {
+              "name": "state",
+              "value": "READY"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "vercel-list-deploy",
+      "name": "Vercel Get Latest Deployment",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [560, 0],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "REPLACE_WITH_VERCEL_HEADER_AUTH",
+          "name": "Vercel Bearer Token"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.vercel.com/v13/deployments/{{$json.deployments[0].uid}}/redeploy",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\"name\":\"{{$('Webhook').item.json.vercelProjectName}}\",\"target\":\"production\"}",
+        "options": {}
+      },
+      "id": "vercel-redeploy",
+      "name": "Vercel Redeploy",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [840, 0],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "REPLACE_WITH_VERCEL_HEADER_AUTH",
+          "name": "Vercel Bearer Token"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\"ok\":true,\"envUpserted\":6,\"redeployId\":\"{{$json.id || $json.uid}}\",\"url\":\"{{$json.url}}\"}",
+        "options": {}
+      },
+      "id": "respond",
+      "name": "Respond OK",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [1120, 0]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [[{ "node": "Vercel Upsert Env Vars", "type": "main", "index": 0 }]]
+    },
+    "Vercel Upsert Env Vars": {
+      "main": [[{ "node": "Vercel Get Latest Deployment", "type": "main", "index": 0 }]]
+    },
+    "Vercel Get Latest Deployment": {
+      "main": [[{ "node": "Vercel Redeploy", "type": "main", "index": 0 }]]
+    },
+    "Vercel Redeploy": {
+      "main": [[{ "node": "Respond OK", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": false
+  },
+  "pinData": {},
+  "versionId": "1",
+  "triggerCount": 0,
+  "tags": [
+    { "name": "webbetonglammau" },
+    { "name": "vercel" },
+    { "name": "env-sync" }
+  ]
+}

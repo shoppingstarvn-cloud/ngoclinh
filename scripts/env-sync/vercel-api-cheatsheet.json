@@ -1,0 +1,93 @@
+{
+  "title": "Vercel REST API — cấu hình HTTP Node (Make.com / n8n)",
+  "auth": {
+    "header": "Authorization: Bearer <VERCEL_TOKEN>",
+    "get_token": "https://vercel.com/account/tokens",
+    "note": "Scope: Full Account. Nếu project thuộc Team → thêm ?teamId=team_xxx"
+  },
+  "step_1_upsert_6_env_vars": {
+    "method": "POST",
+    "url": "https://api.vercel.com/v10/projects/webbetonglammau/env",
+    "headers": {
+      "Authorization": "Bearer <VERCEL_TOKEN>",
+      "Content-Type": "application/json"
+    },
+    "body": [
+      {
+        "key": "NEXT_PUBLIC_SUPABASE_URL",
+        "value": "{{NEXT_PUBLIC_SUPABASE_URL}}",
+        "type": "plain",
+        "target": ["production", "preview", "development"],
+        "upsert": true
+      },
+      {
+        "key": "NEXT_PUBLIC_SUPABASE_ANON_KEY",
+        "value": "{{NEXT_PUBLIC_SUPABASE_ANON_KEY}}",
+        "type": "plain",
+        "target": ["production", "preview", "development"],
+        "upsert": true
+      },
+      {
+        "key": "SUPABASE_SERVICE_KEY",
+        "value": "{{SUPABASE_SERVICE_KEY}}",
+        "type": "encrypted",
+        "target": ["production", "preview", "development"],
+        "upsert": true
+      },
+      {
+        "key": "SUPABASE_BUCKET",
+        "value": "{{SUPABASE_BUCKET}}",
+        "type": "plain",
+        "target": ["production", "preview", "development"],
+        "upsert": true
+      },
+      {
+        "key": "JWT_SECRET",
+        "value": "{{JWT_SECRET}}",
+        "type": "encrypted",
+        "target": ["production", "preview", "development"],
+        "upsert": true
+      },
+      {
+        "key": "NEXT_PUBLIC_SITE_URL",
+        "value": "{{NEXT_PUBLIC_SITE_URL}}",
+        "type": "plain",
+        "target": ["production", "preview", "development"],
+        "upsert": true
+      }
+    ],
+    "curl": "curl -X POST \"https://api.vercel.com/v10/projects/webbetonglammau/env\" -H \"Authorization: Bearer %VERCEL_TOKEN%\" -H \"Content-Type: application/json\" -d \"@env-body.json\""
+  },
+  "step_2_get_latest_ready_deployment": {
+    "method": "GET",
+    "url": "https://api.vercel.com/v6/deployments?projectId=webbetonglammau&target=production&limit=1&state=READY",
+    "extract": "deployments[0].uid",
+    "curl": "curl -s \"https://api.vercel.com/v6/deployments?projectId=webbetonglammau&target=production&limit=1&state=READY\" -H \"Authorization: Bearer %VERCEL_TOKEN%\""
+  },
+  "step_3_redeploy": {
+    "method": "POST",
+    "url": "https://api.vercel.com/v13/deployments/{uid}/redeploy",
+    "body": {
+      "name": "webbetonglammau",
+      "target": "production"
+    },
+    "curl": "curl -X POST \"https://api.vercel.com/v13/deployments/%DEPLOY_UID%/redeploy\" -H \"Authorization: Bearer %VERCEL_TOKEN%\" -H \"Content-Type: application/json\" -d \"{\\\"name\\\":\\\"webbetonglammau\\\",\\\"target\\\":\\\"production\\\"}\""
+  },
+  "webhook_payload_from_powershell": {
+    "source": "webbetonglammau-powershell",
+    "vercelProjectName": "webbetonglammau",
+    "targets": ["production", "preview", "development"],
+    "action": "upsert_env_and_redeploy",
+    "NEXT_PUBLIC_SUPABASE_URL": "https://bfruxinvvvaqufghtigw.supabase.co",
+    "NEXT_PUBLIC_SUPABASE_ANON_KEY": "...",
+    "SUPABASE_SERVICE_KEY": "...",
+    "SUPABASE_BUCKET": "uploads",
+    "JWT_SECRET": "...",
+    "NEXT_PUBLIC_SITE_URL": "https://webbetonglammau.vercel.app"
+  },
+  "forbidden": [
+    "Elmony",
+    "deploy qua host PHP/cPanel",
+    "commit .env.local lên Git"
+  ]
+}

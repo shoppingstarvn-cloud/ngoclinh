@@ -1,0 +1,10 @@
+{
+  "projectRoot": "",
+  "webhookUrl": "https://hook.eu2.make.com/XXXXXXXXXXXXXXXXXXXXXXXX",
+  "webhookProvider": "make",
+  "vercelProjectName": "webbetonglammau",
+  "vercelProjectId": "",
+  "siteUrl": "https://webbetonglammau.vercel.app",
+  "supabaseBucket": "uploads",
+  "skipWebhook": false
+}

@@ -37,8 +37,25 @@ export function itemHref(item: {
 export function assetUrl(u?: string | null): string {
   const v = (u || '').trim();
   if (!v) return '';
-  if (/^(https?:|data:|blob:|\/)/i.test(v)) return v;
-  return `/${v}`;
+  // Bản ghi cũ đôi khi lưu "/https://..." — sửa về URL tuyệt đối chuẩn
+  const fixed = v.replace(/^\/+(https?:)/i, '$1');
+  if (/^(https?:|data:|blob:)/i.test(fixed)) return fixed;
+  if (fixed.startsWith('/')) return fixed;
+  return `/${fixed}`;
+}
+
+/** Ảnh/logo hợp lệ để hiển thị trên site (loại URL HTML / trang web / rỗng / hỏng) */
+export function isValidAssetUrl(u?: string | null): boolean {
+  const v = assetUrl(u);
+  if (!v) return false;
+  if (/\.html?($|\?|#)/i.test(v)) return false;
+  if (/^https?:\/\/[^/]+\/?$/i.test(v)) return false;
+  // Phải là file ảnh / đường dẫn media — không chấp nhận URL trang web làm “logo”
+  if (/\.(png|jpe?g|webp|gif|svg|avif)($|\?)/i.test(v)) return true;
+  if (v.startsWith('/images/') || v.startsWith('/hpm/') || v.startsWith('/uploads/')) return true;
+  if (v.includes('/storage/v1/object/')) return true;
+  if (v.startsWith('data:image/')) return true;
+  return false;
 }
 
 export function postHref(slug?: string | null): string {

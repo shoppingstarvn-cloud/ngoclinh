@@ -31,7 +31,12 @@ export default async function HomePage() {
   const companyName = data.settings.site_name || 'CÔNG TY CỔ PHẦN THƯƠNG MẠI CỬA ÂU';
 
   return (
-    <SiteShell settings={data.settings} menus={data.menus}>
+    <SiteShell
+      settings={data.settings}
+      menus={data.menus}
+      links={data.links}
+      categories={data.categories}
+    >
       <SlideCarousel slides={data.slides} />
       <AboutLink companyName={companyName} introHtml={data.settings.intro_text} />
       <CategoryGrid categories={data.categories} />

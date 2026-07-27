@@ -1,16 +1,49 @@
 'use client';
 
 import { ADMIN_TABLES, AdminRow } from '@/lib/cms/admin-schema';
+import { repairPartnersAndSyncAction, revalidateSiteAction } from '@/lib/actions/admin-actions';
+import { useState } from 'react';
+import Swal from 'sweetalert2';
 
 const COLORS = ['#0d6efd', '#198754', '#0dcaf0', '#ffc107', '#dc3545', '#6f42c1', '#fd7e14', '#20c997', '#e83e8c', '#17a2b8', '#6610f2', '#d63384', '#0d6efd'];
+const swalDark = { background: '#1a1a2e', color: '#fff' };
 
 interface DashboardProps {
   allData: Record<string, AdminRow[]>;
   onSelectTab: (tab: string) => void;
   onQuickAdd: (tab: string) => void;
+  onDataReload: () => void;
 }
 
-export default function Dashboard({ allData, onSelectTab, onQuickAdd }: DashboardProps) {
+export default function Dashboard({ allData, onSelectTab, onQuickAdd, onDataReload }: DashboardProps) {
+  const [syncing, setSyncing] = useState(false);
+
+  async function handleRepairSync() {
+    setSyncing(true);
+    try {
+      const result = await repairPartnersAndSyncAction();
+      if (!result.success) throw new Error(result.error || 'Đồng bộ thất bại');
+      await revalidateSiteAction();
+      onDataReload();
+      const d = result.data;
+      await Swal.fire({
+        icon: 'success',
+        title: 'Đã đồng bộ!',
+        html: `Sửa logo đối tác: <b>${d?.fixed ?? 0}</b><br/>Tắt bản ghi không logo: <b>${d?.deactivated ?? 0}</b><br/>Tổng đối tác: <b>${d?.total ?? 0}</b><br/><br/>Website đã revalidate — F5 trang chủ sẽ thấy đúng số dự án.`,
+        ...swalDark,
+      });
+    } catch (e) {
+      await Swal.fire({
+        icon: 'error',
+        title: 'Lỗi',
+        text: e instanceof Error ? e.message : 'Đồng bộ thất bại',
+        ...swalDark,
+      });
+    } finally {
+      setSyncing(false);
+    }
+  }
+
   return (
     <div>
       <div className="stats-grid">
@@ -44,6 +77,10 @@ export default function Dashboard({ allData, onSelectTab, onQuickAdd }: Dashboar
                 <button className="btn btn-warning" onClick={() => onQuickAdd('partners')}>
                   <i className="fas fa-handshake" /> Thêm Đối tác
                 </button>
+                <button className="btn btn-outline-light" disabled={syncing} onClick={handleRepairSync}>
+                  <i className={`fas fa-${syncing ? 'spinner fa-spin' : 'sync-alt'}`} />{' '}
+                  {syncing ? 'Đang đồng bộ…' : 'Sửa logo đối tác + Đồng bộ site'}
+                </button>
               </div>
             </div>
           </div>
@@ -51,17 +88,30 @@ export default function Dashboard({ allData, onSelectTab, onQuickAdd }: Dashboar
         <div className="col-md-6 mb-3">
           <div className="card">
             <div className="card-header">
-              <i className="fas fa-info-circle text-info" /> Trạng thái
+              <i className="fas fa-info-circle text-info" /> Trạng thái Instant Sync
             </div>
             <div className="card-body">
               <p>
-                <strong>API:</strong> <span className="text-success"><i className="fas fa-circle" /> Next.js Route Handlers</span>
+                <strong>API:</strong>{' '}
+                <span className="text-success">
+                  <i className="fas fa-circle" /> Server Actions + revalidatePath
+                </span>
               </p>
               <p>
-                <strong>Supabase:</strong> <span className="text-success"><i className="fas fa-circle" /> Đã kết nối</span>
+                <strong>Realtime:</strong>{' '}
+                <span className="text-success">
+                  <i className="fas fa-circle" /> LiveSiteSync (postgres_changes)
+                </span>
               </p>
               <p>
-                <strong>Xác thực:</strong> <span className="text-success"><i className="fas fa-circle" /> JWT (HS256)</span>
+                <strong>Supabase:</strong>{' '}
+                <span className="text-success">
+                  <i className="fas fa-circle" /> Đã kết nối
+                </span>
+              </p>
+              <p className="mb-0" style={{ opacity: 0.8, fontSize: 13 }}>
+                Thêm/sửa/xóa ở Super Admin → bảng Supabase + website cập nhật ngay. Khối “Những dự án”
+                chỉ lấy từ bảng <code>projects</code> — không lẫn đối tác.
               </p>
             </div>
           </div>

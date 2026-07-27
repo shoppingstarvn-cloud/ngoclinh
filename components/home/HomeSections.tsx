@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { postHref, itemHref, assetUrl } from '@/lib/slug';
+import { postHref, itemHref, assetUrl, isValidAssetUrl } from '@/lib/slug';
 import { useOwlCarousel } from '@/lib/hooks/useOwlCarousel';
 
 interface Slide {
@@ -254,28 +254,32 @@ interface Partner {
 }
 
 export function PartnerSection({ partners }: { partners: Partner[] }) {
+  // Chỉ hiện đối tác CÓ logo hợp lệ — tránh hiện tên dạng link xanh
+  // (nhầm với khối "Những dự án") khi logo_url rỗng/hỏng.
+  const visible = partners.filter((p) => isValidAssetUrl(p.logo_url));
+
   useOwlCarousel(
     '.partner-carousel',
     {
-      loop: true,
+      loop: visible.length > 1,
       autoplay: true,
       margin: 20,
       responsiveClass: true,
       responsive: { 0: { items: 2, dots: true }, 600: { items: 3, dots: true }, 1000: { items: 6, dots: true } },
     },
-    [partners.length],
+    [visible.length],
   );
 
-  if (!partners.length) return null;
+  if (!visible.length) return null;
 
   return (
     <div className="partner">
       <div className="container">
         <div className="owl-carousel owl-theme partner-carousel">
-          {partners.map((p) => (
+          {visible.map((p) => (
             <div key={p.id} className="item">
               <a href={p.website_url || '#'} target="_blank" rel="noreferrer" title={p.name}>
-                {p.logo_url && <img src={assetUrl(p.logo_url)} alt={p.name} title={p.name} />}
+                <img src={assetUrl(p.logo_url)} alt={p.name} title={p.name} />
               </a>
             </div>
           ))}
