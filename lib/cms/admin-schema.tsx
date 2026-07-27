@@ -311,13 +311,18 @@ export const ADMIN_TABLES: AdminTableDef[] = [
   },
   {
     name: 'testimonials',
-    label: 'Đánh giá',
+    label: 'Slide liên hệ KD',
     icon: 'comment-dots',
     pk: 'id',
     fields: [
-      { key: 'name', label: 'Tên khách hàng', type: 'text', required: true },
-      { key: 'avatar_url', label: 'Avatar', type: 'image' },
-      { key: 'content', label: 'Nội dung', type: 'textarea', required: true },
+      {
+        key: 'name',
+        label: 'Họ tên - Chức vụ - SĐT',
+        type: 'text',
+        required: true,
+      },
+      { key: 'avatar_url', label: 'Ảnh đại diện', type: 'image' },
+      { key: 'content', label: 'Nội dung giới thiệu', type: 'textarea', required: true },
       { key: 'rating', label: 'Đánh giá (1-5)', type: 'number' },
       { key: 'display_order', label: 'Thứ tự', type: 'number' },
       { key: 'is_active', label: 'Kích hoạt', type: 'checkbox' },
@@ -332,8 +337,7 @@ export const ADMIN_TABLES: AdminTableDef[] = [
             <img src={v} alt="" style={{ width: 36, height: 36, borderRadius: '50%', objectFit: 'cover' }} />
           ) : null,
       },
-      { key: 'name', label: 'Tên KH' },
-      { key: 'rating', label: 'Rating' },
+      { key: 'name', label: 'Họ tên / chức vụ / SĐT' },
       { key: 'is_active', label: 'Active', render: boolBadge },
     ],
   },

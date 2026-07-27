@@ -296,44 +296,99 @@ interface Testimonial {
   id: number;
   name: string;
   content: string;
-  avatar_url?: string;
+  avatar_url?: string | null;
+  title?: string | null;
+  phone?: string | null;
+  position?: string | null;
+  is_active?: boolean;
+}
+
+/** Tiêu đề slide giống HTML cũ: Họ tên - Chức vụ - SĐT */
+function testimonialHeadline(t: Testimonial): string {
+  const role = (t.title || t.position || '').trim();
+  const phone = (t.phone || '').trim();
+  if (!role && !phone) return t.name;
+  if (role && t.name.includes(role)) {
+    return phone && !t.name.includes(phone) ? `${t.name} - ${phone}` : t.name;
+  }
+  const parts = [t.name];
+  if (role) parts.push(role);
+  if (phone) parts.push(phone);
+  return parts.join(' - ');
+}
+
+/** Bóc SĐT cuối chuỗi "Họ tên - chức vụ - 09xx" để gắn link tel: */
+function extractTrailingPhone(text: string): { label: string; phone: string } | null {
+  const m = text.match(/^(.*?)\s*-\s*((?:\+?84|0)\d[\d.\s]{7,})\s*$/);
+  if (!m) return null;
+  return { label: m[1].trim(), phone: m[2].replace(/\s+/g, '') };
 }
 
 export function TestimonialSection({ testimonials }: { testimonials: Testimonial[] }) {
+  const visible = testimonials.filter((t) => t.is_active !== false);
+
   useOwlCarousel(
     '.comment-carousel',
     {
-      loop: true,
+      loop: visible.length > 1,
       autoplay: true,
       autoplayTimeout: 4000,
+      autoplayHoverPause: true,
       margin: 10,
       responsiveClass: true,
       nav: true,
-      responsive: { 0: { items: 1, dots: true }, 1000: { items: 2, nav: true, dots: true } },
+      // Slide chạy từ phải sang trái (RTL) — đúng cảm giác site cũ
+      rtl: true,
+      smartSpeed: 600,
+      responsive: {
+        0: { items: 1, nav: false, dots: true },
+        600: { items: 1, nav: false, dots: true },
+        1000: { items: 2, nav: true, dots: true },
+      },
     },
-    [testimonials.length],
+    [visible.length],
   );
 
-  if (!testimonials.length) return null;
+  if (!visible.length) return null;
 
   return (
     <div className="comment_home">
       <div className="container">
         <div>
           <div className="owl-carousel owl-theme comment-carousel">
-            {testimonials.map((t) => (
-              <div key={t.id} className="item">
-                <div>
-                  {t.avatar_url && (
-                    <a>
-                      <img src={assetUrl(t.avatar_url)} alt={t.name} />
-                    </a>
-                  )}
-                  <h3>{t.name}</h3>
-                  <div>{t.content}</div>
+            {visible.map((t) => {
+              const headline = testimonialHeadline(t);
+              const phoneField = (t.phone || '').trim();
+              const parsed = phoneField
+                ? { label: headline.replace(new RegExp(`\\s*-\\s*${phoneField.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*$`), ''), phone: phoneField }
+                : extractTrailingPhone(headline);
+
+              return (
+                <div key={t.id} className="item">
+                  <div>
+                    {t.avatar_url && (
+                      <a>
+                        <img src={assetUrl(t.avatar_url)} alt={headline} />
+                      </a>
+                    )}
+                    <h3>
+                      {parsed ? (
+                        <>
+                          {parsed.label}
+                          {' - '}
+                          <a href={`tel:${parsed.phone.replace(/\D/g, '')}`} style={{ color: 'inherit' }}>
+                            {parsed.phone}
+                          </a>
+                        </>
+                      ) : (
+                        headline
+                      )}
+                    </h3>
+                    <div>{t.content}</div>
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </div>
