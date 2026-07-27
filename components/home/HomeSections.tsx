@@ -313,25 +313,31 @@ interface Testimonial {
   is_active?: boolean;
 }
 
-/** Tiêu đề slide giống HTML cũ: Họ tên - Chức vụ - SĐT */
+/**
+ * Tiêu đề slide đúng HTML cũ: "Họ tên - Chức vụ - SĐT" (SĐT là chữ thuần trong h3).
+ * KHÔNG bọc SĐT bằng <a> — CSS .comment_home .item>div a biến mọi <a> thành khối tròn 100px.
+ */
 function testimonialHeadline(t: Testimonial): string {
   const role = (t.title || t.position || '').trim();
   const phone = (t.phone || '').trim();
-  if (!role && !phone) return t.name;
-  if (role && t.name.includes(role)) {
-    return phone && !t.name.includes(phone) ? `${t.name} - ${phone}` : t.name;
+  // name đã chứa đủ chuỗi cũ (seed fallback) → giữ nguyên
+  if ((!role || t.name.includes(role)) && (!phone || t.name.includes(phone))) {
+    return t.name.trim();
   }
-  const parts = [t.name];
-  if (role) parts.push(role);
-  if (phone) parts.push(phone);
+  const parts = [t.name.trim()];
+  if (role && !t.name.includes(role)) parts.push(role);
+  if (phone && !t.name.includes(phone)) parts.push(phone);
   return parts.join(' - ');
 }
 
-/** Bóc SĐT cuối chuỗi "Họ tên - chức vụ - 09xx" để gắn link tel: */
-function extractTrailingPhone(text: string): { label: string; phone: string } | null {
-  const m = text.match(/^(.*?)\s*-\s*((?:\+?84|0)\d[\d.\s]{7,})\s*$/);
-  if (!m) return null;
-  return { label: m[1].trim(), phone: m[2].replace(/\s+/g, '') };
+function testimonialTelHref(t: Testimonial): string | null {
+  const raw =
+    (t.phone || '').trim() ||
+    (t.name.match(/(?:\+?84|0)\d[\d.\s-]{7,}\d/) || [])[0] ||
+    '';
+  const digits = raw.replace(/\D/g, '');
+  if (digits.length < 9) return null;
+  return `tel:${digits}`;
 }
 
 export function TestimonialSection({ testimonials }: { testimonials: Testimonial[] }) {
@@ -368,32 +374,26 @@ export function TestimonialSection({ testimonials }: { testimonials: Testimonial
           <div className="owl-carousel owl-theme comment-carousel">
             {visible.map((t) => {
               const headline = testimonialHeadline(t);
-              const phoneField = (t.phone || '').trim();
-              const parsed = phoneField
-                ? { label: headline.replace(new RegExp(`\\s*-\\s*${phoneField.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*$`), ''), phone: phoneField }
-                : extractTrailingPhone(headline);
+              const tel = testimonialTelHref(t);
+              const avatar = t.avatar_url ? assetUrl(t.avatar_url) : null;
+              // Markup khớp legacy: <a><img/></a> float phải → <h3> chữ thuần → <div> mô tả
+              const avatarLink = avatar ? (
+                tel ? (
+                  <a className="comment_avatar" href={tel} aria-label={`Gọi ${headline}`}>
+                    <img src={avatar} alt={headline} />
+                  </a>
+                ) : (
+                  <a className="comment_avatar">
+                    <img src={avatar} alt={headline} />
+                  </a>
+                )
+              ) : null;
 
               return (
                 <div key={t.id} className="item">
                   <div>
-                    {t.avatar_url && (
-                      <a>
-                        <img src={assetUrl(t.avatar_url)} alt={headline} />
-                      </a>
-                    )}
-                    <h3>
-                      {parsed ? (
-                        <>
-                          {parsed.label}
-                          {' - '}
-                          <a href={`tel:${parsed.phone.replace(/\D/g, '')}`} style={{ color: 'inherit' }}>
-                            {parsed.phone}
-                          </a>
-                        </>
-                      ) : (
-                        headline
-                      )}
-                    </h3>
+                    {avatarLink}
+                    <h3>{headline}</h3>
                     <div>{t.content}</div>
                   </div>
                 </div>
