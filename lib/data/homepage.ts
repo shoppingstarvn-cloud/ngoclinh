@@ -1,5 +1,5 @@
 import { createClient } from '@/lib/supabase/server';
-import { isValidAssetUrl } from '@/lib/slug';
+import { isTrustedMediaUrl, isValidAssetUrl } from '@/lib/slug';
 
 export async function getSiteSettings(): Promise<Record<string, string>> {
   const supabase = await createClient();
@@ -37,7 +37,8 @@ export async function getHomepageData() {
       .select('*')
       .eq('is_active', true)
       .order('display_order')
-      .limit(15),
+      // Lấy dư rồi lọc ảnh tin cậy — tránh carousel hiện icon ảnh vỡ
+      .limit(50),
     supabase
       .from('partners')
       .select('*')
@@ -91,7 +92,10 @@ export async function getHomepageData() {
 
   return {
     slides: slides.data ?? [],
-    products: products.data ?? [],
+    // Chỉ sản phẩm có ảnh local/Supabase — bỏ video không ảnh, CDN chết (/https://vacdn…)
+    products: (products.data ?? [])
+      .filter((p) => isTrustedMediaUrl(p.thumbnail_url))
+      .slice(0, 15),
     // Chỉ đối tác có logo ảnh hợp lệ — tránh hiện tên xanh dưới khối dự án
     partners: (partners.data ?? []).filter((p) => isValidAssetUrl(p.logo_url)),
     testimonials: testimonials.data ?? [],

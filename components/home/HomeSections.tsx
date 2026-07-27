@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { postHref, itemHref, assetUrl, isValidAssetUrl } from '@/lib/slug';
+import { postHref, itemHref, assetUrl, isTrustedMediaUrl, isValidAssetUrl } from '@/lib/slug';
 import { useOwlCarousel } from '@/lib/hooks/useOwlCarousel';
 
 interface Slide {
@@ -131,19 +131,22 @@ interface Product {
 }
 
 export function ProductSection({ products }: { products: Product[] }) {
+  // Lọc lần nữa phía UI — chỉ thẻ có ảnh tin cậy (local / Supabase)
+  const visible = products.filter((p) => isTrustedMediaUrl(p.thumbnail_url));
+
   useOwlCarousel(
     '.product-carousel',
     {
-      loop: true,
+      loop: visible.length > 1,
       autoplay: true,
       margin: 20,
       responsiveClass: true,
       responsive: { 0: { items: 1, dots: true }, 600: { items: 2, dots: true }, 1000: { items: 3, dots: true } },
     },
-    [products.length],
+    [visible.length],
   );
 
-  if (!products.length) return null;
+  if (!visible.length) return null;
 
   return (
     <div className="product">
@@ -165,14 +168,21 @@ export function ProductSection({ products }: { products: Product[] }) {
         </div>
         <div className="row">
           <div className="owl-carousel owl-theme product-carousel">
-            {products.map((p) => (
+            {visible.map((p) => (
               <div key={p.id} className="item">
                 <dl>
                   <dt>
                     <img
-                      src={assetUrl(p.thumbnail_url) || '/images/placeholder.jpg'}
+                      src={assetUrl(p.thumbnail_url)}
                       alt={p.name}
                       title={p.name}
+                      onError={(e) => {
+                        const el = e.currentTarget;
+                        if (el.dataset.fallback === '1') return;
+                        el.dataset.fallback = '1';
+                        // Không có placeholder.jpg trong repo — ẩn ảnh vỡ
+                        el.style.visibility = 'hidden';
+                      }}
                     />
                   </dt>
                   <dd>
