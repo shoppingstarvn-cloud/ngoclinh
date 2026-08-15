@@ -153,7 +153,7 @@ export function ProductSection({ products }: { products: Product[] }) {
       <div className="container">
         <div className="title">
           <p>
-            <span>Sản phẩm của chúng tôi</span>
+            <span>Sản phẩm chủ lực</span>
           </p>
         </div>
         <div className="brief">

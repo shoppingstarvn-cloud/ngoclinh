@@ -1,6 +1,12 @@
 # QUY TRÌNH ĐỒNG BỘ NỘI DUNG WEBSITE → DASHBOARD
 
 > Đã kiểm chứng thành công ngày **21/07/2026**: 142/142 bản ghi, 0 lỗi.
+>
+> ⚠️ **BỐI CẢNH:** Tài liệu này viết từ thời kiến trúc **Express + HTML tĩnh**. Phần
+> **dữ liệu Supabase, phân loại nội dung, thuật toán slug** vẫn ĐÚNG và hữu ích. Nhưng
+> đường ghi/hiển thị nay là **Next.js** (Server Actions `lib/actions/admin-actions.ts`,
+> `app/[slug]`, `app/legacy/[...path]`) — KHÔNG còn `admin.html`/`detail-sync.js`.
+> Đồng bộ từ nguồn hiện dùng: `npm run sync:cms` (`scripts/sync-cms-from-source.mjs`).
 
 ---
 

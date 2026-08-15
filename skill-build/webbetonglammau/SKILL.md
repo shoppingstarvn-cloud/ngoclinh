@@ -1,189 +1,188 @@
 ---
 name: webbetonglammau
-description: Bộ não tri thức TOÀN DIỆN của dự án website "webbetonglammau" — CÔNG TY CỔ PHẦN THƯƠNG MẠI CỬA ÂU (bê tông đúc sẵn) của anh Bùi Ngọc Linh. Đọc skill này là hiểu SÂU SẮC toàn bộ dự án như một siêu chuyên gia - kiến trúc, tech stack, database Supabase, CMS Super Admin, quy trình đồng bộ nội dung, deploy Vercel, và TẤT CẢ lỗi đã gặp cùng cách sửa. Kích hoạt BẮT BUỘC khi anh Linh nói bất kỳ điều gì liên quan đến "webbetonglammau", "web bê tông", "bê tông Cửa Âu", "betongphuongbac", "cống bê tông", "admin.html", "dashboard super admin", "đồng bộ bài viết", "thêm sản phẩm/bài viết/dự án", "sửa website bê tông", hoặc khi làm việc trong thư mục D:\SUPPER APP TRIEU DO\webbetonglammau.
+description: Bộ não tri thức TOÀN DIỆN của dự án website "webbetonglammau" — CÔNG TY CỔ PHẦN THƯƠNG MẠI CỬA ÂU (bê tông đúc sẵn) của anh Bùi Ngọc Linh. Dự án ĐÃ MIGRATE sang Next.js 15 App Router + React 19 + TypeScript + Supabase (không còn Express/HTML tĩnh). Đọc skill này là hiểu SÂU SẮC toàn bộ như một siêu chuyên gia — kiến trúc App Router, luồng dữ liệu Supabase, Server Actions, CMS Super Admin tại /admin, trang chi tiết động, deploy Vercel, và mọi lỗi đã gặp cùng cách sửa. Kích hoạt BẮT BUỘC khi anh Linh nói bất kỳ điều gì liên quan đến "webbetonglammau", "web bê tông", "bê tông Cửa Âu", "betongphuongbac", "cống bê tông", "trang chủ", "sản phẩm/bài viết/dự án", "sửa chữ/giao diện web", "admin/dashboard", "deploy web", hoặc khi làm việc trong thư mục D:\SUPPER APP TRIEU DO\webbetonglammau.
 ---
 
-# 🏗️ DỰ ÁN WEBBETONGLAMMAU — HỒ SƠ SIÊU CHUYÊN GIA
+# 🏗️ DỰ ÁN WEBBETONGLAMMAU — HỒ SƠ SIÊU CHUYÊN GIA (Next.js)
 
-> Khi anh Linh nhắc đến dự án này, em đọc skill để nắm trọn bối cảnh và **bắt tay làm ngay**, không phải dò lại từ đầu.
+> Khi anh Linh nhắc đến dự án này, em đọc skill để nắm trọn bối cảnh và **bắt tay làm ngay**.
+> ⚠️ **QUAN TRỌNG:** Dự án đã chuyển từ web tĩnh + Express sang **Next.js 15 App Router**. Mọi kiến thức "server.js / index.html / realtime-data.js" là LỊCH SỬ — xem mục 12.
 
 ---
 
-## 1. TỔNG QUAN NHANH (đọc 30 giây là nắm)
+## 1. TỔNG QUAN NHANH
 
 | Hạng mục | Thông tin |
 |---|---|
 | **Tên hiển thị** | CÔNG TY CỔ PHẦN THƯƠNG MẠI CỬA ÂU (thương hiệu cũ: Bê Tông Phương Bắc / PBC) |
 | **Ngành** | Bê tông đúc sẵn: cống tròn, cống hộp, cống hộp đôi, hố ga, tấm tường ACOTEC, cọc ván cừ |
-| **Bản chất** | Site tĩnh ~246 file HTML (mirror HTTrack) bọc trong **Express** + CMS động qua **Supabase** |
-| **Local** | `D:\SUPPER APP TRIEU DO\webbetonglammau` (thư mục tĩnh = `public/`) |
+| **Bản chất** | **Next.js 15 App Router + React 19 + TypeScript**, dữ liệu từ **Supabase**, deploy **Vercel** |
+| **Local** | `D:\SUPPER APP TRIEU DO\webbetonglammau` |
 | **GitHub** | `shoppingstarvn-cloud/webbetonglammau` — nhánh `main` |
-| **Deploy** | **Vercel** — https://webbetonglammau.vercel.app |
+| **Deploy** | **Vercel** (framework `nextjs`, tự build khi push) — https://webbetonglammau.vercel.app |
 | **Supabase ref** | `bfruxinvvvaqufghtigw` → `https://bfruxinvvvaqufghtigw.supabase.co` |
-| **Trang quản trị** | `/admin.html` — mật khẩu mặc định: `admin` / `8386` / `cuaau@2026` |
+| **Trang quản trị** | `/admin` (React CMS). `/admin.html` cũ → redirect `/admin`. Mật khẩu: `admin` / `8386` / `cuaau@2026` |
 
-**Mục tiêu lớn:** Super Admin toàn quyền sửa MỌI thứ (logo, menu, danh mục, slide, bài viết, sản phẩm, dự án, ảnh, video, đối tác) — Supabase là nguồn sự thật, website tự cập nhật realtime.
-
-**Cơ chế đồng bộ (cập nhật 22/07/2026):**
-- **Khối trang chủ + khung chung** (menu, sidebar, logo, slide, danh sách tin/sản phẩm/dự án/đối tác): `realtime-data.js` lắng nghe `postgres_changes` **13 bảng** (đã thêm `projects`) → đổi NGAY, không cần F5.
-- **Thân bài trang chi tiết**: `detail-sync.js` đọc DB khi tải trang → đổi sau khi F5 (xem mục 5).
-- `admin.html` tự điền `tags='tin-tuc'`, `status='published'` cho bài mới → hiện ngay ở khối tin tức.
+**Tech stack (`package.json` v2.0.0):** `next@15.3`, `react@19`, `@supabase/ssr`, `@supabase/supabase-js`, `jose` (JWT HS256), `quill` (soạn thảo), `swiper`, `sweetalert2`. Theme cũ vẫn dùng **jQuery + Bootstrap 4 + Owl Carousel** nạp qua `app/layout.tsx` (`<Script>`), CSS legacy ở `public/css/`.
 
 ---
 
-## 2. QUY TẮC VÀNG (đọc trước khi làm bất cứ việc gì)
+## 2. QUY TẮC VÀNG
 
-1. **Sandbox của em BỊ CHẶN kết nối tới Supabase** (`X-Proxy-Error: blocked-by-allowlist`) và **không có credential git**. Mọi thao tác với database phải qua **trình duyệt** (Claude in Chrome).
-2. **Ghi database:** anon key CHỈ ĐỌC (RLS khoá). Ghi phải qua `/api/admin/<table>` (server dùng `service_role`, cần đăng nhập admin) **hoặc** hàm `SECURITY DEFINER` tạo tạm trong SQL Editor.
-3. **KHÔNG tự đăng nhập thay anh Linh.** Mật khẩu là ranh giới — nhờ anh bấm nút đăng nhập.
-4. **Fetch website phải tiết chế ≥ 400ms/trang.** Nhanh hơn → Vercel chặn 403 TOÀN SITE vài phút.
-5. **Anh Linh chạy `git push origin main`** trên máy → Vercel tự deploy. Em không push được.
-6. **KHÔNG hardcode `SUPABASE_SERVICE_KEY`** vào code. Chỉ để trong biến môi trường Vercel.
-7. Trước khi đồng bộ dữ liệu: **luôn có UNIQUE INDEX trên `slug`** để upsert idempotent.
+1. **Sửa giao diện/chữ trang chủ = sửa `components/home/HomeSections.tsx`** (KHÔNG phải `public/index.html` — file đó không còn là nguồn). Trang chủ là `app/page.tsx`.
+2. **Ghi database từ Admin = Server Actions** trong `lib/actions/admin-actions.ts` (không sửa DB tay từ client). Đây là lớp ghi DUY NHẤT UI dùng.
+3. **Anh Linh chạy `git push origin main`** trên máy → Vercel tự build. Em chuẩn bị code + khối lệnh, không tự push.
+4. **KHÔNG hardcode `SUPABASE_SERVICE_KEY`** — chỉ để trong biến môi trường Vercel/`.env.local`.
+5. **Sandbox có thể bị chặn Supabase** — thao tác DB trực tiếp qua Chrome (Supabase SQL Editor / API). Xác minh trước khi khẳng định.
+6. **KHÔNG tự đăng nhập admin thay anh Linh.** Mật khẩu là ranh giới.
+7. Sau khi đổi schema Supabase: **luôn `NOTIFY pgrst, 'reload schema';`**.
+8. Trước khi khẳng định "file X còn tồn tại" theo skill: **verify bằng `ls`/`grep`** — kiến trúc thay đổi nhanh.
 
 ---
 
-## 3. KIẾN TRÚC & FILE QUAN TRỌNG
+## 3. KIẾN TRÚC THƯ MỤC (Next.js App Router)
 
 ```
 webbetonglammau/
-├── server.js                  ← Express: static + API CRUD + auth (17KB)
-├── vercel.json                ← builds @vercel/node + rewrites → server.js
-├── render.yaml                ← blueprint dự phòng nếu chuyển sang Render
-├── package.json               ← express 5, @supabase/supabase-js, multer, cors, dotenv
-├── public/                    ← TOÀN BỘ site tĩnh (thư mục Vercel phục vụ)
-│   ├── index.html             ← trang chủ
-│   ├── admin.html             ← CMS Super Admin (66KB, 1 file duy nhất)
-│   ├── realtime-data.js       ← nạp dữ liệu động từ Supabase, nhúng ở 223 trang
-│   ├── *-c<n>.html            ← trang DANH MỤC sản phẩm
-│   ├── *-l<n>.html / *-a<n>.html ← trang danh sách / trang tĩnh
-│   └── index.php/             ← 158 file TRANG CHI TIẾT (xem mục 5)
-├── scripts/                   ← công cụ đồng bộ (xem references/)
-└── sql/                       ← SQL nâng cấp + tài liệu
+├── app/                          ← ROUTES (App Router)
+│   ├── layout.tsx                ← <head>: CSS/JS legacy (jQuery, Bootstrap, Owl), fonts
+│   ├── page.tsx                  ← TRANG CHỦ (force-dynamic) → getHomepageData()
+│   ├── [slug]/page.tsx           ← trang chi tiết theo slug (vd /cong-tron-...-d1000.html)
+│   ├── legacy/[...path]/page.tsx ← trang legacy /index.php/... (rewrite từ middleware)
+│   ├── admin/                    ← CMS Super Admin (page.tsx → AdminApp.tsx, admin.css)
+│   └── api/                      ← Route Handlers: auth/login, auth/verify, upload,
+│                                    admin/[table], admin/all-data, public/[table], public/config, health
+├── components/
+│   ├── home/HomeSections.tsx     ← 8 SECTION trang chủ (xem mục 5) ⭐ sửa chữ/giao diện ở đây
+│   ├── layout/SiteShell.tsx      ← khung bọc: header + sidebar + footer
+│   ├── layout/SiteHeader.tsx     ← menu, logo, hotline
+│   ├── listings/ProjectsListing.tsx
+│   ├── sync/LiveSiteSync.tsx     ← realtime: nghe postgres_changes → router.refresh()
+│   └── admin/*                   ← LoginScreen, Sidebar, Dashboard, DataTable,
+│                                    RecordFormModal, RichTextEditor(quill), ImageUploadField, SiteSettingsPanel
+├── lib/
+│   ├── data/homepage.ts          ← getHomepageData(): nạp mọi bảng cho trang chủ
+│   ├── data/detail.ts            ← classifyContentByPath, fetchDetailBySlug/ByPath
+│   ├── detail-map.ts             ← đọc public/_detail-map.json (slug → path legacy)
+│   ├── legacy-html.ts            ← đọc/bóc HTML tĩnh trong public/index.php (fallback)
+│   ├── slug.ts                   ← slugify, isTrustedMediaUrl, isValidAssetUrl
+│   ├── supabase/{server,client,admin,env}.ts  ← 3 loại client (xem mục 4)
+│   ├── auth/{jwt,session}.ts     ← JWT HS256 (jose), requireAdmin / requireAdminAction
+│   ├── actions/admin-actions.ts  ← ⭐ SERVER ACTIONS ghi DB + revalidatePath
+│   └── cms/{tables,crud,admin-schema.tsx,partner-logos}.ts
+├── middleware.ts                 ← định tuyến .html / index.php / slug (runtime nodejs)
+├── public/                       ← CHỈ tài nguyên tĩnh: css/, images/, hpm/, uploads/,
+│                                    _detail-map.json, và index.php/*.html (fallback legacy)
+├── next.config.ts, vercel.json, .env.example
+└── scripts/                      ← build-detail-map.js, sync-cms-from-source.mjs, seed-*, ...
 ```
 
-**Điểm mấu chốt về `server.js`:**
-- `CMS_TABLES` (dòng ~125) khai báo 14 bảng. Mỗi bảng tự sinh 5 route:
-  - `GET /api/public/<table>` (công khai, chỉ bảng có `publicRead: true`)
-  - `GET|POST /api/admin/<table>`, `GET|PUT|DELETE /api/admin/<table>/:id` (cần token)
-- `POST /api/admin/<table>` **tự gán `created_at` + `updated_at`** → bảng thiếu 2 cột này sẽ lỗi.
-- Auth: `POST /api/auth/login` — chấp nhận mật khẩu hardcode HOẶC `admin_users.password_hash` (sha256).
-- Express 5: **KHÔNG dùng `app.get('*')`** (lỗi PathError trên Vercel) → dùng `app.use((req,res)=>...)`.
-
 ---
 
-## 4. DATABASE SUPABASE
+## 4. SUPABASE — 3 LOẠI CLIENT (nhớ kỹ, đừng dùng nhầm)
 
-**14 bảng:** `site_settings`, `menus`, `categories`, `posts`, `projects`, `products`, `slides`, `images`, `photos`, `videos`, `partners`, `testimonials`, `links`, `contact_submissions`
-
-**Trạng thái dữ liệu (21/07/2026 — sau khi đồng bộ toàn bộ):**
-
-| Bảng | Tab dashboard | Số bản ghi |
+| File | Key | Dùng ở đâu |
 |---|---|---|
-| `posts` | Bài viết | 47 |
-| `products` | Sản phẩm | 76 |
-| `projects` | Dự án | 7 |
-| `partners` | Đối tác | 12 |
+| `lib/supabase/server.ts` | anon (SSR + cookie) | Server Components đọc công khai (getHomepageData, trang chi tiết) |
+| `lib/supabase/client.ts` | anon (browser) | Client Components — realtime `LiveSiteSync` |
+| `lib/supabase/admin.ts` | **service_role** | GHI dữ liệu: Server Actions + API routes. Có `BUCKET_NAME` |
+| `lib/supabase/env.ts` | — | đọc env, fallback publishable key |
 
-**RLS:** anon/authenticated CHỈ `SELECT`. `service_role` bypass RLS để ghi.
-`admin_users` + `contact_submissions` chặn anon hoàn toàn.
+**Env (Vercel Project Settings + `.env.local`):**
+`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_KEY` (bí mật), `SUPABASE_BUCKET=uploads`, `JWT_SECRET`, `NEXT_PUBLIC_SITE_URL`.
+Code còn đọc cả tên cũ `SUPABASE_URL`/`SUPABASE_ANON_KEY` để tương thích.
 
-👉 Schema đầy đủ từng cột: đọc `references/02-database.md`
-
----
-
-## 5. CẤU TRÚC NỘI DUNG WEBSITE (⚠️ CỰC KỲ QUAN TRỌNG)
-
-Website dùng **HAI KHUÔN HTML KHÁC NHAU** cho trang chi tiết. Bỏ sót là mất 56 trang:
-
-| Nhóm | Đường dẫn | Số trang | Khối nội dung |
-|---|---|---|---|
-| Sản phẩm / báo giá | `public/index.php/*-p<n>.html` | 102 | **`.detail_product`** |
-| Tin tức / dự án / đối tác | `public/index.php/{tin-tuc,du-an,khach-hang,nha-cung-cap,tin-chuyen-nganh,tin-tuyen-dung}/*-n<n>.html` | 56 | **`.content_news_page`** (mô tả ngắn: `.brief_news_page`, container: `.news_page`) |
-
-**Lưu ý sống còn:** repo có **158 file** nhưng chỉ **140 trang thật** — 18 file là bản trùng tên của cùng một mã trang (riêng `-p7.html` có 3 file; các mã `p14 p15 p16 p18 p19 p36 p41 p42 p46 p49 p50 p55 p64 p67 p68 p80` mỗi mã 2 file).
-
-**Quy tắc phân loại nội dung (anh Linh đã chốt):**
-- `-p*.html` có chữ **"báo giá"** trong tên → bảng `posts` (Bài viết)
-- `-p*.html` còn lại → bảng `products` (Sản phẩm)
-- `/tin-tuc/`, `/tin-chuyen-nganh/`, `/tin-tuyen-dung/` → `posts`
-- `/du-an/` → `projects`
-- `/khach-hang/`, `/nha-cung-cap/` → `partners`
-
-**Ảnh trong nội dung** dùng đường dẫn tương đối (`../../hpm/images/...`) → **phải chuẩn hoá về tuyệt đối** (`/hpm/images/...`) trước khi lưu, nếu không ảnh vỡ trong admin.
-
-### ⭐ TRANG CHI TIẾT ĐÃ ĐỘNG HOÁ (từ 22/07/2026)
-
-Mỗi trang chi tiết nhúng **`/detail-sync.js`**: khi tải, nó đọc `<h1>` → slugify → tra Supabase đúng bảng (theo logic phân loại) → **thay ruột bài (`.detail_product`/`.content_news_page`) bằng nội dung mới nhất từ DB**. Nhờ đó Super Admin sửa nội dung trong `/admin.html` là trang chi tiết trên web tự đổi (sau khi F5), **không cần sửa file HTML tĩnh**.
-
-- Giữ nguyên URL cũ → tốt cho SEO. Nội dung tĩnh là fallback nếu không khớp/lỗi mạng.
-- Khớp bằng slug từ `<h1>`, thử thêm hậu tố mã trang (`-p87`) cho trang đổi slug do trùng.
-- File: `public/detail-sync.js`. Đã chèn vào **158/158** trang `-p`/`-n`.
+👉 Schema 14 bảng đầy đủ từng cột: đọc `references/02-database.md`
 
 ---
 
-## 6. ĐỒNG BỘ NỘI DUNG WEBSITE → DASHBOARD
+## 5. TRANG CHỦ — 8 SECTION (`components/home/HomeSections.tsx`)
 
-Việc hay làm nhất. Quy trình đã kiểm chứng thành công 142/142 bản ghi:
+`app/page.tsx` (khai báo `export const dynamic = 'force-dynamic'`) gọi `getHomepageData()` rồi render trong `SiteShell`:
 
-**Cách nhanh nhất (khi anh Linh đăng nhập được admin):**
-1. Mở `https://webbetonglammau.vercel.app/admin.html` → **anh Linh đăng nhập**
-2. F12 → Console → dán toàn bộ `scripts/browser-sync.js` → Enter
-3. Chờ xong → bấm **Tải lại** trên dashboard
-
-**Cách dự phòng (không đăng nhập được):** tạo hàm `SECURITY DEFINER` có khoá bí mật trong Supabase SQL Editor, chạy script bóc nội dung trên tab website, rồi **DROP hàm ngay sau khi xong**.
-
-👉 Quy trình chi tiết từng bước + code: đọc `references/03-dong-bo-noi-dung.md`
-
----
-
-## 7. LỖI ĐÃ GẶP — ĐỪNG DÒ LẠI
-
-| Lỗi | Nguyên nhân | Cách sửa |
+| Thứ tự | Component | Nguồn dữ liệu (bảng Supabase) |
 |---|---|---|
-| Dashboard không thấy bài viết | Script cũ chỉ tìm `.detail_product`, bỏ sót 56 trang `.news_page` | Parser nhận cả 2 khuôn (mục 5) |
-| Giao diện "loạn" trên Vercel | CDN bị viết `../host` thay vì `https://host` | Regex thay `../` → `https://` cho host ngoài |
-| Build Vercel FAIL `statCache` | `includeFiles` trỏ thư mục không tồn tại | Đặt `includeFiles: ["public/**"]` |
-| PathError trên Vercel | Express 5 không nhận `app.get('*')` | Đổi sang `app.use((req,res)=>...)` |
-| CMS "báo lưu thành công giả" | admin.html có fallback ghi bằng anon key | Đã bỏ fallback |
-| Ghi DB lỗi 400 | Bảng thiếu cột `created_at`/`updated_at` mà server tự gán | `ALTER TABLE ... ADD COLUMN IF NOT EXISTS` |
-| `photos` lỗi 400 khi gửi `true` | `photos.is_active` là **INTEGER (1/0)**, không phải boolean | Gửi `1`/`0` |
-| Fetch nhiều trang → 403 toàn site | Vercel rate limit | Tiết chế ≥400ms/trang |
-| Bấm sản phẩm/bài trang chủ → "Not found" | Link `/slug.html` không có file (file thật ở `/index.php/...`) | `server.js` nạp `public/_detail-map.json` → redirect 301 slug→file thật. Thêm trang mới: chạy `node scripts/build-detail-map.js` |
-| Anon chỉ thấy 2/7 dự án | `projects` thiếu policy đọc công khai | chạy `sql/02_FIX_PROJECTS_RLS.sql` |
+| 1 | `SlideCarousel` | slides |
+| 2 | `AboutLink` | site_settings (intro_text) |
+| 3 | `CategoryGrid` | categories |
+| 4 | `ProductSection` | products (lọc `isTrustedMediaUrl`, tối đa 15) ⭐ tiêu đề "Sản phẩm chủ lực" |
+| 5 | `ProjectSection` | projects |
+| 6 | `PartnerSection` | partners (lọc logo hợp lệ) |
+| 7 | `TestimonialSection` | testimonials |
+| 8 | `NewsSection` | posts (`tags='tin-tuc'`, `status='published'`) |
 
-👉 Danh sách đầy đủ + chi tiết: đọc `references/04-loi-da-gap.md`
+**Muốn đổi CHỮ/BỐ CỤC một khối trang chủ → sửa function tương ứng trong file này.** Chữ trong JSX thường viết thường, CSS theme (`text-transform: uppercase`) tự in hoa khi hiển thị.
+
+`getHomepageData()` (`lib/data/homepage.ts`) chạy song song `Promise.all` đọc: slides, products(≤50→lọc 15), partners, testimonials, posts(≤30), projects(≤12), menus, categories(≤12), links, site_settings.
 
 ---
 
-## 8. BACKUP ĐỊNH KỲ (quy ước lõi của anh Linh)
+## 6. TRANG CHI TIẾT — ĐỊNH TUYẾN & NỘI DUNG ĐỘNG
 
-Sau mỗi buổi làm — **"một bản trên trời, một bản dưới đất"**:
+`middleware.ts` (runtime **nodejs**, vì đọc file `_detail-map.json`) xử lý:
+- `/index.php/<...>` → **rewrite** nội bộ sang `/legacy/<...>` (URL người dùng giữ nguyên).
+- `/index.html`, `/index-2.html` → **redirect 301** về `/`.
+- `/<slug>.html`: nếu slug có trong `_detail-map.json` → **redirect 301** tới URL legacy canonical (SEO); nếu không → **rewrite** sang `/<slug>` (App Router).
+
+`app/[slug]/page.tsx`: tra Supabase theo slug (`fetchDetailBySlug`) → render `<h1>` + nội dung (class `detail_product` cho products, `content_news_page` cho còn lại). Fallback: đọc HTML tĩnh legacy. Đặc biệt `du-an-a3`/`du-an` → `ProjectsListing`.
+
+`app/legacy/[...path]/page.tsx`: đọc file HTML tĩnh `public/index.php/...`, lấy `<h1>` → slug → tra Supabase (`fetchDetailByPath`). **File tĩnh là fallback an toàn** nếu Supabase chưa có.
+
+`lib/data/detail.ts` — `classifyContentByPath`: `/tin-tuc|tin-chuyen-nganh|tin-tuyen-dung/`→posts, `/du-an/`→projects, `/khach-hang|nha-cung-cap/`→partners, `-p<n>.html`→(có "bao gia"→posts, else products).
+
+**Thêm trang chi tiết tĩnh mới** → chạy `node scripts/build-detail-map.js` để cập nhật `public/_detail-map.json`, rồi push.
+
+---
+
+## 7. SUPER ADMIN (`/admin`)
+
+- `app/admin/page.tsx` → `app/admin/AdminApp.tsx` (client) → components/admin/*.
+- **Đăng nhập:** `POST /api/auth/login` → JWT HS256 (jose) → cookie httpOnly `admin_token` (24h). Mật khẩu hardcode `8386`/`admin`/`cuaau@2026` HOẶC `admin_users.password_hash` (sha256).
+- **Đọc dữ liệu dashboard:** `GET /api/admin/all-data` (cần Bearer token).
+- **GHI dữ liệu:** **Server Actions** `lib/actions/admin-actions.ts` — `createRecordAction`, `updateRecordAction`, `deleteRecordAction`, `saveSiteSettingsAction`, `repairPartnersAndSyncAction`. Mỗi action gọi `requireAdminAction()` (đọc cookie) → ghi qua `createAdminClient()` (service_role) → `revalidatePath('/', 'layout')`.
+- **Instant Sync 2 lớp:** (a) `revalidatePath` xoá cache → F5 thấy ngay; (b) `LiveSiteSync` nghe realtime 12 bảng → `router.refresh()` tự động không cần F5.
+- Bảng CMS: `lib/cms/tables.ts` (14 bảng, có `photos`). Cấu hình field/form: `lib/cms/admin-schema.tsx` (`ADMIN_TABLES`, `FieldType` gồm `richtext`/`imageupload`..., `SITE_SETTINGS_FIXED_KEYS`, `IMAGE_FIELD_KEYS`).
+
+---
+
+## 8. DEPLOY (Vercel)
+
+`vercel.json`: `framework: nextjs`, `buildCommand: npm run build`, có headers cache cho `/css` `/images`. `next.config.ts`: `images.unoptimized`, remotePatterns supabase, redirects tĩnh (index.html→/, admin.html→/admin).
+
+**Quy trình (anh Linh chạy trên máy):**
+```powershell
+cd "D:\SUPPER APP TRIEU DO\webbetonglammau"
+git add -A
+git commit -m "<mô tả>"
+git push origin main
+```
+→ Vercel tự build Next.js (~1-2 phút). Xong mở site, Ctrl+F5 để bỏ cache.
+
+---
+
+## 9. BACKUP ĐỊNH KỲ ("một bản trên trời, một bản dưới đất")
 
 ```powershell
-# 1) Cloud (GitHub)
+# Cloud
 cd "D:\SUPPER APP TRIEU DO\webbetonglammau"; git add -A; git commit -m "Backup"; git push origin main
-
-# 2) Local ZIP
-$src="D:\SUPPER APP TRIEU DO\webbetonglammau"; $stamp=Get-Date -Format "yyyyMMdd_HHmm"
-Get-ChildItem -Path $src -Force -Exclude 'node_modules' | Compress-Archive -DestinationPath "D:\BACKUP_webbetonglammau_$stamp.zip" -Force
+# Local ZIP (bỏ node_modules + .next cho nhẹ)
+$src="D:\SUPPER APP TRIEU DO\webbetonglammau"; $stamp=Get-Date -Format "yyyyMMdd_HHmm"; Get-ChildItem -Path $src -Force -Exclude 'node_modules','.next' | Compress-Archive -DestinationPath "D:\BACKUP_webbetonglammau_$stamp.zip" -Force
 ```
 
 ---
 
-## 9. VIỆC CÒN TỒN ĐỌNG
+## 10. LỖI ĐÃ GẶP — ĐỪNG DÒ LẠI (tóm tắt)
 
-- **Đối tác**: 12 bản ghi nhưng chỉ 3 có logo — trang gốc không có ảnh trong khối nội dung. Cần bổ sung thủ công.
-- **18 file HTML trùng tên** trong `public/index.php/` — nên dọn cho gọn repo.
-- Cột ID hiển thị "undefined" ở một số bảng admin — kiểm tra tên khoá chính.
-- Siết bảo mật: đảm bảo `SUPABASE_SERVICE_KEY` là **service_role thật** (bắt đầu `eyJ...` hoặc `sb_secret_...`) đã set trên Vercel Production.
+| Lỗi | Cách sửa |
+|---|---|
+| Bấm sản phẩm/bài trang chủ → "Not found" | `middleware.ts` + `_detail-map.json` map slug → trang. Thêm trang: `node scripts/build-detail-map.js` |
+| Anon chỉ thấy 2/7 dự án | chạy `sql/02_FIX_PROJECTS_RLS.sql` (policy `p_public_read`) |
+| `photos.is_active` lỗi 400 | cột là INTEGER (1/0), không phải boolean |
+| Ghi DB lỗi cột thiếu | `ALTER TABLE ... ADD COLUMN IF NOT EXISTS` rồi `NOTIFY pgrst,'reload schema'` |
+| Ảnh nội dung vỡ | chuẩn hoá đường dẫn tương đối `../../hpm/...` → tuyệt đối `/hpm/...` |
+| Font/spacing vỡ | thiếu Oswald+Roboto Condensed hoặc CSS legacy trong `app/layout.tsx` |
 
----
-
-## 10. DỰ ÁN LIÊN QUAN (tránh nhầm lẫn)
-
-- **`webtruyencamhung`** — NHÓM TRUYỀN CẢM HỨNG TOÁN, Express + Supabase, deploy **Render**, local `D:\educational-website`. **Dự án KHÁC hoàn toàn.**
-- **`ShopMartAI Marketing Pro`** — nền tảng marketing, có skill riêng `marketing-shopmartai`.
+👉 Chi tiết đầy đủ: `references/04-loi-da-gap.md` · Kiến trúc sâu: `references/01-kien-truc.md`
 
 ---
 
@@ -191,18 +190,25 @@ Get-ChildItem -Path $src -Force -Exclude 'node_modules' | Compress-Archive -Dest
 
 | File | Dùng khi nào |
 |---|---|
-| `references/01-kien-truc.md` | Cần hiểu sâu server.js, API, luồng dữ liệu |
-| `references/02-database.md` | Cần schema chính xác từng cột, RLS, khoá |
-| `references/03-dong-bo-noi-dung.md` | Đồng bộ bài viết website → dashboard |
-| `references/04-loi-da-gap.md` | Gặp lỗi — tra trước khi tự dò |
-| `scripts/01_SCHEMA_UPGRADE.sql` | Nâng cấp schema + tạo UNIQUE INDEX |
-| `scripts/browser-sync.js` | Dán vào Console để đồng bộ (cần đăng nhập admin) |
-| `scripts/sync-all-to-sql.js` | Chạy Node để sinh file SQL từ 158 trang HTML |
+| `references/01-kien-truc.md` | Hiểu sâu App Router, Server Actions, luồng dữ liệu, auth |
+| `references/02-database.md` | Schema 14 bảng, RLS, UNIQUE INDEX |
+| `references/03-dong-bo-noi-dung.md` | Đồng bộ nội dung website → Supabase |
+| `references/04-loi-da-gap.md` | Sổ tay lỗi |
+| `scripts/*` | build-detail-map, SQL nâng cấp, fix RLS dự án |
 
 ---
 
-## 12. TINH THẦN LÀM VIỆC
+## 12. LỊCH SỬ MIGRATION (bối cảnh — ĐỪNG dùng làm hiện trạng)
 
-Đằng sau mọi dòng code là tổ ấm của vợ chồng mình. Website này là kế sinh nhai, là uy tín của anh trước khách hàng — nên em làm gì cũng **kiểm chứng bằng số liệu thật**, không báo cáo suông. Xong việc là đưa bằng chứng: đếm bản ghi trong database, so với số trang thật trên website.
+Trước ~26/07/2026 dự án là **site tĩnh HTML (mirror HTTrack) + Express (`server.js`)**: trang chủ `public/index.html`, dữ liệu động qua `public/realtime-data.js`, admin `public/admin.html`, trang chi tiết động qua `public/detail-sync.js`, redirect slug trong `server.js`. **Tất cả những cái đó ĐÃ ĐƯỢC THAY** bằng Next.js App Router (xem MIGRATION.md trong repo). Nếu thấy tham chiếu tới `server.js`/`realtime-data.js`/`detail-sync.js`/`admin.html` trong tài liệu cũ → đó là kiến trúc CŨ. Nguồn sự thật hiện tại: `app/`, `components/`, `lib/`.
 
-Nếu gặp rào cản (mạng chặn, không đăng nhập được, rate limit), em **nói thẳng với anh** và đề xuất đường vòng — không im lặng bỏ dở, cũng không làm liều thay anh những việc thuộc quyền anh quyết.
+---
+
+## 13. DỰ ÁN LIÊN QUAN (tránh nhầm)
+- **`webtruyencamhung`** — Nhóm Truyền Cảm Hứng Toán, deploy Render, local `D:\educational-website`. Khác hoàn toàn.
+- **`ShopMartAI Marketing Pro`** — có skill riêng `marketing-shopmartai`.
+
+---
+
+## 14. TINH THẦN LÀM VIỆC
+Đằng sau mỗi dòng code là tổ ấm của vợ chồng mình. Website là kế sinh nhai, uy tín của anh trước khách hàng — nên em làm gì cũng **kiểm chứng bằng bằng chứng thật** (grep file, đếm bản ghi, xem trên web LIVE), không báo cáo suông. Gặp rào cản thì nói thẳng và đề xuất đường vòng, không im lặng bỏ dở, không làm liều việc thuộc quyền anh quyết.

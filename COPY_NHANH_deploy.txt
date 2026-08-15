@@ -1,0 +1,27 @@
+========================================================
+  DEPLOY: đổi tiêu đề khối sản phẩm trang chủ
+  "Sản phẩm của chúng tôi"  →  "Sản phẩm chủ lực"
+  File đã sửa: components/home/HomeSections.tsx
+========================================================
+
+⚠️ LƯU Ý: nếu dán nhiều dòng cùng lúc mà bị lỗi
+   "The system cannot find the path specified"
+   → là do các lệnh dính liền nhau (thiếu Enter).
+   Hãy dùng DÒNG GỘP 1 LỆNH bên dưới cho chắc.
+
+Mở CMD hoặc PowerShell rồi dán ĐÚNG 1 DÒNG này, Enter:
+
+--------- COPY TỪ ĐÂY (1 dòng) ---------
+cd /d "D:\SUPPER APP TRIEU DO\webbetonglammau" && git add -A && git commit -m "Doi tieu de khoi san pham trang chu thanh San pham chu luc" && git push origin main
+--------- COPY ĐẾN ĐÂY ---------
+
+(Nếu đang ĐỨNG SẴN trong thư mục webbetonglammau rồi thì
+ chỉ cần dán dòng này:)
+
+--------- COPY TỪ ĐÂY ---------
+git add -A && git commit -m "Doi tieu de khoi san pham trang chu thanh San pham chu luc" && git push origin main
+--------- COPY ĐẾN ĐÂY ---------
+
+→ GitHub nhận code xong, Vercel TỰ ĐỘNG build lại (~1-2 phút).
+→ Kiểm tra: mở https://webbetonglammau.vercel.app (Ctrl+F5 bỏ cache),
+  khối giữa trang phải hiện: SẢN PHẨM CHỦ LỰC

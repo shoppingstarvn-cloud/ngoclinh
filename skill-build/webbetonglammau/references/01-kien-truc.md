@@ -1,184 +1,135 @@
-# KIẾN TRÚC CHI TIẾT — webbetonglammau
+# KIẾN TRÚC CHI TIẾT — webbetonglammau (Next.js 15 App Router)
+
+> Cập nhật sau migration sang Next.js. Nguồn sự thật: `app/`, `components/`, `lib/`, `middleware.ts`.
 
 ## 1. TECH STACK
 
 | Lớp | Công nghệ |
 |---|---|
-| Server | Node.js + **Express 5** (`server.js`) |
-| Database | **Supabase** (PostgreSQL) — ref `bfruxinvvvaqufghtigw` |
-| Upload ảnh | `multer` → Supabase Storage bucket `uploads` |
-| Frontend | HTML tĩnh (mirror HTTrack) + Bootstrap + jQuery + OwlCarousel |
-| Dữ liệu động | `public/realtime-data.js` gọi Supabase JS client |
-| Auth | Token tự chế dạng `id:username:role:...` (KHÔNG phải JWT chuẩn) |
-| Deploy | **Vercel** (`vercel.json`) — dự phòng: Render (`render.yaml`) |
+| Framework | **Next.js 15.3** App Router + **React 19** + **TypeScript 5.8** |
+| Dữ liệu | **Supabase** (`@supabase/ssr` + `@supabase/supabase-js`) |
+| Auth | **jose** — JWT HS256, cookie httpOnly `admin_token` |
+| Soạn thảo | **quill** (RichTextEditor) |
+| UI phụ | **sweetalert2**, **swiper**; theme cũ: jQuery 1.9 + Bootstrap 4.1 + Owl Carousel 2.3 (nạp trong `app/layout.tsx`) |
+| Deploy | **Vercel** (`framework: nextjs`) |
 
-`package.json` dependencies: `@supabase/supabase-js ^2.108.2`, `cors ^2.8.6`, `dotenv ^17.4.2`, `express ^5.2.1`, `multer ^2.2.0`
-
----
-
-## 2. server.js — BẢN ĐỒ ROUTE
-
-```
-app.use(express.json({ limit: '100mb' }))          ← cho phép body lớn (nội dung HTML dài)
-app.use(express.static(path.join(ROOT_DIR,'public')))
-app.use('/uploads', express.static(...))
-
-POST /api/auth/login                  ← đăng nhập, trả token
-POST /api/auth/verify                 ← kiểm tra token (cần adminAuth)
-
-// Sinh tự động cho MỖI bảng trong CMS_TABLES:
-GET    /api/public/<table>            ← công khai (chỉ bảng publicRead: true)
-GET    /api/public/<table>/:id
-GET    /api/admin/<table>             ← cần token
-GET    /api/admin/<table>/:id
-POST   /api/admin/<table>             ← tạo mới
-PUT    /api/admin/<table>/:id         ← cập nhật
-DELETE /api/admin/<table>/:id         ← xoá
-
-POST /api/upload                      ← upload ảnh lên Supabase Storage
-GET  /api/public/config               ← cấu hình site công khai
-POST /api/public/contact              ← form liên hệ
-GET  /api/admin/all-data              ← nạp 1 phát toàn bộ bảng cho dashboard
-POST /api/sync/files-to-supabase      ← đồng bộ file → Supabase
-
-app.use((req,res)=>...)               ← fallback 404 / SPA
-```
-
-### CMS_TABLES (server.js ~dòng 125)
-
-```js
-[
-  { table: 'site_settings',        publicRead: true  },
-  { table: 'menus',                publicRead: true  },
-  { table: 'categories',           publicRead: true  },
-  { table: 'posts',                publicRead: true  },
-  { table: 'projects',             publicRead: true  },
-  { table: 'products',             publicRead: true  },
-  { table: 'slides',               publicRead: true  },
-  { table: 'images',               publicRead: true  },
-  { table: 'videos',               publicRead: true  },
-  { table: 'partners',             publicRead: true  },
-  { table: 'testimonials',         publicRead: true  },
-  { table: 'links',                publicRead: true  },
-  { table: 'contact_submissions',  publicRead: false },
-]
-```
-
-### ⚠️ Bẫy trong handler POST
-
-```js
-app.post(`/api/admin/${table}`, adminAuth, async (req, res) => {
-  const body = { ...req.body };
-  delete body.id;                                  // không cho set ID
-  body.created_at = new Date().toISOString();      // ← TỰ GÁN
-  body.updated_at = new Date().toISOString();      // ← TỰ GÁN
-  const { data, error } = await supabase.from(table).insert(body).select();
-  ...
-});
-```
-
-→ **Bảng nào thiếu `created_at` hoặc `updated_at` sẽ lỗi 400 khi thêm mới.**
-Luôn `ALTER TABLE ... ADD COLUMN IF NOT EXISTS updated_at timestamptz DEFAULT now();` trước.
-
-### ⚠️ Handler GET không hỗ trợ `limit`
-
-`GET /api/admin/<table>` trả **toàn bộ** bảng, không phân trang. Query params được hỗ trợ:
-`is_active`, `category_id`, `album_id`, `status`.
+`package.json` scripts: `dev`, `build`, `start`, `lint`, `build:detail-map` (`node scripts/build-detail-map.js`), `sync:cms` (`node scripts/sync-cms-from-source.mjs`).
 
 ---
 
-## 3. AUTH — CÁCH HOẠT ĐỘNG
+## 2. ROUTES (app/)
 
-```
-POST /api/auth/login  { password: "..." }
-```
+| Route | File | Vai trò |
+|---|---|---|
+| `/` | `app/page.tsx` | Trang chủ, `dynamic='force-dynamic'`, gọi `getHomepageData()` |
+| `/<slug>` | `app/[slug]/page.tsx` | Trang chi tiết theo slug; `du-an-a3`/`du-an` → ProjectsListing |
+| `/legacy/<...>` | `app/legacy/[...path]/page.tsx` | Nội dung legacy `/index.php/...` (rewrite từ middleware) |
+| `/admin`, `/admin/*` | `app/admin/page.tsx` → `AdminApp.tsx` | CMS Super Admin (client) |
+| `/api/auth/login` | route.ts | Đăng nhập, set cookie JWT |
+| `/api/auth/verify` | route.ts | Kiểm tra token |
+| `/api/admin/[table]` `[id]` | route.ts | CRUD (GET/POST/PUT/DELETE), cần Bearer token |
+| `/api/admin/all-data` | route.ts | Nạp toàn bộ bảng cho dashboard |
+| `/api/public/[table]` `[id]`, `/api/public/config` | route.ts | Đọc công khai |
+| `/api/upload` | route.ts | Upload ảnh lên Supabase Storage |
+| `/api/health` | route.ts | Health check |
 
-Thứ tự kiểm tra:
-1. So với danh sách mật khẩu **hardcode** trong `server.js` (`admin`, `8386`, `cuaau@2026`)
-   → nếu khớp, trả token role `superadmin`
-2. Nếu không khớp → băm `sha256(password)` rồi so với `admin_users.password_hash`
-   → khớp thì cập nhật `last_login` và trả token
-
-Token có dạng chuỗi ghép `id:username:role:...`, gửi kèm header:
-```
-Authorization: Bearer <token>
-```
-
-Trong `admin.html`, token lưu ở biến toàn cục `authToken` (đã có sẵn tiền tố `Bearer `).
-→ Script chạy trong Console có thể dùng trực tiếp `authToken`.
+`app/layout.tsx`: khai báo `<head>` (favicon, fonts Oswald+Roboto Condensed, Bootstrap CSS, các CSS legacy `/css/...`, Owl CSS) và nạp JS theo thứ tự jQuery(beforeInteractive) → Bootstrap → Owl(afterInteractive). **Thiếu các thứ này → vỡ typography/carousel.**
 
 ---
 
-## 4. public/admin.html — CMS SUPER ADMIN
+## 3. MIDDLEWARE (`middleware.ts`, runtime `nodejs`)
 
-File **duy nhất 66KB**, không build tool. Cấu trúc:
+Thứ tự xử lý (bỏ qua prefix tĩnh `/css /images /hpm /uploads /_next /api /favicon.ico /admin`):
+1. `/index.php/<rest>` → **rewrite** `/legacy/<rest>` (phải đứng trước nhánh `.html`).
+2. `/index.html`, `/index-2.html` → **redirect 301** `/`.
+3. `/<slug>.html` (trừ admin.html/superadmin.html):
+   - slug có trong `_detail-map.json` → **redirect 301** tới path legacy canonical (SEO).
+   - không → **rewrite** `/<slug>` (App Router `[slug]`).
 
-- **CONFIG** (~dòng 242): `SUPABASE_URL`, `SUPABASE_ANON_KEY`, khởi tạo `_supabase`
-- **`TABLES`** (~dòng 251): mảng mô tả từng bảng — `name`, `label`, `icon`, `pk`, `fields[]`, `cols[]`
-  - `fields[].type`: `text` | `textarea` | `number` | `checkbox` | `select` | `richtext` | `parentselect`
-  - `cols[].render`: hàm tuỳ biến hiển thị (ảnh thumbnail, cây menu 3 cấp, badge...)
-- **Ghi dữ liệu**: qua `fetch('/api/admin/<table>', { headers: { Authorization: authToken } })`
-- **Xoá**: gọi API, có fallback `_supabase.from(table).delete()`
-
-Muốn **thêm cột mới vào form admin** → sửa mảng `TABLES`, thêm object vào `fields[]` và `cols[]`.
+Runtime phải là `nodejs` vì `lib/detail-map.ts` đọc file bằng `fs` (Edge không có `fs`).
 
 ---
 
-## 5. public/realtime-data.js — DỮ LIỆU ĐỘNG TRÊN WEBSITE
+## 4. LUỒNG DỮ LIỆU CÔNG KHAI
 
-Nhúng ở **223 trang HTML**. Các hàm chính:
+```
+app/page.tsx (force-dynamic)
+  └─ getHomepageData()  [lib/data/homepage.ts]
+       └─ createClient() [lib/supabase/server.ts]  (anon key + cookie, RLS)
+            └─ Promise.all: slides, products, partners, testimonials,
+               posts, projects, menus, categories, links, site_settings
+  └─ render <SiteShell> + 8 section [components/home/HomeSections.tsx]
+  └─ <LiveSiteSync/> (client) nghe realtime → router.refresh()
+```
 
-| Hàm | Nạp gì |
+Lọc dữ liệu (trong `homepage.ts`): products lấy ≤50 rồi `.filter(isTrustedMediaUrl).slice(0,15)`; partners `.filter(isValidAssetUrl(logo_url))`; posts chỉ `tags='tin-tuc'` + `status='published'`.
+
+Trang chi tiết: `lib/data/detail.ts` — `fetchDetailBySlug` (tra theo slug qua nhiều bảng) và `fetchDetailByPath` (dùng `<h1>` của file tĩnh → slug candidates → tra đúng bảng). `content < 20 ký tự` bị bỏ qua (coi như rỗng, dùng fallback tĩnh).
+
+---
+
+## 5. GHI DỮ LIỆU — SERVER ACTIONS (`lib/actions/admin-actions.ts`)
+
+**Đây là lớp ghi DUY NHẤT mà UI Admin dùng** (`'use server'`):
+
+| Action | Việc |
 |---|---|
-| `loadSlides()` | Slider trang chủ |
-| `loadProducts()` | Khối sản phẩm |
-| `loadPartners()` | Logo đối tác |
-| `loadTestimonials()` | Đánh giá khách hàng |
-| `loadNews()` | Cột "Tin tức & Sự kiện" |
-| `loadProjects()` | Khối dự án |
-| `loadMenus()` | Menu 3 cấp |
-| `loadCategories()` | Cột "Danh mục" bên trái |
-| `loadVideos()` / `loadPhotos()` / `loadLinks()` | Thư viện |
-| `loadSiteSettings()` | Logo, tên site, hotline, địa chỉ |
-| `subscribeRealtime()` | Lắng nghe `postgres_changes` → admin sửa là web đổi ngay |
+| `createRecordAction(table, payload)` | insert |
+| `updateRecordAction(table, id, payload)` | update theo pk |
+| `deleteRecordAction(table, id)` | delete theo pk |
+| `saveSiteSettingsAction(values)` | upsert site_settings theo `SITE_SETTINGS_FIXED_KEYS` |
+| `repairPartnersAndSyncAction()` | sửa logo đối tác hỏng + bật/tắt is_active |
 
-Hàm `itemHref(item)` / `postHref(slug)` quyết định link đích khi bấm vào item.
-Nếu bản ghi có `link_url` thì dùng, không thì suy ra từ `slug`.
+Mỗi action: `requireAdminAction()` (đọc cookie `admin_token`) → `createAdminClient()` (service_role, bypass RLS) → `stripSystemFields()` (bỏ id, tự gán created_at/updated_at) → ghi → `revalidatePath('/', 'layout')` + `revalidatePath('/admin','layout')`.
+
+`lib/cms/crud.ts`: `applyPublicFilters`, `applyAdminFilters`, `stripSystemFields`.
+`lib/cms/tables.ts`: `CMS_TABLES` (14 bảng gồm `photos`), `ORDERED_TABLES`, `isValidTable`, `getTableConfig`.
 
 ---
 
-## 6. TRIỂN KHAI
+## 6. AUTH (`lib/auth/`)
 
-### vercel.json
-```json
-{
-  "version": 2,
-  "builds": [{
-    "src": "server.js",
-    "use": "@vercel/node",
-    "config": { "includeFiles": ["public/**", "uploads/**"] }
-  }],
-  "rewrites": [{ "source": "/(.*)", "destination": "/server.js" }]
-}
-```
+- `jwt.ts`: `signAdminToken` (HS256, TTL 24h), `verifyAdminToken` (có fallback token base64 cũ), `hashPassword` (sha256), `ADMIN_COOKIE='admin_token'`.
+- `session.ts`: `requireAdmin(request)` cho API routes (đọc Bearer/cookie, trả Response 401 nếu fail); `requireAdminAction()` cho Server Actions (đọc cookie, **throw** nếu fail).
+- `getSecret()`: `process.env.JWT_SECRET` (có fallback — production nên set riêng).
+- Mật khẩu: hardcode `['8386','admin','cuaau@2026']` HOẶC `admin_users.password_hash` khớp `sha256(password)` (hoặc plaintext cũ).
 
-⚠️ `includeFiles` **chỉ được trỏ thư mục CÓ THẬT**. Trỏ sai → build fail `statCache does not contain value for ...`
+---
 
-### Biến môi trường cần set trên Vercel (Production)
-```
-SUPABASE_URL=https://bfruxinvvvaqufghtigw.supabase.co
-SUPABASE_ANON_KEY=sb_publishable_QUYv4qEJntioJJ-XWtHkdA_haHovSml
-SUPABASE_SERVICE_KEY=<service_role thật — anh Linh tự dán>
-SUPABASE_BUCKET=uploads
-JWT_SECRET=<chuỗi bí mật>
-```
+## 7. SUPABASE CLIENTS (`lib/supabase/`)
 
-**Không có `SUPABASE_SERVICE_KEY` → CMS không lưu được gì.**
+| File | Hàm | Key | Dùng |
+|---|---|---|---|
+| `server.ts` | `createClient()` | anon + cookie (SSR) | Server Components, đọc công khai |
+| `client.ts` | `createClient()` | anon (browser) | Client Components, realtime |
+| `admin.ts` | `createAdminClient()` | **service_role** | Server Actions, API routes (ghi) |
+| `env.ts` | `getSupabaseUrl/AnonKey()` | — | fallback env |
 
-### Quy trình deploy
-Anh Linh chạy trên máy:
-```powershell
-cd "D:\SUPPER APP TRIEU DO\webbetonglammau"
-git add -A; git commit -m "..."; git push origin main
-```
-→ Vercel tự build. Lỗi thì đọc build log (Vercel MCP: `get_deployment_build_logs`).
+`admin.ts` đọc key theo thứ tự: `SUPABASE_SERVICE_KEY` → `SUPABASE_SERVICE_ROLE_KEY` → anon (nếu thiếu). Có `BUCKET_NAME` (`SUPABASE_BUCKET` hoặc `uploads`).
+
+---
+
+## 8. INSTANT SYNC (2 lớp)
+
+1. **Server-side:** mọi Server Action ghi xong gọi `revalidatePath('/', 'layout')` → xoá Next.js cache toàn site → F5 (kể cả ngay sau khi Lưu) thấy dữ liệu mới, không cần rebuild.
+2. **Client-side realtime:** `components/sync/LiveSiteSync.tsx` (đặt trong SiteShell) nghe `postgres_changes` 12 bảng → debounce 250ms → `router.refresh()` → trang tự cập nhật, không cần F5.
+
+---
+
+## 9. DEPLOY
+
+`vercel.json` (`framework:nextjs`, `buildCommand:npm run build`, headers cache `/css` `/images`). `next.config.ts`: `reactStrictMode`, `poweredByHeader:false`, `images.unoptimized` + remotePatterns supabase, `redirects()` (index.html→/, index-2.html→/, admin.html→/admin, superadmin.html→/admin).
+
+Env cần set trên Vercel: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_KEY`, `SUPABASE_BUCKET`, `JWT_SECRET`, `NEXT_PUBLIC_SITE_URL`. Push `main` → Vercel auto build.
+
+---
+
+## 10. SCRIPTS (`scripts/`)
+
+| Script | Việc |
+|---|---|
+| `build-detail-map.js` | Sinh `public/_detail-map.json` (slug → path legacy) — chạy khi thêm trang tĩnh |
+| `sync-cms-from-source.mjs` | Đồng bộ CMS từ nguồn (`npm run sync:cms`) |
+| `seed-from-source.js`, `seed-menus-categories.js`, `seed-testimonials-sales.js` | Seed dữ liệu |
+| `fix-product-thumbnails.js`, `sanitize-product-content-urls.js` | Vá ảnh/URL sản phẩm |
+| `import-posts.js`, `sync-all-to-sql.js`, `browser-sync.js` | Công cụ đồng bộ (một số từ thời Express — kiểm tra trước khi dùng) |

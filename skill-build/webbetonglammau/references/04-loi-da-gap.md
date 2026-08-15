@@ -1,6 +1,34 @@
 # SỔ TAY LỖI ĐÃ GẶP — webbetonglammau
 
 > Tra file này TRƯỚC khi tự dò lỗi. Mỗi mục là một buổi làm việc đã tốn công.
+>
+> ⚠️ Một số mục dưới thuộc kiến trúc **Express cũ** (server.js/detail-sync.js). Cơ chế
+> tương đương ở **Next.js** hiện tại: redirect slug nằm ở `middleware.ts`; nội dung động
+> ở `app/[slug]`+`app/legacy`; ghi DB ở Server Actions. Bản chất lỗi + cách sửa vẫn tham khảo được.
+
+---
+
+## 0. NEXT.JS — LỖI & LƯU Ý MỚI
+
+### N1. ⭐ Sửa chữ/giao diện TRANG CHỦ mà không thấy đổi
+**Nguyên nhân:** sửa nhầm `public/index.html` (file cũ, KHÔNG còn là nguồn).
+**Cách đúng:** trang chủ là `app/page.tsx` → render `components/home/HomeSections.tsx`.
+Sửa function của section tương ứng (SlideCarousel/AboutLink/CategoryGrid/ProductSection/
+ProjectSection/PartnerSection/TestimonialSection/NewsSection). VD tiêu đề khối sản phẩm
+nằm ở `ProductSection` (`<span>Sản phẩm chủ lực</span>`). Chữ viết thường, CSS tự in hoa.
+Sau khi sửa → `git push` → Vercel build → Ctrl+F5.
+
+### N2. Middleware lỗi vì Edge runtime
+`middleware.ts` PHẢI khai `export const runtime = 'nodejs'` (đọc `_detail-map.json` bằng `fs`).
+
+### N3. Thiếu env → Admin/ghi chết
+Cần `SUPABASE_SERVICE_KEY` (service_role thật `eyJ...`/`sb_secret_...`) + `JWT_SECRET` trên
+Vercel Production. Thiếu service key → Server Actions ghi bằng anon → RLS chặn.
+
+### N4. Nội dung sửa trong Admin không hiện ngay
+Server Actions đã `revalidatePath('/', 'layout')` + `LiveSiteSync` realtime. Nếu không đổi:
+kiểm tra `SUPABASE_SERVICE_KEY` (ghi có thành công không) và bảng có trong danh sách
+`LiveSiteSync` CMS_TABLES không.
 
 ---
 
