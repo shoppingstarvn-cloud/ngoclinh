@@ -160,8 +160,8 @@ export function ProductSection({ products }: { products: Product[] }) {
           <p>
             <em>
               <strong>
-                Cung cấp đa dạng các sản phẩm ống cống bê tông, cống hộp, hố ga, tấm tường bê
-                tông acotec
+                Chúng tôi chuyên sản xuất và cung cấp các sản phẩm cống bê tông ly tâm đa
+                dạng về chủng loại và kích thước.
               </strong>
             </em>
           </p>
