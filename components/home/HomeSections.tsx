@@ -18,6 +18,7 @@ export function SlideCarousel({ slides }: { slides: Slide[] }) {
     {
       loop: slides.length > 1,
       autoplay: true,
+      autoHeight: true,
       margin: 0,
       responsiveClass: true,
       responsive: { 0: { items: 1, dots: true }, 1000: { items: 1, dots: true } },

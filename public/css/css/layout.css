@@ -1350,21 +1350,22 @@ a.more:hover {
 .slide-carousel .item a {
     display: block;
     width: 100%;
-    height: 500px;
-    overflow: hidden;
+    height: auto;
+    overflow: visible;
 }
 .slide-carousel .item a img {
     width: 100%;
-    height: 100%;
-    object-fit: cover;
+    height: auto;
+    object-fit: contain;
+    display: block;
 }
 .slide-carousel .owl-item {
-    height: 500px;
+    height: auto;
 }
 .slide-carousel .owl-stage-outer,
 .slide-carousel .owl-stage,
 .slide-carousel .owl-item {
-    height: 100%;
+    height: auto;
 }
 .slide-carousel .item>div {
 	position: absolute; top: 80px; left: 50%;
@@ -1568,10 +1569,10 @@ a.more:hover {
 /*mobile*/
 @media screen and (max-width: 767px){
 .slide-carousel .item a {
-    height: 250px;
+    height: auto;
 }
 .slide-carousel .owl-item {
-    height: 250px;
+    height: auto;
 }
 .slide-carousel .item>div {top: 20px;
     left: 0;
