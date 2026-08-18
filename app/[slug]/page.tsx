@@ -67,7 +67,7 @@ export default async function SlugPage({ params }: PageProps) {
   const decodedSlug = decodeURIComponent(slug).replace(/\.html$/i, '');
 
   if (decodedSlug === 'ai' || decodedSlug === 'share-card') {
-    redirect('/og/zalo.html');
+    redirect('/hsai.html');
   }
 
   if (RESERVED.has(decodedSlug)) notFound();

@@ -18,6 +18,7 @@ const STATIC_PREFIXES = [
   '/og',
   '/logo',
   '/og-image.jpg',
+  '/hsai.html',
 ];
 
 export function middleware(request: NextRequest) {
@@ -75,7 +76,12 @@ export function middleware(request: NextRequest) {
   }
 
   // Legacy: /slug.html → giữ URL, rewrite nội bộ sang /slug (App Router)
-  if (pathname.endsWith('.html') && pathname !== '/admin.html' && pathname !== '/superadmin.html') {
+  if (
+    pathname.endsWith('.html') &&
+    pathname !== '/admin.html' &&
+    pathname !== '/superadmin.html' &&
+    pathname !== '/hsai.html'
+  ) {
     const slug = decodeURIComponent(pathname.slice(1, -5));
     if (slug && slug !== 'index' && slug !== 'index-2') {
       const legacy = getLegacyPathForSlug(slug);
