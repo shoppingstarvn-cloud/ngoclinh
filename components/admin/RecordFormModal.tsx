@@ -114,6 +114,18 @@ export default function RecordFormModal({ open, table, item, menus, onClose, onS
       if (payload.is_active === undefined) payload.is_active = true;
     }
 
+    // Chặn base64 quá nặng (Vercel giới hạn request ~4.5MB) → báo rõ thay vì lỗi 413 khó hiểu.
+    const heavy = Object.values(payload).some(
+      (v) => typeof v === 'string' && v.length > 3_500_000 && v.includes('data:'),
+    );
+    if (heavy) {
+      setSaving(false);
+      setError(
+        'Nội dung còn ảnh "dán tay" (base64) quá nặng nên bị từ chối. Trong ô soạn thảo, bấm nút "🧹 Nén ảnh dán tay → Drive" để chuyển ảnh lên Google Drive, rồi bấm Lưu lại.',
+      );
+      return;
+    }
+
     try {
       const result = item
         ? await updateRecordAction(table.name, item.id as string | number, payload)

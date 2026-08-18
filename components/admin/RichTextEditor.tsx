@@ -12,6 +12,19 @@ import {
 
 type QuillInstance = import('quill').default;
 
+/** Chuyển data URL (base64) → File để tải lên Drive. */
+function dataUrlToFile(dataUrl: string, baseName: string): File | null {
+  const m = dataUrl.match(/^data:([^;]+);base64,(.*)$/);
+  if (!m) return null;
+  const mime = m[1];
+  const bstr = atob(m[2]);
+  let n = bstr.length;
+  const u8 = new Uint8Array(n);
+  while (n--) u8[n] = bstr.charCodeAt(n);
+  const ext = (mime.split('/')[1] || 'png').replace('jpeg', 'jpg').replace('svg+xml', 'svg');
+  return new File([u8], `${baseName}.${ext}`, { type: mime });
+}
+
 interface RichTextEditorProps {
   initialValue: string;
   onChange: (html: string) => void;
@@ -75,6 +88,32 @@ export default function RichTextEditor({ initialValue, onChange }: RichTextEdito
       }
     }
     setStatus('');
+  }
+
+  // Tìm mọi ảnh base64 (data:) trong nội dung → tải lên Drive → thay bằng URL nhẹ.
+  // Ngăn lỗi 413 "Content Too Large" của Vercel (request Server Action > 4.5MB).
+  async function convertBase64Images() {
+    const q = quillRef.current;
+    if (!q) return;
+    const imgs = Array.from(q.root.querySelectorAll('img')).filter((img) =>
+      (img.getAttribute('src') || '').startsWith('data:'),
+    );
+    if (!imgs.length) return;
+    setStatus(`Đang chuyển ${imgs.length} ảnh dán tay lên Drive (giảm dung lượng)…`);
+    for (let i = 0; i < imgs.length; i++) {
+      const img = imgs[i];
+      const src = img.getAttribute('src') || '';
+      const file = dataUrlToFile(src, `anh-dan-${Date.now()}-${i}`);
+      if (!file) continue;
+      try {
+        const url = await uploadMediaFile(file);
+        img.setAttribute('src', url);
+      } catch {
+        /* lỗi thì giữ nguyên ảnh đó */
+      }
+    }
+    setStatus('');
+    onChangeRef.current(q.root.innerHTML);
   }
 
   async function handleSaveTemplate() {
@@ -166,6 +205,10 @@ export default function RichTextEditor({ initialValue, onChange }: RichTextEdito
       });
       quillRef.current = quill;
       if (initialValue) quill.root.innerHTML = initialValue;
+      // Bài cũ/nội dung dán tay có thể chứa ảnh base64 khổng lồ → tự chuyển sang Drive.
+      setTimeout(() => {
+        void convertBase64Images();
+      }, 400);
       quill.on('text-change', () => onChangeRef.current(quill.root.innerHTML));
 
       quill.root.addEventListener('drop', (ev: Event) => {
@@ -191,6 +234,12 @@ export default function RichTextEditor({ initialValue, onChange }: RichTextEdito
         if (imgs.length) {
           e.preventDefault();
           void uploadAndInsert(imgs);
+        } else {
+          // Dán HTML có ảnh base64 (copy từ web/Word): Quill chèn base64 →
+          // chuyển sang Drive ngay sau khi Quill xử lý xong.
+          setTimeout(() => {
+            void convertBase64Images();
+          }, 500);
         }
       });
     });
@@ -279,6 +328,14 @@ export default function RichTextEditor({ initialValue, onChange }: RichTextEdito
             e.target.value = '';
           }}
         />
+        <button
+          type="button"
+          className="btn btn-sm btn-outline-warning"
+          onClick={() => void convertBase64Images()}
+          title="Chuyển mọi ảnh dán tay (base64) trong nội dung lên Google Drive để nội dung nhẹ, lưu được"
+        >
+          🧹 Nén ảnh dán tay → Drive
+        </button>
         {status && (
           <span style={{ fontSize: 13, color: '#0dcaf0' }}>
             <i className="fas fa-spinner fa-spin" /> {status}
