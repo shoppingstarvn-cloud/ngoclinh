@@ -30,11 +30,21 @@ const nextConfig: NextConfig = {
       // admin.html/superadmin.html tĩnh cũ → dashboard React mới tại /admin
       { source: '/admin.html', destination: '/admin', permanent: true },
       { source: '/superadmin.html', destination: '/admin', permanent: true },
+      // Zalo cache của "/" vẫn là Cửa Âu — đưa crawler sang thẻ OG riêng.
+      { source: '/ai', destination: '/og/zalo.html', permanent: false },
+      { source: '/share-card', destination: '/og/zalo.html', permanent: false },
     ];
   },
 
   async headers() {
     return [
+      {
+        source: '/og/zalo.html',
+        headers: [
+          { key: 'Cache-Control', value: 'public, max-age=60, stale-while-revalidate=300' },
+          { key: 'Access-Control-Allow-Origin', value: '*' },
+        ],
+      },
       {
         source: '/og/:path*',
         headers: [

@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { notFound } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 import { SiteShell } from '@/components/layout/SiteShell';
 import { ProjectsListing } from '@/components/listings/ProjectsListing';
 import { fetchDetailBySlug } from '@/lib/data/detail';
@@ -65,6 +65,10 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 export default async function SlugPage({ params }: PageProps) {
   const { slug } = await params;
   const decodedSlug = decodeURIComponent(slug).replace(/\.html$/i, '');
+
+  if (decodedSlug === 'ai' || decodedSlug === 'share-card') {
+    redirect('/og/zalo.html');
+  }
 
   if (RESERVED.has(decodedSlug)) notFound();
 
