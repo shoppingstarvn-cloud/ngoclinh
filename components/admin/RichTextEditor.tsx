@@ -43,6 +43,7 @@ export default function RichTextEditor({ initialValue, onChange }: RichTextEdito
   const containerRef = useRef<HTMLDivElement>(null);
   const quillRef = useRef<QuillInstance | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const selectedImgIndexRef = useRef<number | null>(null);
   const onChangeRef = useRef(onChange);
   onChangeRef.current = onChange;
 
@@ -50,6 +51,35 @@ export default function RichTextEditor({ initialValue, onChange }: RichTextEdito
   const [templates, setTemplates] = useState<ContentTemplate[]>([]);
   const [selectedTpl, setSelectedTpl] = useState('');
   const [tplBusy, setTplBusy] = useState(false);
+  const [imgSelected, setImgSelected] = useState(false);
+
+  function doUndo() {
+    const h = quillRef.current?.getModule('history') as { undo?: () => void } | undefined;
+    h?.undo?.();
+  }
+  function doRedo() {
+    const h = quillRef.current?.getModule('history') as { redo?: () => void } | undefined;
+    h?.redo?.();
+  }
+  function deleteSelectedImage() {
+    const q = quillRef.current;
+    if (!q) return;
+    const idx = selectedImgIndexRef.current;
+    if (idx != null && idx >= 0) {
+      const contents = q.getContents(idx, 1);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const op: any = contents && (contents as any).ops && (contents as any).ops[0];
+      const isImage = op && op.insert && typeof op.insert === 'object' && 'image' in op.insert;
+      if (isImage) {
+        q.deleteText(idx, 1, 'user');
+        selectedImgIndexRef.current = null;
+        setImgSelected(false);
+        onChangeRef.current(q.root.innerHTML);
+        return;
+      }
+    }
+    window.alert('Bấm chọn ảnh cần xoá trong bài trước (rê chuột vào ảnh sẽ thấy viền), rồi bấm "Xoá ảnh".');
+  }
 
   async function reloadTemplates() {
     const res = await listTemplatesAction();
@@ -219,6 +249,7 @@ export default function RichTextEditor({ initialValue, onChange }: RichTextEdito
         theme: 'snow',
         placeholder: 'Soạn nội dung — cỡ chữ, in đậm, màu sắc, danh sách, chèn ảnh, đính kèm file…',
         modules: {
+          history: { delay: 800, maxStack: 300, userOnly: false },
           toolbar: {
             container: [
               [{ size: ['small', false, 'large', 'huge'] }],
@@ -275,6 +306,28 @@ export default function RichTextEditor({ initialValue, onChange }: RichTextEdito
           }, 500);
         }
       });
+
+      // Bấm vào ẢNH trong bài → chọn ảnh (viền xanh) để có thể bấm "Xoá ảnh" hoặc
+      // nhấn phím Delete/Backspace. Bấm ra ngoài ảnh → bỏ chọn.
+      quill.root.addEventListener('click', (ev: Event) => {
+        const target = ev.target as HTMLElement | null;
+        if (target && target.tagName === 'IMG') {
+          try {
+            const blot = (Quill as unknown as { find: (n: Node) => unknown }).find(target);
+            if (blot) {
+              const index = quill.getIndex(blot as never);
+              selectedImgIndexRef.current = index; // nhớ vị trí ảnh để xoá đúng
+              quill.setSelection(index, 1, 'user'); // chọn ảnh (Quill tô sáng vùng chọn)
+            }
+          } catch {
+            selectedImgIndexRef.current = null;
+          }
+          setImgSelected(true);
+        } else {
+          selectedImgIndexRef.current = null;
+          setImgSelected(false);
+        }
+      });
     });
 
     return () => {
@@ -313,6 +366,8 @@ export default function RichTextEditor({ initialValue, onChange }: RichTextEdito
           max-width: 92%;
         }
         .ql-snow .ql-tooltip input[type=text] { width: 280px; max-width: 60vw; }
+        .ql-editor img { cursor: pointer; max-width: 100%; }
+        .ql-editor img:hover { outline: 2px dashed rgba(13,110,253,0.85); outline-offset: 2px; }
       `}</style>
       {/* Thanh MẪU (template) */}
       <div
@@ -369,8 +424,24 @@ export default function RichTextEditor({ initialValue, onChange }: RichTextEdito
         </button>
       </div>
 
-      {/* Nút đính kèm file mọi định dạng + trạng thái */}
+      {/* Hoàn tác / Làm lại / Xoá ảnh + đính kèm file + trạng thái */}
       <div style={{ display: 'flex', gap: 8, marginBottom: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+        <button type="button" className="btn btn-sm btn-outline-secondary" title="Hoàn tác (Ctrl+Z)" onClick={doUndo}>
+          ↶ Hoàn tác
+        </button>
+        <button type="button" className="btn btn-sm btn-outline-secondary" title="Làm lại (Ctrl+Y)" onClick={doRedo}>
+          ↷ Làm lại
+        </button>
+        <button
+          type="button"
+          className="btn btn-sm btn-outline-danger"
+          title="Bấm chọn ảnh trong bài (ảnh có viền xanh) rồi bấm đây để xoá"
+          onClick={deleteSelectedImage}
+          disabled={!imgSelected}
+        >
+          🗑 Xoá ảnh{imgSelected ? ' đang chọn' : ''}
+        </button>
+        <span style={{ width: 1, height: 20, background: 'rgba(255,255,255,0.15)' }} />
         <button
           type="button"
           className="btn btn-sm btn-outline-light"
