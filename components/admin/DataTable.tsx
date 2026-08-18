@@ -9,6 +9,7 @@ interface DataTableProps {
   onAdd: () => void;
   onEdit: (row: AdminRow) => void;
   onDelete: (row: AdminRow) => void;
+  onToggleActive?: (row: AdminRow, value: boolean) => void;
 }
 
 function renderCell(value: unknown): string {
@@ -18,7 +19,7 @@ function renderCell(value: unknown): string {
   return str.length > 80 ? `${str.slice(0, 80)}...` : str;
 }
 
-export default function DataTable({ table, rows, allData, onAdd, onEdit, onDelete }: DataTableProps) {
+export default function DataTable({ table, rows, allData, onAdd, onEdit, onDelete, onToggleActive }: DataTableProps) {
   return (
     <div className="card">
       <div className="card-header">
@@ -60,7 +61,24 @@ export default function DataTable({ table, rows, allData, onAdd, onEdit, onDelet
                           : undefined
                       }
                     >
-                      {c.render ? c.render(row[c.key], row, allData) : renderCell(row[c.key])}
+                      {c.key === 'is_active' && onToggleActive ? (
+                        <input
+                          type="checkbox"
+                          className="form-check-input"
+                          style={{ width: 22, height: 22, cursor: 'pointer' }}
+                          checked={Boolean(row[c.key])}
+                          onChange={(e) => onToggleActive(row, e.target.checked)}
+                          title={
+                            Boolean(row[c.key])
+                              ? 'Đang hiển thị trên web — bỏ tích để ẩn'
+                              : 'Đang ẩn — tích để hiển thị trên web'
+                          }
+                        />
+                      ) : c.render ? (
+                        c.render(row[c.key], row, allData)
+                      ) : (
+                        renderCell(row[c.key])
+                      )}
                     </td>
                   ))}
                   <td style={{ whiteSpace: 'nowrap' }}>

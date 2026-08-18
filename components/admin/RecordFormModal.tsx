@@ -67,7 +67,8 @@ export default function RecordFormModal({ open, table, item, menus, onClose, onS
       if (item) {
         initial[f.key] = item[f.key] ?? defaultValueFor(f);
       } else {
-        initial[f.key] = defaultValueFor(f);
+        // Thêm mới: mặc định TÍCH SẴN "Kích hoạt" (is_active) → ảnh/bản ghi tự hiển thị.
+        initial[f.key] = f.key === 'is_active' ? true : defaultValueFor(f);
       }
     });
     setFormData(initial);

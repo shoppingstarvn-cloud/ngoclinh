@@ -9,7 +9,7 @@ import DataTable from '@/components/admin/DataTable';
 import SiteSettingsPanel from '@/components/admin/SiteSettingsPanel';
 import RecordFormModal from '@/components/admin/RecordFormModal';
 import { ADMIN_TABLES, AdminRow } from '@/lib/cms/admin-schema';
-import { deleteRecordAction } from '@/lib/actions/admin-actions';
+import { deleteRecordAction, updateRecordAction } from '@/lib/actions/admin-actions';
 
 const swalDark = { background: '#1a1a2e', color: '#fff' };
 const TOKEN_STORAGE_KEY = 'admin_token';
@@ -125,6 +125,22 @@ export default function AdminApp() {
     }
   }
 
+  async function handleToggleActive(tableName: string, row: AdminRow, value: boolean) {
+    // Cập nhật ngay trên giao diện cho mượt (optimistic), rồi lưu lên server.
+    setAllData((prev) => {
+      const list = prev[tableName] || [];
+      return { ...prev, [tableName]: list.map((r) => (r.id === row.id ? { ...r, is_active: value } : r)) };
+    });
+    try {
+      const result = await updateRecordAction(tableName, row.id as string | number, { is_active: value });
+      if (!result.success) throw new Error(result.error || 'Cập nhật thất bại');
+      loadAllData(authHeader);
+    } catch (e) {
+      Swal.fire({ icon: 'error', title: 'Lỗi', text: e instanceof Error ? e.message : 'Cập nhật thất bại', ...swalDark });
+      loadAllData(authHeader);
+    }
+  }
+
   if (checkingSession) {
     return (
       <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }}>
@@ -188,6 +204,7 @@ export default function AdminApp() {
             onAdd={() => openAddForm(activeTableDef.name)}
             onEdit={(row) => openEditForm(activeTableDef.name, row)}
             onDelete={(row) => handleDelete(activeTableDef.name, row)}
+            onToggleActive={(row, value) => handleToggleActive(activeTableDef.name, row, value)}
           />
         )}
       </div>
