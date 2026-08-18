@@ -32,6 +32,18 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(url, 302);
   }
 
+  // Khi người dùng thực sự click vào link (Sec-Fetch-User: ?1 chỉ browser thật mới gửi)
+  // → redirect sang ?view=site để vào trang thật thay vì nhận share card OG.
+  if (
+    (pathname === '/' || path === '/') &&
+    !request.nextUrl.searchParams.get('view') &&
+    request.headers.get('sec-fetch-user') === '?1'
+  ) {
+    const url = request.nextUrl.clone();
+    url.searchParams.set('view', 'site');
+    return NextResponse.redirect(url, 302);
+  }
+
   if (
     shouldServeShareCard({
       method: request.method,
@@ -54,7 +66,7 @@ export function middleware(request: NextRequest) {
         status: 200,
         headers: {
           'Content-Type': 'text/html; charset=utf-8',
-          // Không cache CDN theo URL "/" — crawler và trình duyệt khác nhau.
+          // Không cache CDN — mỗi crawler/bot nhận response riêng.
           'Cache-Control': 'private, no-store, no-cache, must-revalidate',
           'CDN-Cache-Control': 'no-store',
           'Vercel-CDN-Cache-Control': 'no-store',
