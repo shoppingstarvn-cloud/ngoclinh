@@ -2,6 +2,14 @@ import type { Metadata } from 'next';
 import { SiteShell } from '@/components/layout/SiteShell';
 import { getHomepageData } from '@/lib/data/homepage';
 import {
+  SHARE_DESCRIPTION,
+  SHARE_TITLE,
+  SHARE_TITLE_FULL,
+  SITE_URL,
+  shareOpenGraph,
+  shareTwitter,
+} from '@/lib/seo';
+import {
   AboutLink,
   CategoryGrid,
   NewsSection,
@@ -18,11 +26,17 @@ import {
 export const dynamic = 'force-dynamic';
 
 export async function generateMetadata(): Promise<Metadata> {
-  const { settings } = await getHomepageData();
+  // Thẻ Zalo/Facebook lấy từ đây — không lấy title/mô tả từ CMS.
   return {
-    title: settings.site_name || 'CÔNG TY CỔ PHẦN THƯƠNG MẠI CỬA ÂU',
-    description: settings.meta_description,
-    keywords: settings.meta_keywords,
+    title: SHARE_TITLE_FULL,
+    description: SHARE_DESCRIPTION,
+    alternates: { canonical: SITE_URL },
+    openGraph: shareOpenGraph({
+      title: SHARE_TITLE,
+      description: SHARE_DESCRIPTION,
+      url: `${SITE_URL}/`,
+    }),
+    twitter: shareTwitter(),
   };
 }
 

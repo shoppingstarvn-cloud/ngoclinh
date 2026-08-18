@@ -14,6 +14,9 @@ const STATIC_PREFIXES = [
   '/api',
   '/favicon.ico',
   '/admin', // dashboard React mới (/admin, /admin/*)
+  '/og',
+  '/logo',
+  '/og-image.jpg',
 ];
 
 export function middleware(request: NextRequest) {

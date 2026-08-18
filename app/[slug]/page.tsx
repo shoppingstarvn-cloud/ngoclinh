@@ -7,6 +7,7 @@ import { getHomepageData } from '@/lib/data/homepage';
 import { createClient } from '@/lib/supabase/server';
 import { getLegacyPathForSlug } from '@/lib/detail-map';
 import { extractBodyHtml, extractTitle, readLegacyHtml } from '@/lib/legacy-html';
+import { SHARE_DESCRIPTION, absoluteUrl, shareOpenGraph, shareTwitter } from '@/lib/seo';
 
 const RESERVED = new Set(['legacy', 'api', 'admin', 'uploads']);
 
@@ -20,21 +21,44 @@ export const dynamic = 'force-dynamic';
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
   const decodedSlug = decodeURIComponent(slug).replace(/\.html$/i, '');
+  const canonical = `/${decodedSlug}.html`;
+  const url = absoluteUrl(canonical);
+
   if (PROJECT_LISTING_SLUGS.has(decodedSlug)) {
-    return { title: 'Dự án tiêu biểu', alternates: { canonical: `/${decodedSlug}.html` } };
+    const title = 'Dự án tiêu biểu';
+    return {
+      title,
+      alternates: { canonical },
+      openGraph: shareOpenGraph({ title, url }),
+      twitter: shareTwitter({ title }),
+    };
   }
   const supabase = await createClient();
   const detail = await fetchDetailBySlug(supabase, decodedSlug);
   if (detail) {
+    const title = detail.title;
+    const description = detail.excerpt || SHARE_DESCRIPTION;
     return {
-      title: detail.title,
-      description: detail.excerpt,
-      alternates: { canonical: `/${decodedSlug}.html` },
+      title,
+      description,
+      alternates: { canonical },
+      openGraph: shareOpenGraph({ title, description, url }),
+      twitter: shareTwitter({ title, description }),
     };
   }
   const staticHtml = readLegacyHtml(`${decodedSlug}.html`);
-  if (staticHtml) return { title: extractTitle(staticHtml) };
-  return { title: decodedSlug };
+  if (staticHtml) {
+    const title = extractTitle(staticHtml);
+    return {
+      title,
+      openGraph: shareOpenGraph({ title, url }),
+      twitter: shareTwitter({ title }),
+    };
+  }
+  return {
+    title: decodedSlug,
+    openGraph: shareOpenGraph({ title: decodedSlug, url }),
+  };
 }
 
 /** Dynamic route thay thế /<slug>.html + _detail-map.json redirect */

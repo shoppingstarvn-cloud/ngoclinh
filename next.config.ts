@@ -4,6 +4,14 @@ const nextConfig: NextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
 
+  // Ảnh slide thường > 1MB. Server Action mặc định 1MB → lỗi
+  // "An unexpected response was received from the server."
+  experimental: {
+    serverActions: {
+      bodySizeLimit: '15mb',
+    },
+  },
+
   // Legacy CSS/JS trong public/css — import trực tiếp qua layout
   images: {
     remotePatterns: [
@@ -22,6 +30,25 @@ const nextConfig: NextConfig = {
       // admin.html/superadmin.html tĩnh cũ → dashboard React mới tại /admin
       { source: '/admin.html', destination: '/admin', permanent: true },
       { source: '/superadmin.html', destination: '/admin', permanent: true },
+    ];
+  },
+
+  async headers() {
+    return [
+      {
+        source: '/og/:path*',
+        headers: [
+          { key: 'Cache-Control', value: 'public, max-age=86400, stale-while-revalidate=604800' },
+          { key: 'Access-Control-Allow-Origin', value: '*' },
+        ],
+      },
+      {
+        source: '/og-image.jpg',
+        headers: [
+          { key: 'Cache-Control', value: 'public, max-age=86400, stale-while-revalidate=604800' },
+          { key: 'Access-Control-Allow-Origin', value: '*' },
+        ],
+      },
     ];
   },
 };

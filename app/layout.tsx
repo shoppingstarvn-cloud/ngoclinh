@@ -1,6 +1,13 @@
 import type { Metadata } from 'next';
 import Script from 'next/script';
 import { getSiteSettings } from '@/lib/data/homepage';
+import {
+  SHARE_DESCRIPTION,
+  SHARE_TITLE_FULL,
+  SITE_URL,
+  shareOpenGraph,
+  shareTwitter,
+} from '@/lib/seo';
 import { assetUrl } from '@/lib/slug';
 import './globals.css';
 
@@ -17,14 +24,14 @@ export async function generateMetadata(): Promise<Metadata> {
   }
 
   return {
+    metadataBase: new URL(SITE_URL),
     title: {
-      default: 'CÔNG TY CỔ PHẦN THƯƠNG MẠI CỬA ÂU',
-      template: '%s | CỬA ÂU',
+      default: SHARE_TITLE_FULL,
+      template: '%s | Ngọc Linh',
     },
-    description: 'Sản xuất cống bê tông đúc sẵn chất lượng cao — Cửa Âu',
-    metadataBase: new URL(
-      process.env.NEXT_PUBLIC_SITE_URL || 'https://ngoclinh.shopmartai.com',
-    ),
+    description: SHARE_DESCRIPTION,
+    openGraph: shareOpenGraph(),
+    twitter: shareTwitter(),
     icons: {
       icon: [
         { url: '/favicon.ico', sizes: 'any' },

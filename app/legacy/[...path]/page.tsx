@@ -5,6 +5,7 @@ import { classifyContentByPath, fetchDetailByPath } from '@/lib/data/detail';
 import { getHomepageData } from '@/lib/data/homepage';
 import { createClient } from '@/lib/supabase/server';
 import { extractBodyHtml, extractH1, extractTitle, readLegacyHtml } from '@/lib/legacy-html';
+import { SHARE_DESCRIPTION, absoluteUrl, shareOpenGraph, shareTwitter } from '@/lib/seo';
 
 type PageProps = { params: Promise<{ path: string[] }> };
 
@@ -33,9 +34,16 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     ? await fetchDetailByPath(supabase, pathname, source.title)
     : null;
 
+  const title =
+    detail?.title || source?.title || path[path.length - 1]?.replace(/\.html$/i, '');
+  const description = detail?.excerpt || SHARE_DESCRIPTION;
+  const url = absoluteUrl(pathname);
   return {
-    title: detail?.title || source?.title || path[path.length - 1]?.replace(/\.html$/i, ''),
+    title,
+    description,
     alternates: { canonical: pathname },
+    openGraph: shareOpenGraph({ title, description, url }),
+    twitter: shareTwitter({ title, description }),
   };
 }
 
