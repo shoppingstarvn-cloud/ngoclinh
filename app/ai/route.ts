@@ -8,7 +8,7 @@ export function GET() {
   return new Response(
     shareCrawlerHtml({
       pageUrl: `${SITE_URL}/ai`,
-      bounceToHome: true,
+        bounceToHome: false,
     }),
     {
       status: 200,

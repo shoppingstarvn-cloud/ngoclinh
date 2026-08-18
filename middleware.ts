@@ -1,10 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getLegacyPathForSlug } from '@/lib/detail-map';
 import { SITE_URL, shareCrawlerHtml, shouldServeShareCard } from '@/lib/seo';
-
-// detail-map.ts đọc file bằng 'fs' — cần Node.js runtime (Edge không hỗ trợ 'fs').
-// Next.js 15+ hỗ trợ Node.js Middleware ổn định qua cấu hình này.
-export const runtime = 'nodejs';
 
 const STATIC_PREFIXES = [
   '/css',
@@ -20,6 +15,8 @@ const STATIC_PREFIXES = [
   '/og-image.jpg',
   '/hsai.html',
 ];
+
+const PASSTHROUGH_HTML = new Set(['/admin.html', '/superadmin.html', '/hsai.html']);
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -37,11 +34,11 @@ export function middleware(request: NextRequest) {
     })
   ) {
     const path = pathname.replace(/\/+$/, '') || '/';
-    const isLanding = path === '/ai' || path === '/share-card';
+    const isLanding = path === '/hsai' || path === '/ai' || path === '/share-card';
     return new NextResponse(
       shareCrawlerHtml({
         pageUrl: isLanding ? `${SITE_URL}${path}` : undefined,
-        bounceToHome: isLanding,
+        bounceToHome: false,
       }),
       {
         status: 200,
@@ -58,9 +55,6 @@ export function middleware(request: NextRequest) {
   }
 
   // Legacy index.php paths → App Router catch-all.
-  // PHẢI kiểm tra TRƯỚC nhánh "/slug.html" bên dưới, nếu không
-  // "/index.php/xxx-p12.html" sẽ bị nhánh đó bắt nhầm trước (cả hai đều
-  // kết thúc bằng .html) và không bao giờ tới được /legacy/*.
   if (pathname.startsWith('/index.php/')) {
     const rest = pathname.replace(/^\/index\.php\/?/, '');
     const url = request.nextUrl.clone();
@@ -68,7 +62,6 @@ export function middleware(request: NextRequest) {
     return NextResponse.rewrite(url);
   }
 
-  // Chặn phục vụ HTML tĩnh trang chủ cũ (nếu còn sót trong public) — luôn dùng App Router.
   if (pathname === '/index.html' || pathname === '/index-2.html') {
     const url = request.nextUrl.clone();
     url.pathname = '/';
@@ -76,21 +69,9 @@ export function middleware(request: NextRequest) {
   }
 
   // Legacy: /slug.html → giữ URL, rewrite nội bộ sang /slug (App Router)
-  if (
-    pathname.endsWith('.html') &&
-    pathname !== '/admin.html' &&
-    pathname !== '/superadmin.html' &&
-    pathname !== '/hsai.html'
-  ) {
+  if (pathname.endsWith('.html') && !PASSTHROUGH_HTML.has(pathname)) {
     const slug = decodeURIComponent(pathname.slice(1, -5));
     if (slug && slug !== 'index' && slug !== 'index-2') {
-      const legacy = getLegacyPathForSlug(slug);
-      if (legacy && legacy !== pathname) {
-        // Slug có bản ghi legacy index.php — ưu tiên canonical legacy URL (SEO)
-        const url = request.nextUrl.clone();
-        url.pathname = legacy;
-        return NextResponse.redirect(url, 301);
-      }
       const url = request.nextUrl.clone();
       url.pathname = `/${slug}`;
       return NextResponse.rewrite(url);

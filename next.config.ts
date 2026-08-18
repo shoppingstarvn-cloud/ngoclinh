@@ -21,8 +21,7 @@ const nextConfig: NextConfig = {
     unoptimized: true,
   },
 
-  // Redirect + rewrite phần lớn xử lý trong middleware.ts (cần logic động,
-  // đọc _detail-map.json). Ở đây chỉ giữ các rule tĩnh, đơn giản.
+  // Redirect tĩnh. Rewrite HTML legacy nằm ở middleware (Edge, không đọc fs).
   async redirects() {
     return [
       { source: '/index.html', destination: '/', permanent: true },
@@ -31,13 +30,21 @@ const nextConfig: NextConfig = {
       { source: '/admin.html', destination: '/admin', permanent: true },
       { source: '/superadmin.html', destination: '/admin', permanent: true },
       // Zalo cache của "/" vẫn là Cửa Âu — đưa crawler sang thẻ OG riêng.
-      { source: '/ai', destination: '/hsai.html', permanent: false },
-      { source: '/share-card', destination: '/hsai.html', permanent: false },
+      { source: '/ai', destination: '/hsai', permanent: false },
+      { source: '/share-card', destination: '/hsai', permanent: false },
+      { source: '/hsai.html', destination: '/hsai', permanent: false },
     ];
   },
 
   async headers() {
     return [
+      {
+        source: '/hsai',
+        headers: [
+          { key: 'Cache-Control', value: 'public, max-age=60, stale-while-revalidate=300' },
+          { key: 'Access-Control-Allow-Origin', value: '*' },
+        ],
+      },
       {
         source: '/hsai.html',
         headers: [

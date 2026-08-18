@@ -1,11 +1,10 @@
 import { SITE_URL, shareCrawlerHtml } from '@/lib/seo';
 
-/** HTML OG siêu nhẹ — Zalo/Facebook đọc thẻ; người mở link về trang chủ. */
-export function GET() {
-  return new Response(
+const html = () =>
+  new Response(
     shareCrawlerHtml({
-      pageUrl: `${SITE_URL}/share-card`,
-        bounceToHome: false,
+      pageUrl: `${SITE_URL}/hsai`,
+      bounceToHome: false,
     }),
     {
       status: 200,
@@ -15,8 +14,12 @@ export function GET() {
       },
     },
   );
+
+/** URL dán Zalo mới — cache của "/" vẫn là Cửa Âu. Không dùng RootLayout (og:url=/). */
+export function GET() {
+  return html();
 }
 
 export function HEAD() {
-  return GET();
+  return html();
 }

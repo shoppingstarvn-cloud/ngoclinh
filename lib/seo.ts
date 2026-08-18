@@ -78,7 +78,7 @@ export function isShareCrawler(userAgent: string | null | undefined): boolean {
 
 /** Trang chủ siêu nhẹ cho bot Zalo/Facebook — tránh SSR 5s + HTML khổng lồ. */
 /** Link mới để dán Zalo — cache cũ của `/` vẫn là Cửa Âu. */
-export const SHARE_LANDING_PATHS = ['/ai', '/share-card'] as const;
+export const SHARE_LANDING_PATHS = ['/hsai', '/ai', '/share-card'] as const;
 
 function normalizePath(pathname: string): string {
   if (!pathname || pathname === '/') return '/';
@@ -117,7 +117,7 @@ export function shouldServeShareCard(opts: {
   const ua = opts.userAgent || '';
   if (SEARCH_ENGINE_UA.test(ua)) return false;
 
-  // /ai và /share-card: luôn HTML OG (Zalo crawler hay giả Chrome).
+  // /hsai /ai /share-card: luôn HTML OG (Zalo crawler hay giả Chrome).
   if ((SHARE_LANDING_PATHS as readonly string[]).includes(path)) return true;
 
   if (path !== '/') return false;
