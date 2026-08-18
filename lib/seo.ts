@@ -12,11 +12,13 @@ export const SHARE_TITLE_FULL =
 export const SHARE_DESCRIPTION =
   'Chia sẻ hệ sinh thái AI với bạn. Học AI cùng chuyên gia Mr Ngọc Linh. Không cần kỹ năng vẫn chuyên nghiệp.';
 export const SHARE_SITE_NAME = 'Hệ Sinh Thái AI';
-export const SHARE_IMAGE_PATH = '/og/ngoclinh-og-v2.png';
+/** Ảnh banner tĩnh (anh Ngọc Linh + nền AI) — KHÔNG dùng route động og-v2. */
+export const SHARE_IMAGE_PATH = '/og/ngoclinh-banner.png';
 /** Query để Zalo/Facebook lấy lại ảnh, không đụng URL trang chủ. */
-export const SHARE_IMAGE_CACHE = 'v=20260818c';
-export const SHARE_IMAGE_WIDTH = 1200;
-export const SHARE_IMAGE_HEIGHT = 630;
+export const SHARE_IMAGE_CACHE = 'v=20260818d';
+export const SHARE_IMAGE_WIDTH = 1024;
+export const SHARE_IMAGE_HEIGHT = 571;
+export const SHARE_IMAGE_TYPE = 'image/png';
 export const SHARE_IMAGE_ALT = 'Ngọc Linh - Chuyên Gia AI — Phát triển Hệ Sinh Thái AI';
 
 export function absoluteUrl(path = '/'): string {
@@ -37,7 +39,7 @@ export function shareImage() {
     width: SHARE_IMAGE_WIDTH,
     height: SHARE_IMAGE_HEIGHT,
     alt: SHARE_IMAGE_ALT,
-    type: 'image/jpeg',
+    type: SHARE_IMAGE_TYPE,
   };
 }
 
@@ -166,7 +168,7 @@ ${robots}<meta name="description" content="${description}">
 <meta property="og:type" content="website">
 <meta property="og:image" content="${image}">
 <meta property="og:image:secure_url" content="${image}">
-<meta property="og:image:type" content="image/jpeg">
+<meta property="og:image:type" content="${SHARE_IMAGE_TYPE}">
 <meta property="og:image:width" content="${SHARE_IMAGE_WIDTH}">
 <meta property="og:image:height" content="${SHARE_IMAGE_HEIGHT}">
 <meta property="og:image:alt" content="${alt}">

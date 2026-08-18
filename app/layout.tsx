@@ -4,6 +4,7 @@ import {
   SHARE_DESCRIPTION,
   SHARE_IMAGE_ALT,
   SHARE_IMAGE_HEIGHT,
+  SHARE_IMAGE_TYPE,
   SHARE_IMAGE_WIDTH,
   shareImageUrl,
   SHARE_SITE_NAME,
@@ -52,7 +53,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <meta property="og:type" content="website" />
         <meta property="og:image" content={shareImageUrl()} />
         <meta property="og:image:secure_url" content={shareImageUrl()} />
-        <meta property="og:image:type" content="image/jpeg" />
+        <meta property="og:image:type" content={SHARE_IMAGE_TYPE} />
         <meta property="og:image:width" content={String(SHARE_IMAGE_WIDTH)} />
         <meta property="og:image:height" content={String(SHARE_IMAGE_HEIGHT)} />
         <meta property="og:image:alt" content={SHARE_IMAGE_ALT} />
