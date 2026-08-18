@@ -89,8 +89,8 @@ function normalizePath(pathname: string): string {
 function isBrowserLike(opts: {
   accept: string | null | undefined;
   secFetchDest: string | null | undefined;
-  secFetchMode: string | null | undefined;
-  secFetchUser: string | null | undefined;
+  secFetchMode?: string | null | undefined;
+  secFetchUser?: string | null | undefined;
 }): boolean {
   if (opts.secFetchDest === 'document') return true;
   if (opts.secFetchMode === 'navigate') return true;
