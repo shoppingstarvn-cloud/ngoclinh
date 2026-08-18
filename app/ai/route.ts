@@ -1,10 +1,13 @@
 import { SITE_URL, shareCrawlerHtml } from '@/lib/seo';
 
-/** HTML OG siêu nhẹ — Zalo/Facebook đọc thẻ; người mở link về trang chủ. */
+/**
+ * URL dán Zalo mới — cache của https://ngoclinh.shopmartai.com/ vẫn là Cửa Âu.
+ * Crawler đọc OG; trình duyệt bị JS đẩy về trang chủ.
+ */
 export function GET() {
   return new Response(
     shareCrawlerHtml({
-      pageUrl: `${SITE_URL}/share-card`,
+      pageUrl: `${SITE_URL}/ai`,
       bounceToHome: true,
     }),
     {

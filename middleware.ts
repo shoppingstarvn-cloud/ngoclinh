@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getLegacyPathForSlug } from '@/lib/detail-map';
-import { shareCrawlerHtml, shouldServeShareCard } from '@/lib/seo';
+import { SITE_URL, shareCrawlerHtml, shouldServeShareCard } from '@/lib/seo';
 
 // detail-map.ts đọc file bằng 'fs' — cần Node.js runtime (Edge không hỗ trợ 'fs').
 // Next.js 15+ hỗ trợ Node.js Middleware ổn định qua cấu hình này.
@@ -30,16 +30,26 @@ export function middleware(request: NextRequest) {
       userAgent: request.headers.get('user-agent'),
       accept: request.headers.get('accept'),
       secFetchDest: request.headers.get('sec-fetch-dest'),
+      secFetchMode: request.headers.get('sec-fetch-mode'),
+      secFetchUser: request.headers.get('sec-fetch-user'),
       rsc: request.headers.get('rsc') || request.headers.get('next-router-prefetch'),
     })
   ) {
-    return new NextResponse(shareCrawlerHtml(), {
-      status: 200,
-      headers: {
-        'Content-Type': 'text/html; charset=utf-8',
-        'Cache-Control': 'public, s-maxage=120, stale-while-revalidate=600',
+    const path = pathname.replace(/\/+$/, '') || '/';
+    const isLanding = path === '/ai' || path === '/share-card';
+    return new NextResponse(
+      shareCrawlerHtml({
+        pageUrl: isLanding ? `${SITE_URL}${path}` : undefined,
+        bounceToHome: isLanding,
+      }),
+      {
+        status: 200,
+        headers: {
+          'Content-Type': 'text/html; charset=utf-8',
+          'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=300',
+        },
       },
-    });
+    );
   }
 
   if (STATIC_PREFIXES.some((p) => pathname.startsWith(p))) {

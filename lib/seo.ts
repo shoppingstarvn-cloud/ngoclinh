@@ -77,25 +77,53 @@ export function isShareCrawler(userAgent: string | null | undefined): boolean {
 }
 
 /** Trang chủ siêu nhẹ cho bot Zalo/Facebook — tránh SSR 5s + HTML khổng lồ. */
+/** Link mới để dán Zalo — cache cũ của `/` vẫn là Cửa Âu. */
+export const SHARE_LANDING_PATHS = ['/ai', '/share-card'] as const;
+
+function normalizePath(pathname: string): string {
+  if (!pathname || pathname === '/') return '/';
+  return pathname.replace(/\/+$/, '') || '/';
+}
+
+/** Trình duyệt thật (Chrome/Safari/Zalo WebView khi user mở link). */
+function isBrowserLike(opts: {
+  accept: string | null | undefined;
+  secFetchDest: string | null | undefined;
+  secFetchMode: string | null | undefined;
+  secFetchUser: string | null | undefined;
+}): boolean {
+  if (opts.secFetchDest === 'document') return true;
+  if (opts.secFetchMode === 'navigate') return true;
+  if (opts.secFetchUser === '?1') return true;
+  const accept = opts.accept || '';
+  if (accept.includes('application/xhtml+xml')) return true;
+  if (/text\/html,.+image\//i.test(accept)) return true;
+  return false;
+}
+
 export function shouldServeShareCard(opts: {
   method: string;
   pathname: string;
   userAgent: string | null | undefined;
   accept: string | null | undefined;
   secFetchDest: string | null | undefined;
+  secFetchMode?: string | null | undefined;
+  secFetchUser?: string | null | undefined;
   rsc: string | null | undefined;
 }): boolean {
   if (opts.method !== 'GET' && opts.method !== 'HEAD') return false;
-  if (opts.pathname !== '/' && opts.pathname !== '') return false;
+  const path = normalizePath(opts.pathname);
+  if (opts.rsc) return false;
   const ua = opts.userAgent || '';
   if (SEARCH_ENGINE_UA.test(ua)) return false;
-  if (opts.rsc) return false;
+
+  // /ai và /share-card: luôn HTML OG (Zalo crawler hay giả Chrome).
+  if ((SHARE_LANDING_PATHS as readonly string[]).includes(path)) return true;
+
+  if (path !== '/') return false;
   if (isShareCrawler(ua)) return true;
-  // Bot lạ (Zalo đôi khi không ghi ZaloBot): không phải trình duyệt thật.
-  if (opts.secFetchDest === 'document') return false;
-  const accept = opts.accept || '';
-  if (!opts.secFetchDest && (!accept || accept === '*/*')) return true;
-  return false;
+  if (isBrowserLike(opts)) return false;
+  return true;
 }
 
 function escapeHtml(s: string): string {
@@ -111,14 +139,25 @@ function escapeHtml(s: string): string {
  * Trang chủ Next.js SSR quá nặng (ảnh preload + JSON CMS) nên bot cắt sớm
  * và giữ cache cũ "Cửa Âu".
  */
-export function shareCrawlerHtml(): string {
+export function shareCrawlerHtml(opts?: {
+  pageUrl?: string;
+  bounceToHome?: boolean;
+}): string {
   const title = escapeHtml(SHARE_TITLE);
   const titleFull = escapeHtml(SHARE_TITLE_FULL);
   const description = escapeHtml(SHARE_DESCRIPTION);
   const siteName = escapeHtml(SHARE_SITE_NAME);
   const image = escapeHtml(absoluteUrl(SHARE_IMAGE_PATH));
-  const url = escapeHtml(`${SITE_URL}/`);
+  const home = escapeHtml(`${SITE_URL}/`);
+  const url = escapeHtml(opts?.pageUrl ?? `${SITE_URL}/`);
   const alt = escapeHtml(SHARE_IMAGE_ALT);
+  const robots = opts?.bounceToHome
+    ? '<meta name="robots" content="noindex, nofollow">\n'
+    : '';
+  const bounce = opts?.bounceToHome
+    ? `<script>location.replace(${JSON.stringify(`${SITE_URL}/`)});</script>
+<p><a href="${home}">Mở website Hệ Sinh Thái AI</a></p>`
+    : '';
 
   return `<!DOCTYPE html>
 <html lang="vi">
@@ -126,7 +165,7 @@ export function shareCrawlerHtml(): string {
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>${titleFull}</title>
-<meta name="description" content="${description}">
+${robots}<meta name="description" content="${description}">
 <link rel="canonical" href="${url}">
 <meta property="og:title" content="${title}">
 <meta property="og:description" content="${description}">
@@ -149,6 +188,7 @@ export function shareCrawlerHtml(): string {
 <h1>${title}</h1>
 <p>${description}</p>
 <img src="${image}" width="${SHARE_IMAGE_WIDTH}" height="${SHARE_IMAGE_HEIGHT}" alt="${alt}">
+${bounce}
 </body>
 </html>`;
 }

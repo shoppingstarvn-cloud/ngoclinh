@@ -1,6 +1,5 @@
 import type { Metadata } from 'next';
 import Script from 'next/script';
-import { getSiteSettings } from '@/lib/data/homepage';
 import {
   SHARE_DESCRIPTION,
   SHARE_IMAGE_ALT,
@@ -15,42 +14,31 @@ import {
   shareOpenGraph,
   shareTwitter,
 } from '@/lib/seo';
-import { assetUrl } from '@/lib/slug';
 import './globals.css';
 
 const SHOPMARTAI_FAVICON = '/logo/shopmartai-ai.png';
 
-export async function generateMetadata(): Promise<Metadata> {
-  let favicon = SHOPMARTAI_FAVICON;
-  try {
-    const settings = await getSiteSettings();
-    const fromCms = assetUrl(settings.favicon_url);
-    if (fromCms) favicon = fromCms;
-  } catch {
-    // Tab luôn có logo ShopMartAI nếu CMS tạm lỗi
-  }
-
-  return {
-    metadataBase: new URL(SITE_URL),
-    title: {
-      default: SHARE_TITLE_FULL,
-      template: '%s | Ngọc Linh',
-    },
-    description: SHARE_DESCRIPTION,
-    openGraph: shareOpenGraph(),
-    twitter: shareTwitter(),
-    icons: {
-      icon: [
-        { url: '/favicon.ico', sizes: 'any' },
-        { url: `${favicon}?v=20260818`, type: 'image/png' },
-        { url: '/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
-        { url: '/favicon-16x16.png', sizes: '16x16', type: 'image/png' },
-      ],
-      shortcut: `${favicon}?v=20260818`,
-      apple: '/apple-touch-icon.png',
-    },
-  };
-}
+// Metadata tĩnh — không await Supabase, để <head> ra ngay cho crawler.
+export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: SHARE_TITLE_FULL,
+    template: '%s | Ngọc Linh',
+  },
+  description: SHARE_DESCRIPTION,
+  openGraph: shareOpenGraph(),
+  twitter: shareTwitter(),
+  icons: {
+    icon: [
+      { url: '/favicon.ico', sizes: 'any' },
+      { url: `${SHOPMARTAI_FAVICON}?v=20260818`, type: 'image/png' },
+      { url: '/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
+      { url: '/favicon-16x16.png', sizes: '16x16', type: 'image/png' },
+    ],
+    shortcut: `${SHOPMARTAI_FAVICON}?v=20260818`,
+    apple: '/apple-touch-icon.png',
+  },
+};
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
