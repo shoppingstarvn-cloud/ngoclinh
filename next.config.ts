@@ -10,7 +10,6 @@ const nextConfig: NextConfig = {
     serverActions: {
       bodySizeLimit: '15mb',
     },
-    nodeMiddleware: true,
   },
 
   // Legacy CSS/JS trong public/css — import trực tiếp qua layout
