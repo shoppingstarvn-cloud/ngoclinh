@@ -88,20 +88,14 @@ async function uploadBackend(): Promise<'drive' | 'supabase'> {
   return _uploadBackend;
 }
 
-function assertNotHeic(file: File) {
-  if (!file || file.size <= 0) throw new Error('File rỗng hoặc không hợp lệ.');
-  const mime = (file.type || '').toLowerCase();
-  const name = file.name || '';
-  if (/heic|heif/i.test(mime) || /\.hei[cf]$/i.test(name)) {
-    throw new Error('Ảnh HEIC (iPhone) chưa hỗ trợ. Anh xuất JPEG/PNG trong Ảnh rồi kéo lại.');
-  }
-}
-
-/** Tải 1 file THẲNG lên Google Drive (không qua máy chủ, không giới hạn dung lượng). */
+/**
+ * Tải 1 file THẲNG lên Google Drive — GIỮ NGUYÊN 100% FILE GỐC: KHÔNG nén,
+ * KHÔNG đổi định dạng / chất lượng / tên, KHÔNG giới hạn dung lượng, nhận MỌI
+ * loại file (ảnh, video, PDF, Word/Excel/PowerPoint, .zip/.rar, ...).
+ */
 async function driveUpload(file: File): Promise<string> {
-  assertNotHeic(file);
-  // Ảnh vẫn nén để hiển thị nhanh; video/file lớn giữ nguyên → đẩy thẳng Drive.
-  const prepared = file.type.startsWith('image/') ? await compressImageForUpload(file) : file;
+  if (!file || file.size <= 0) throw new Error('File rỗng hoặc không hợp lệ.');
+  const prepared = file; // nguyên bản 100% — tuyệt đối không đụng vào byte nào
 
   // 1) Xin phiên upload resumable từ máy chủ
   const sessRes = await fetch('/api/upload/drive-session', {

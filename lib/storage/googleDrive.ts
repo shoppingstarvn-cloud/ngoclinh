@@ -114,10 +114,12 @@ export async function createResumableSession(
   return uploadUrl;
 }
 
-// Link hiển thị/tải: ảnh dùng lh3 (nhúng <img> ổn định), còn lại dùng link tải trực tiếp.
+// Link hiển thị/tải, GIỮ NGUYÊN chất lượng gốc.
+// - Ảnh: lh3 với "=s0" → nhúng <img> inline ổn định Ở ĐỘ PHÂN GIẢI GỐC (không thu nhỏ, không nén).
+// - File khác (PDF/Office/zip/video...): link tải trực tiếp, đúng file gốc.
 export function buildFileUrl(fileId: string, mimeType?: string): string {
   if (mimeType && mimeType.startsWith('image/')) {
-    return `https://lh3.googleusercontent.com/d/${fileId}=w1920`;
+    return `https://lh3.googleusercontent.com/d/${fileId}=s0`;
   }
   return `https://drive.google.com/uc?export=download&id=${fileId}&confirm=t`;
 }

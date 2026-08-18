@@ -119,16 +119,16 @@ export default function ImageUploadField({ value, onChange }: ImageUploadFieldPr
               <i className="fas fa-spinner fa-spin" /> {progressHint || 'Đang upload...'}
             </>
           ) : (
-            '📷 Kéo thả ảnh hoặc click để chọn file'
+            '📎 Kéo thả ảnh/tài liệu hoặc click để chọn file'
           )}
         </p>
         <p style={{ margin: '8px 0 0', fontSize: 12, color: 'rgba(255,255,255,0.45)' }}>
-          JPG / PNG / WEBP / GIF · tối đa 12MB (ảnh lớn sẽ tự nén)
+          Mọi định dạng (ảnh, video, PDF, Word, Excel...) · GIỮ NGUYÊN gốc, KHÔNG nén · tải thẳng Google Drive
         </p>
         <input
           ref={inputRef}
           type="file"
-          accept="image/jpeg,image/png,image/webp,image/gif,image/svg+xml,video/mp4,video/webm"
+          accept="image/*,video/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.zip,.rar,.7z,.txt,.csv"
           style={{ display: 'none' }}
           onChange={(e) => {
             const file = e.target.files?.[0];
