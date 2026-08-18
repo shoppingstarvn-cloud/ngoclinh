@@ -10,6 +10,7 @@ interface DataTableProps {
   onEdit: (row: AdminRow) => void;
   onDelete: (row: AdminRow) => void;
   onToggleActive?: (row: AdminRow, value: boolean) => void;
+  onSetOrder?: (row: AdminRow, value: number) => void;
 }
 
 function renderCell(value: unknown): string {
@@ -19,7 +20,7 @@ function renderCell(value: unknown): string {
   return str.length > 80 ? `${str.slice(0, 80)}...` : str;
 }
 
-export default function DataTable({ table, rows, allData, onAdd, onEdit, onDelete, onToggleActive }: DataTableProps) {
+export default function DataTable({ table, rows, allData, onAdd, onEdit, onDelete, onToggleActive, onSetOrder }: DataTableProps) {
   return (
     <div className="card">
       <div className="card-header">
@@ -73,6 +74,23 @@ export default function DataTable({ table, rows, allData, onAdd, onEdit, onDelet
                               ? 'Đang hiển thị trên web — bỏ tích để ẩn'
                               : 'Đang ẩn — tích để hiển thị trên web'
                           }
+                        />
+                      ) : c.key === 'display_order' && onSetOrder ? (
+                        <input
+                          key={String(row[c.key] ?? 0)}
+                          type="number"
+                          className="form-control form-control-sm"
+                          style={{ width: 72 }}
+                          defaultValue={Number(row[c.key] ?? 0)}
+                          title="Nhập số thứ tự (1, 2, 3...) rồi Enter hoặc click ra ngoài — trang chủ sắp theo số này (nhỏ hiện trước)"
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') (e.target as HTMLInputElement).blur();
+                          }}
+                          onBlur={(e) => {
+                            const n = parseInt(e.target.value, 10);
+                            const val = Number.isFinite(n) ? n : 0;
+                            if (val !== Number(row[c.key] ?? 0)) onSetOrder(row, val);
+                          }}
                         />
                       ) : c.render ? (
                         c.render(row[c.key], row, allData)

@@ -141,6 +141,21 @@ export default function AdminApp() {
     }
   }
 
+  async function handleSetOrder(tableName: string, row: AdminRow, value: number) {
+    setAllData((prev) => {
+      const list = prev[tableName] || [];
+      return { ...prev, [tableName]: list.map((r) => (r.id === row.id ? { ...r, display_order: value } : r)) };
+    });
+    try {
+      const result = await updateRecordAction(tableName, row.id as string | number, { display_order: value });
+      if (!result.success) throw new Error(result.error || 'Cập nhật thất bại');
+      loadAllData(authHeader);
+    } catch (e) {
+      Swal.fire({ icon: 'error', title: 'Lỗi', text: e instanceof Error ? e.message : 'Cập nhật thất bại', ...swalDark });
+      loadAllData(authHeader);
+    }
+  }
+
   if (checkingSession) {
     return (
       <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }}>
@@ -205,6 +220,7 @@ export default function AdminApp() {
             onEdit={(row) => openEditForm(activeTableDef.name, row)}
             onDelete={(row) => handleDelete(activeTableDef.name, row)}
             onToggleActive={(row, value) => handleToggleActive(activeTableDef.name, row, value)}
+            onSetOrder={(row, value) => handleSetOrder(activeTableDef.name, row, value)}
           />
         )}
       </div>
