@@ -12,9 +12,9 @@ export const SHARE_TITLE_FULL =
 export const SHARE_DESCRIPTION =
   'Chia sẻ hệ sinh thái AI với bạn. Học AI cùng chuyên gia Mr Ngọc Linh. Không cần kỹ năng vẫn chuyên nghiệp.';
 export const SHARE_SITE_NAME = 'Hệ Sinh Thái AI';
-export const SHARE_IMAGE_PATH = '/og/ngoclinh-og.jpg';
+export const SHARE_IMAGE_PATH = '/og/ngoclinh-og-v2.png';
 /** Query để Zalo/Facebook lấy lại ảnh, không đụng URL trang chủ. */
-export const SHARE_IMAGE_CACHE = 'v=20260818b';
+export const SHARE_IMAGE_CACHE = 'v=20260818c';
 export const SHARE_IMAGE_WIDTH = 1200;
 export const SHARE_IMAGE_HEIGHT = 630;
 export const SHARE_IMAGE_ALT = 'Ngọc Linh - Chuyên Gia AI — Phát triển Hệ Sinh Thái AI';
@@ -88,22 +88,6 @@ function normalizePath(pathname: string): string {
   return pathname.replace(/\/+$/, '') || '/';
 }
 
-/**
- * Chỉ tin Sec-Fetch của lần người dùng mở trang.
- * Bot Zalo hay giả Chrome + Accept giống trình duyệt, nhưng KHÔNG gửi Sec-Fetch.
- * Trước đây lấy Accept làm bằng chứng → bot nhận HTML nặng / cache Cửa Âu.
- */
-function isTopLevelBrowserNavigation(opts: {
-  secFetchDest: string | null | undefined;
-  secFetchMode?: string | null | undefined;
-  secFetchUser?: string | null | undefined;
-}): boolean {
-  if (opts.secFetchDest === 'document') return true;
-  if (opts.secFetchUser === '?1') return true;
-  if (opts.secFetchMode === 'navigate') return true;
-  return false;
-}
-
 export function shouldServeShareCard(opts: {
   method: string;
   pathname: string;
@@ -118,12 +102,18 @@ export function shouldServeShareCard(opts: {
   if (opts.method !== 'GET' && opts.method !== 'HEAD') return false;
   const path = normalizePath(opts.pathname);
   if (path !== '/') return false;
+  // Người dùng bấm "Mở website" → ?view=site để vào trang thật
   if (opts.view === 'site') return false;
+  // Next.js Server Component request → không trả share card
   if (opts.rsc) return false;
+  // Prefetch nội bộ của Next.js → không trả share card
+  const purpose = (opts as unknown as Record<string, string | null>)['purpose'];
+  if (purpose === 'prefetch') return false;
+  // Search engine indexer → trả trang thật để index đúng nội dung
   const ua = opts.userAgent || '';
   if (SEARCH_ENGINE_UA.test(ua)) return false;
-  if (isShareCrawler(ua)) return true;
-  if (isTopLevelBrowserNavigation(opts)) return false;
+  // Tất cả request khác đến / → luôn trả share card OG
+  // (Zalo bot có thể giả Chrome + gửi Sec-Fetch-Dest: document nên KHÔNG dùng isTopLevelBrowserNavigation)
   return true;
 }
 
