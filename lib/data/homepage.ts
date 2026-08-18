@@ -1,8 +1,8 @@
-import { createClient } from '@/lib/supabase/server';
+import { createPublicClient } from '@/lib/supabase/public';
 import { isTrustedMediaUrl, isValidAssetUrl } from '@/lib/slug';
 
 export async function getSiteSettings(): Promise<Record<string, string>> {
-  const supabase = await createClient();
+  const supabase = createPublicClient();
   const { data } = await supabase.from('site_settings').select('*');
   const cfg: Record<string, string> = {};
   data?.forEach((row) => {
@@ -12,7 +12,7 @@ export async function getSiteSettings(): Promise<Record<string, string>> {
 }
 
 export async function getHomepageData() {
-  const supabase = await createClient();
+  const supabase = createPublicClient();
 
   const [
     slides,

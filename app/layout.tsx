@@ -3,8 +3,15 @@ import Script from 'next/script';
 import { getSiteSettings } from '@/lib/data/homepage';
 import {
   SHARE_DESCRIPTION,
+  SHARE_IMAGE_ALT,
+  SHARE_IMAGE_HEIGHT,
+  SHARE_IMAGE_PATH,
+  SHARE_IMAGE_WIDTH,
+  SHARE_SITE_NAME,
+  SHARE_TITLE,
   SHARE_TITLE_FULL,
   SITE_URL,
+  absoluteUrl,
   shareOpenGraph,
   shareTwitter,
 } from '@/lib/seo';
@@ -49,6 +56,23 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="vi">
       <head>
+        {/* OG đặt đầu <head> — crawler Zalo cắt HTML sớm, không đợi preload ảnh. */}
+        <meta property="og:title" content={SHARE_TITLE} />
+        <meta property="og:description" content={SHARE_DESCRIPTION} />
+        <meta property="og:url" content={`${SITE_URL}/`} />
+        <meta property="og:site_name" content={SHARE_SITE_NAME} />
+        <meta property="og:locale" content="vi_VN" />
+        <meta property="og:type" content="website" />
+        <meta property="og:image" content={absoluteUrl(SHARE_IMAGE_PATH)} />
+        <meta property="og:image:secure_url" content={absoluteUrl(SHARE_IMAGE_PATH)} />
+        <meta property="og:image:type" content="image/jpeg" />
+        <meta property="og:image:width" content={String(SHARE_IMAGE_WIDTH)} />
+        <meta property="og:image:height" content={String(SHARE_IMAGE_HEIGHT)} />
+        <meta property="og:image:alt" content={SHARE_IMAGE_ALT} />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={SHARE_TITLE} />
+        <meta name="twitter:description" content={SHARE_DESCRIPTION} />
+        <meta name="twitter:image" content={absoluteUrl(SHARE_IMAGE_PATH)} />
         <link rel="icon" href="/favicon.ico" sizes="any" />
         <link rel="icon" type="image/png" href={`${SHOPMARTAI_FAVICON}?v=20260818`} />
         <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />

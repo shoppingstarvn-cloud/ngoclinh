@@ -61,3 +61,94 @@ export function shareTwitter(opts?: {
     images: [absoluteUrl(SHARE_IMAGE_PATH)],
   };
 }
+
+/**
+ * Bot chia sẻ — KHÔNG khớp chữ "Zalo" trần (WebView trong app Zalo
+ * cũng chứa "Zalo", phải trả trang thật cho người mở link).
+ */
+export const SHARE_CRAWLER_UA =
+  /facebookexternalhit|Facebot|Twitterbot|LinkedInBot|Slackbot-LinkExpanding|TelegramBot|WhatsApp|Pinterest|Discordbot|ZaloBot|ZaloShare|ZaloPreview|Embedly|redditbot|SkypeUriPreview|vkShare|Iframely|bitlybot|Quora Link Preview/i;
+
+export const SEARCH_ENGINE_UA =
+  /Googlebot|bingbot|Baiduspider|YandexBot|DuckDuckBot|Applebot|Slurp|CoccocBot/i;
+
+export function isShareCrawler(userAgent: string | null | undefined): boolean {
+  return !!userAgent && SHARE_CRAWLER_UA.test(userAgent);
+}
+
+/** Trang chủ siêu nhẹ cho bot Zalo/Facebook — tránh SSR 5s + HTML khổng lồ. */
+export function shouldServeShareCard(opts: {
+  method: string;
+  pathname: string;
+  userAgent: string | null | undefined;
+  accept: string | null | undefined;
+  secFetchDest: string | null | undefined;
+  rsc: string | null | undefined;
+}): boolean {
+  if (opts.method !== 'GET' && opts.method !== 'HEAD') return false;
+  if (opts.pathname !== '/' && opts.pathname !== '') return false;
+  const ua = opts.userAgent || '';
+  if (SEARCH_ENGINE_UA.test(ua)) return false;
+  if (opts.rsc) return false;
+  if (isShareCrawler(ua)) return true;
+  // Bot lạ (Zalo đôi khi không ghi ZaloBot): không phải trình duyệt thật.
+  if (opts.secFetchDest === 'document') return false;
+  const accept = opts.accept || '';
+  if (!opts.secFetchDest && (!accept || accept === '*/*')) return true;
+  return false;
+}
+
+function escapeHtml(s: string): string {
+  return s
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+/**
+ * HTML siêu nhẹ cho crawler Zalo/Facebook.
+ * Trang chủ Next.js SSR quá nặng (ảnh preload + JSON CMS) nên bot cắt sớm
+ * và giữ cache cũ "Cửa Âu".
+ */
+export function shareCrawlerHtml(): string {
+  const title = escapeHtml(SHARE_TITLE);
+  const titleFull = escapeHtml(SHARE_TITLE_FULL);
+  const description = escapeHtml(SHARE_DESCRIPTION);
+  const siteName = escapeHtml(SHARE_SITE_NAME);
+  const image = escapeHtml(absoluteUrl(SHARE_IMAGE_PATH));
+  const url = escapeHtml(`${SITE_URL}/`);
+  const alt = escapeHtml(SHARE_IMAGE_ALT);
+
+  return `<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>${titleFull}</title>
+<meta name="description" content="${description}">
+<link rel="canonical" href="${url}">
+<meta property="og:title" content="${title}">
+<meta property="og:description" content="${description}">
+<meta property="og:url" content="${url}">
+<meta property="og:site_name" content="${siteName}">
+<meta property="og:locale" content="vi_VN">
+<meta property="og:type" content="website">
+<meta property="og:image" content="${image}">
+<meta property="og:image:secure_url" content="${image}">
+<meta property="og:image:type" content="image/jpeg">
+<meta property="og:image:width" content="${SHARE_IMAGE_WIDTH}">
+<meta property="og:image:height" content="${SHARE_IMAGE_HEIGHT}">
+<meta property="og:image:alt" content="${alt}">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="${title}">
+<meta name="twitter:description" content="${description}">
+<meta name="twitter:image" content="${image}">
+</head>
+<body>
+<h1>${title}</h1>
+<p>${description}</p>
+<img src="${image}" width="${SHARE_IMAGE_WIDTH}" height="${SHARE_IMAGE_HEIGHT}" alt="${alt}">
+</body>
+</html>`;
+}

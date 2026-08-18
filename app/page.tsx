@@ -20,10 +20,9 @@ import {
   TestimonialSection,
 } from '@/components/home/HomeSections';
 
-// Luôn render động (không dùng Full Route Cache) để mọi thay đổi từ Super Admin
-// (qua Server Actions + revalidatePath) phản ánh NGAY LẬP TỨC trên trang chủ,
-// kể cả sau khi đã build/deploy — không cần rebuild lại.
-export const dynamic = 'force-dynamic';
+// ISR 60s — HTML trang chủ đủ nhanh để crawler đọc hết OG (force-dynamic ~5s
+// khiến Zalo timeout và giữ cache Cửa Âu). Admin vẫn revalidatePath('/') khi lưu.
+export const revalidate = 60;
 
 export async function generateMetadata(): Promise<Metadata> {
   // Thẻ Zalo/Facebook lấy từ đây — không lấy title/mô tả từ CMS.
