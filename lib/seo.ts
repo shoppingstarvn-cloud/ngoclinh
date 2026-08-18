@@ -13,6 +13,8 @@ export const SHARE_DESCRIPTION =
   'Chia sẻ hệ sinh thái AI với bạn. Học AI cùng chuyên gia Mr Ngọc Linh. Không cần kỹ năng vẫn chuyên nghiệp.';
 export const SHARE_SITE_NAME = 'Hệ Sinh Thái AI';
 export const SHARE_IMAGE_PATH = '/og/ngoclinh-og.jpg';
+/** Query để Zalo/Facebook lấy lại ảnh, không đụng URL trang chủ. */
+export const SHARE_IMAGE_CACHE = 'v=20260818b';
 export const SHARE_IMAGE_WIDTH = 1200;
 export const SHARE_IMAGE_HEIGHT = 630;
 export const SHARE_IMAGE_ALT = 'Ngọc Linh - Chuyên Gia AI — Phát triển Hệ Sinh Thái AI';
@@ -23,10 +25,15 @@ export function absoluteUrl(path = '/'): string {
   return `${SITE_URL}${p}`;
 }
 
+export function shareImageUrl(): string {
+  return `${absoluteUrl(SHARE_IMAGE_PATH)}?${SHARE_IMAGE_CACHE}`;
+}
+
 export function shareImage() {
+  const url = shareImageUrl();
   return {
-    url: absoluteUrl(SHARE_IMAGE_PATH),
-    secureUrl: absoluteUrl(SHARE_IMAGE_PATH),
+    url,
+    secureUrl: url,
     width: SHARE_IMAGE_WIDTH,
     height: SHARE_IMAGE_HEIGHT,
     alt: SHARE_IMAGE_ALT,
@@ -58,7 +65,7 @@ export function shareTwitter(opts?: {
     card: 'summary_large_image',
     title: opts?.title ?? SHARE_TITLE,
     description: opts?.description ?? SHARE_DESCRIPTION,
-    images: [absoluteUrl(SHARE_IMAGE_PATH)],
+    images: [shareImageUrl()],
   };
 }
 
@@ -76,28 +83,24 @@ export function isShareCrawler(userAgent: string | null | undefined): boolean {
   return !!userAgent && SHARE_CRAWLER_UA.test(userAgent);
 }
 
-/** Trang chủ siêu nhẹ cho bot Zalo/Facebook — tránh SSR 5s + HTML khổng lồ. */
-/** Link mới để dán Zalo — cache cũ của `/` vẫn là Cửa Âu. */
-export const SHARE_LANDING_PATHS = ['/hsai', '/ai', '/share-card'] as const;
-
 function normalizePath(pathname: string): string {
   if (!pathname || pathname === '/') return '/';
   return pathname.replace(/\/+$/, '') || '/';
 }
 
-/** Trình duyệt thật (Chrome/Safari/Zalo WebView khi user mở link). */
-function isBrowserLike(opts: {
-  accept: string | null | undefined;
+/**
+ * Chỉ tin Sec-Fetch của lần người dùng mở trang.
+ * Bot Zalo hay giả Chrome + Accept giống trình duyệt, nhưng KHÔNG gửi Sec-Fetch.
+ * Trước đây lấy Accept làm bằng chứng → bot nhận HTML nặng / cache Cửa Âu.
+ */
+function isTopLevelBrowserNavigation(opts: {
   secFetchDest: string | null | undefined;
   secFetchMode?: string | null | undefined;
   secFetchUser?: string | null | undefined;
 }): boolean {
   if (opts.secFetchDest === 'document') return true;
-  if (opts.secFetchMode === 'navigate') return true;
   if (opts.secFetchUser === '?1') return true;
-  const accept = opts.accept || '';
-  if (accept.includes('application/xhtml+xml')) return true;
-  if (/text\/html,.+image\//i.test(accept)) return true;
+  if (opts.secFetchMode === 'navigate') return true;
   return false;
 }
 
@@ -110,19 +113,17 @@ export function shouldServeShareCard(opts: {
   secFetchMode?: string | null | undefined;
   secFetchUser?: string | null | undefined;
   rsc: string | null | undefined;
+  view?: string | null | undefined;
 }): boolean {
   if (opts.method !== 'GET' && opts.method !== 'HEAD') return false;
   const path = normalizePath(opts.pathname);
+  if (path !== '/') return false;
+  if (opts.view === 'site') return false;
   if (opts.rsc) return false;
   const ua = opts.userAgent || '';
   if (SEARCH_ENGINE_UA.test(ua)) return false;
-
-  // /hsai /ai /share-card: luôn HTML OG (Zalo crawler hay giả Chrome).
-  if ((SHARE_LANDING_PATHS as readonly string[]).includes(path)) return true;
-
-  if (path !== '/') return false;
   if (isShareCrawler(ua)) return true;
-  if (isBrowserLike(opts)) return false;
+  if (isTopLevelBrowserNavigation(opts)) return false;
   return true;
 }
 
@@ -147,7 +148,7 @@ export function shareCrawlerHtml(opts?: {
   const titleFull = escapeHtml(SHARE_TITLE_FULL);
   const description = escapeHtml(SHARE_DESCRIPTION);
   const siteName = escapeHtml(SHARE_SITE_NAME);
-  const image = escapeHtml(absoluteUrl(SHARE_IMAGE_PATH));
+  const image = escapeHtml(shareImageUrl());
   const home = escapeHtml(`${SITE_URL}/`);
   const url = escapeHtml(opts?.pageUrl ?? `${SITE_URL}/`);
   const alt = escapeHtml(SHARE_IMAGE_ALT);
@@ -188,6 +189,7 @@ ${robots}<meta name="description" content="${description}">
 <h1>${title}</h1>
 <p>${description}</p>
 <img src="${image}" width="${SHARE_IMAGE_WIDTH}" height="${SHARE_IMAGE_HEIGHT}" alt="${alt}">
+<p><a href="${home}?view=site">Mở website Hệ Sinh Thái AI</a></p>
 ${bounce}
 </body>
 </html>`;

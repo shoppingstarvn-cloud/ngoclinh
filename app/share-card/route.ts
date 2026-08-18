@@ -1,20 +1,7 @@
-import { SITE_URL, shareCrawlerHtml } from '@/lib/seo';
+import { SITE_URL } from '@/lib/seo';
 
-/** HTML OG siêu nhẹ — Zalo/Facebook đọc thẻ; người mở link về trang chủ. */
 export function GET() {
-  return new Response(
-    shareCrawlerHtml({
-      pageUrl: `${SITE_URL}/share-card`,
-        bounceToHome: false,
-    }),
-    {
-      status: 200,
-      headers: {
-        'Content-Type': 'text/html; charset=utf-8',
-        'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=300',
-      },
-    },
-  );
+  return Response.redirect(`${SITE_URL}/`, 302);
 }
 
 export function HEAD() {

@@ -9,17 +9,28 @@ const STATIC_PREFIXES = [
   '/_next',
   '/api',
   '/favicon.ico',
-  '/admin', // dashboard React mới (/admin, /admin/*)
+  '/admin',
   '/og',
   '/logo',
   '/og-image.jpg',
-  '/hsai.html',
 ];
 
-const PASSTHROUGH_HTML = new Set(['/admin.html', '/superadmin.html', '/hsai.html']);
+const PASSTHROUGH_HTML = new Set(['/admin.html', '/superadmin.html']);
+
+/** Link cũ dán Zalo — không giữ /hsai (chữ "sai"). */
+const OLD_SHARE_PATHS = new Set(['/hsai', '/ai', '/share-card', '/hsai.html']);
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+  const path = pathname.replace(/\/+$/, '') || '/';
+
+  if (OLD_SHARE_PATHS.has(path) || pathname === '/hsai.html') {
+    const url = request.nextUrl.clone();
+    url.pathname = '/';
+    url.search = '';
+    url.hash = '';
+    return NextResponse.redirect(url, 302);
+  }
 
   if (
     shouldServeShareCard({
@@ -31,20 +42,22 @@ export function middleware(request: NextRequest) {
       secFetchMode: request.headers.get('sec-fetch-mode'),
       secFetchUser: request.headers.get('sec-fetch-user'),
       rsc: request.headers.get('rsc') || request.headers.get('next-router-prefetch'),
+      view: request.nextUrl.searchParams.get('view'),
     })
   ) {
-    const path = pathname.replace(/\/+$/, '') || '/';
-    const isLanding = path === '/hsai' || path === '/ai' || path === '/share-card';
     return new NextResponse(
       shareCrawlerHtml({
-        pageUrl: isLanding ? `${SITE_URL}${path}` : undefined,
+        pageUrl: `${SITE_URL}/`,
         bounceToHome: false,
       }),
       {
         status: 200,
         headers: {
           'Content-Type': 'text/html; charset=utf-8',
-          'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=300',
+          // Không cache CDN theo URL "/" — crawler và trình duyệt khác nhau.
+          'Cache-Control': 'private, no-store, no-cache, must-revalidate',
+          'CDN-Cache-Control': 'no-store',
+          'Vercel-CDN-Cache-Control': 'no-store',
         },
       },
     );
@@ -54,7 +67,6 @@ export function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // Legacy index.php paths → App Router catch-all.
   if (pathname.startsWith('/index.php/')) {
     const rest = pathname.replace(/^\/index\.php\/?/, '');
     const url = request.nextUrl.clone();
@@ -68,7 +80,6 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(url, 301);
   }
 
-  // Legacy: /slug.html → giữ URL, rewrite nội bộ sang /slug (App Router)
   if (pathname.endsWith('.html') && !PASSTHROUGH_HTML.has(pathname)) {
     const slug = decodeURIComponent(pathname.slice(1, -5));
     if (slug && slug !== 'index' && slug !== 'index-2') {

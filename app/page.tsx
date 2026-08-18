@@ -3,6 +3,7 @@ import { SiteShell } from '@/components/layout/SiteShell';
 import { getHomepageData } from '@/lib/data/homepage';
 import {
   SHARE_DESCRIPTION,
+  SHARE_SITE_NAME,
   SHARE_TITLE,
   SHARE_TITLE_FULL,
   SITE_URL,
@@ -41,7 +42,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function HomePage() {
   const data = await getHomepageData();
-  const companyName = data.settings.site_name || 'CÔNG TY CỔ PHẦN THƯƠNG MẠI CỬA ÂU';
+  const companyName = data.settings.site_name || SHARE_SITE_NAME;
 
   return (
     <SiteShell

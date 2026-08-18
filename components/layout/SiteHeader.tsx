@@ -2,6 +2,7 @@
 
 import { useState, type CSSProperties } from 'react';
 import Link from 'next/link';
+import { SHARE_SITE_NAME } from '@/lib/seo';
 import { assetUrl } from '@/lib/slug';
 
 export interface MenuItem {
@@ -41,7 +42,7 @@ export function SiteHeader({
 }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const { roots, children } = buildMenuTree(menus);
-  const siteName = settings.site_name || 'CÔNG TY CỔ PHẦN THƯƠNG MẠI CỬA ÂU';
+  const siteName = settings.site_name || SHARE_SITE_NAME;
   const logo = assetUrl(settings.logo_url) || '/images/contact/4174logo_bt.png';
   const socialLinks = links.filter((l) => l.link_group === 'social');
   const facebookHref = settings.facebook_url || socialLinks.find((l) => /facebook/i.test(l.label + l.url))?.url;
@@ -186,7 +187,7 @@ export function SiteFooter({
   links?: CmsLink[];
   categories?: Array<{ id: number; name: string; slug: string }>;
 }) {
-  const siteName = settings.site_name || 'CÔNG TY CỔ PHẦN THƯƠNG MẠI CỬA ÂU';
+  const siteName = settings.site_name || SHARE_SITE_NAME;
   const logo = assetUrl(settings.logo_url) || '/images/contact/4174logo_bt.png';
   const linkStyle: CSSProperties = {
     color: '#ccc',
@@ -356,8 +357,7 @@ export function SiteFooter({
           <div className="row align-items-center">
             <div className="col-12 col-md-9 mb-3 mb-md-0 text-center text-md-left">
               <p style={{ margin: 0, fontSize: 14, opacity: 0.8 }} id="footer-copyright">
-                {settings.footer_copyright ||
-                  'BẢN QUYỀN THUỘC VỀ CÔNG TY CỔ PHẦN THƯƠNG MẠI CỬA ÂU'}
+                {settings.footer_copyright || `BẢN QUYỀN THUỘC VỀ ${SHARE_SITE_NAME}`}
               </p>
             </div>
             <div className="col-12 col-md-3 text-center text-md-right">
