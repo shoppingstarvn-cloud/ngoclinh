@@ -116,6 +116,21 @@ export default function RichTextEditor({ initialValue, onChange }: RichTextEdito
     onChangeRef.current(q.root.innerHTML);
   }
 
+  // Sửa link cũ bị TRẦN (vd href="shopmartai.com") → thêm https:// để không 404.
+  function fixBareLinks() {
+    const q = quillRef.current;
+    if (!q) return;
+    let changed = false;
+    Array.from(q.root.querySelectorAll('a')).forEach((a) => {
+      const href = a.getAttribute('href') || '';
+      if (href && !/^(https?:|mailto:|tel:|\/|#)/i.test(href)) {
+        a.setAttribute('href', 'https://' + href.replace(/^\/+/, ''));
+        changed = true;
+      }
+    });
+    if (changed) onChangeRef.current(q.root.innerHTML);
+  }
+
   async function handleSaveTemplate() {
     const q = quillRef.current;
     if (!q) return;
@@ -172,6 +187,23 @@ export default function RichTextEditor({ initialValue, onChange }: RichTextEdito
     import('quill').then(({ default: Quill }) => {
       if (cancelled || !containerRef.current) return;
 
+      // Chuẩn hoá LINK: gõ tên miền trần (vd "shopmartai.com") tự thêm https:// —
+      // tránh bị hiểu là đường dẫn tương đối rồi thành .../shopmartai.com (404).
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const Link = Quill.import('formats/link') as any;
+      const normalizeUrl = (val: string) => {
+        const u = String(val || '').trim();
+        if (u && !/^(https?:|mailto:|tel:|\/|#)/i.test(u)) return 'https://' + u.replace(/^\/+/, '');
+        return u;
+      };
+      class CustomLink extends Link {
+        static sanitize(url: string) {
+          return normalizeUrl(url);
+        }
+      }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (Quill as any).register(CustomLink, true);
+
       const imageHandler = () => {
         const input = document.createElement('input');
         input.type = 'file';
@@ -205,9 +237,10 @@ export default function RichTextEditor({ initialValue, onChange }: RichTextEdito
       });
       quillRef.current = quill;
       if (initialValue) quill.root.innerHTML = initialValue;
-      // Bài cũ/nội dung dán tay có thể chứa ảnh base64 khổng lồ → tự chuyển sang Drive.
+      // Bài cũ: chuyển ảnh base64 → Drive + sửa link trần (shopmartai.com → https://…).
       setTimeout(() => {
         void convertBase64Images();
+        fixBareLinks();
       }, 400);
       quill.on('text-change', () => onChangeRef.current(quill.root.innerHTML));
 
@@ -251,8 +284,36 @@ export default function RichTextEditor({ initialValue, onChange }: RichTextEdito
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Nạp nội dung khi initialValue tới MUỘN (formData cập nhật sau khi mở bài) —
+  // chỉ nạp khi editor đang TRỐNG, để không đè lên chữ đang gõ. Chống lỗi "bài trắng".
+  useEffect(() => {
+    const q = quillRef.current;
+    if (!q) return;
+    const cur = q.root.innerHTML;
+    const isEmpty = !cur || cur === '<p><br></p>' || cur.trim() === '';
+    if (isEmpty && initialValue && initialValue !== cur) {
+      q.root.innerHTML = initialValue;
+      setTimeout(() => {
+        void convertBase64Images();
+        fixBareLinks();
+      }, 300);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialValue]);
+
   return (
     <div>
+      {/* Ô nhập link (tooltip Quill) căn ra GIỮA, không bị che, đủ rộng để nhìn chữ. */}
+      <style>{`
+        .ql-snow .ql-tooltip {
+          left: 50% !important;
+          transform: translate(-50%, 8px) !important;
+          z-index: 30;
+          white-space: nowrap;
+          max-width: 92%;
+        }
+        .ql-snow .ql-tooltip input[type=text] { width: 280px; max-width: 60vw; }
+      `}</style>
       {/* Thanh MẪU (template) */}
       <div
         style={{

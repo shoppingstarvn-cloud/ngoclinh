@@ -167,7 +167,11 @@ export default function RecordFormModal({ open, table, item, menus, onClose, onS
             {isImg ? (
               <ImageUploadField value={String(value ?? '')} onChange={(url) => setField(f.key, url)} />
             ) : f.type === 'richtext' ? (
-              <RichTextEditor initialValue={String(value ?? '')} onChange={(html) => setField(f.key, html)} />
+              <RichTextEditor
+                key={`rte-${String(item?.id ?? 'new')}-${f.key}`}
+                initialValue={String(value ?? '')}
+                onChange={(html) => setField(f.key, html)}
+              />
             ) : f.type === 'attachments' ? (
               <AttachmentField value={value} onChange={(items) => setField(f.key, items)} />
             ) : f.type === 'textarea' ? (
