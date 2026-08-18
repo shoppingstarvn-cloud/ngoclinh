@@ -4,6 +4,14 @@ import './admin.css';
 export const metadata: Metadata = {
   title: 'SUPER ADMIN',
   robots: { index: false, follow: false },
+  icons: {
+    icon: [
+      { url: '/favicon.ico', sizes: 'any' },
+      { url: '/logo/shopmartai-ai.png?v=20260818', type: 'image/png' },
+    ],
+    shortcut: '/logo/shopmartai-ai.png?v=20260818',
+    apple: '/apple-touch-icon.png',
+  },
 };
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {

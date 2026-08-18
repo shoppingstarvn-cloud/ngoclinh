@@ -31,7 +31,7 @@ CREATE TABLE IF NOT EXISTS public.site_settings (
 INSERT INTO public.site_settings (key, value) VALUES
   ('site_name', 'CÔNG TY CỔ PHẦN THƯƠNG MẠI CỬA ÂU'),
   ('logo_url', '/images/contact/4174logo_bt.png'),
-  ('favicon_url', '/images/favicon/8446logo_bt.png'),
+  ('favicon_url', '/logo/shopmartai-ai.png'),
   ('hotline', '0934640601'),
   ('email', 'congtycuaau8386@gmail.com'),
   ('address', 'Thôn 6, Pháp Cổ, Xã Việt Khê, Hải Phòng'),
