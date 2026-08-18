@@ -108,6 +108,45 @@ export default async function SlugPage({ params }: PageProps) {
                   className={`detail-content ${detail.table === 'products' ? 'detail_product' : 'content_news_page'}`}
                   dangerouslySetInnerHTML={{ __html: detail.content }}
                 />
+                {detail.attachments && detail.attachments.length > 0 && (
+                  <div className="post-attachments" style={{ marginTop: 28 }}>
+                    {detail.attachments.some((a) => a.kind === 'image') && (
+                      <>
+                        <h3>Ảnh kèm theo</h3>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, marginBottom: 20 }}>
+                          {detail.attachments
+                            .filter((a) => a.kind === 'image')
+                            .map((a) => (
+                              <a key={a.url} href={a.url} target="_blank" rel="noreferrer">
+                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                <img
+                                  src={a.url}
+                                  alt={a.name}
+                                  style={{ width: 200, height: 145, objectFit: 'cover', borderRadius: 8, border: '1px solid #eee' }}
+                                />
+                              </a>
+                            ))}
+                        </div>
+                      </>
+                    )}
+                    {detail.attachments.some((a) => a.kind !== 'image') && (
+                      <>
+                        <h3>Tài liệu đính kèm</h3>
+                        <ul>
+                          {detail.attachments
+                            .filter((a) => a.kind !== 'image')
+                            .map((a) => (
+                              <li key={a.url}>
+                                <a href={a.url} target="_blank" rel="noreferrer">
+                                  📎 {a.name}
+                                </a>
+                              </li>
+                            ))}
+                        </ul>
+                      </>
+                    )}
+                  </div>
+                )}
               </article>
             </div>
           </div>

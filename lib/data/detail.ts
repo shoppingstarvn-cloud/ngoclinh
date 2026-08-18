@@ -29,6 +29,13 @@ export function slugCandidatesFromTitle(
   return [base];
 }
 
+export interface DetailAttachment {
+  name: string;
+  url: string;
+  type?: string;
+  kind?: string;
+}
+
 export interface DetailRecord {
   table: ContentTable;
   slug: string;
@@ -36,6 +43,7 @@ export interface DetailRecord {
   content: string;
   excerpt?: string;
   thumbnail_url?: string;
+  attachments?: DetailAttachment[];
 }
 
 export async function fetchDetailBySlug(
@@ -65,6 +73,7 @@ export async function fetchDetailBySlug(
         content,
         excerpt: data.excerpt,
         thumbnail_url: data.thumbnail_url,
+        attachments: Array.isArray(data.attachments) ? (data.attachments as DetailAttachment[]) : [],
       };
     }
   }
@@ -99,6 +108,7 @@ export async function fetchDetailByPath(
         content: row.content,
         excerpt: row.excerpt,
         thumbnail_url: row.thumbnail_url,
+        attachments: Array.isArray(row.attachments) ? (row.attachments as DetailAttachment[]) : [],
       };
     }
   }

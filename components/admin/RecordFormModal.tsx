@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import Modal from './Modal';
 import ImageUploadField from './ImageUploadField';
 import RichTextEditor from './RichTextEditor';
+import AttachmentField from './AttachmentField';
 import { AdminField, AdminRow, AdminTableDef, isImageField } from '@/lib/cms/admin-schema';
 import { slugify } from '@/lib/slug';
 import { createRecordAction, updateRecordAction } from '@/lib/actions/admin-actions';
@@ -42,6 +43,7 @@ function defaultValueFor(field: AdminField): unknown {
   if (field.type === 'checkbox') return false;
   if (field.type === 'number') return 0;
   if (field.type === 'select') return field.options?.[0] ?? '';
+  if (field.type === 'attachments') return [];
   return '';
 }
 
@@ -154,6 +156,8 @@ export default function RecordFormModal({ open, table, item, menus, onClose, onS
               <ImageUploadField value={String(value ?? '')} onChange={(url) => setField(f.key, url)} />
             ) : f.type === 'richtext' ? (
               <RichTextEditor initialValue={String(value ?? '')} onChange={(html) => setField(f.key, html)} />
+            ) : f.type === 'attachments' ? (
+              <AttachmentField value={value} onChange={(items) => setField(f.key, items)} />
             ) : f.type === 'textarea' ? (
               <textarea
                 className="form-control"

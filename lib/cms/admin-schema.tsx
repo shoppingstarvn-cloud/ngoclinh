@@ -8,7 +8,8 @@ export type FieldType =
   | 'select'
   | 'number'
   | 'parentselect'
-  | 'image';
+  | 'image'
+  | 'attachments';
 
 export interface AdminField {
   key: string;
@@ -165,6 +166,7 @@ export const ADMIN_TABLES: AdminTableDef[] = [
       { key: 'category_id', label: 'Danh mục (ID)', type: 'number' },
       { key: 'excerpt', label: 'Mô tả ngắn', type: 'textarea' },
       { key: 'content', label: 'Nội dung (soạn thảo + chèn ảnh)', type: 'richtext' },
+      { key: 'attachments', label: 'Ảnh & File đính kèm (tách riêng)', type: 'attachments' },
       { key: 'thumbnail_url', label: 'Ảnh đại diện', type: 'image' },
       { key: 'tags', label: 'Tags (phân cách bằng dấu phẩy)', type: 'text' },
       { key: 'status', label: 'Trạng thái', type: 'select', options: ['draft', 'published', 'archived'] },
@@ -190,6 +192,7 @@ export const ADMIN_TABLES: AdminTableDef[] = [
       { key: 'link_url', label: 'Link đích khi bấm vào (để trống = tự dùng slug)', type: 'text' },
       { key: 'excerpt', label: 'Mô tả ngắn', type: 'textarea' },
       { key: 'content', label: 'Nội dung (soạn thảo + chèn ảnh)', type: 'richtext' },
+      { key: 'attachments', label: 'Ảnh & File đính kèm (tách riêng)', type: 'attachments' },
       { key: 'thumbnail_url', label: 'Ảnh đại diện', type: 'image' },
       { key: 'display_order', label: 'Thứ tự', type: 'number' },
       { key: 'is_active', label: 'Kích hoạt', type: 'checkbox' },
@@ -214,6 +217,7 @@ export const ADMIN_TABLES: AdminTableDef[] = [
       { key: 'category_id', label: 'Danh mục (ID)', type: 'number' },
       { key: 'description', label: 'Mô tả', type: 'textarea' },
       { key: 'content', label: 'Nội dung chi tiết', type: 'richtext' },
+      { key: 'attachments', label: 'Ảnh & File đính kèm (tách riêng)', type: 'attachments' },
       { key: 'price', label: 'Giá', type: 'text' },
       { key: 'thumbnail_url', label: 'Ảnh đại diện', type: 'image' },
       { key: 'display_order', label: 'Thứ tự', type: 'number' },
