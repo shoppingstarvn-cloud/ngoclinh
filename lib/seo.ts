@@ -12,13 +12,13 @@ export const SHARE_TITLE_FULL =
 export const SHARE_DESCRIPTION =
   'Chia sẻ hệ sinh thái AI với bạn. Học AI cùng chuyên gia Mr Ngọc Linh. Không cần kỹ năng vẫn chuyên nghiệp.';
 export const SHARE_SITE_NAME = 'Hệ Sinh Thái AI';
-/** Ảnh banner tĩnh (anh Ngọc Linh + nền AI) — KHÔNG dùng route động og-v2. */
-export const SHARE_IMAGE_PATH = '/og/ngoclinh-banner.png';
+/** Ảnh banner tĩnh (anh Ngọc Linh + nền AI), CHUẨN OG 1200x630 JPG. */
+export const SHARE_IMAGE_PATH = '/og/ngoclinh-og.jpg';
 /** Query để Zalo/Facebook lấy lại ảnh, không đụng URL trang chủ. */
-export const SHARE_IMAGE_CACHE = 'v=20260818d';
-export const SHARE_IMAGE_WIDTH = 1024;
-export const SHARE_IMAGE_HEIGHT = 571;
-export const SHARE_IMAGE_TYPE = 'image/png';
+export const SHARE_IMAGE_CACHE = 'v=20260819a';
+export const SHARE_IMAGE_WIDTH = 1200;
+export const SHARE_IMAGE_HEIGHT = 630;
+export const SHARE_IMAGE_TYPE = 'image/jpeg';
 export const SHARE_IMAGE_ALT = 'Ngọc Linh - Chuyên Gia AI — Phát triển Hệ Sinh Thái AI';
 
 export function absoluteUrl(path = '/'): string {
