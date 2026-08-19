@@ -1873,6 +1873,85 @@ a.more:hover {
 }
 
 /* =========================================================================
+   THỐNG NHẤT DROPDOWN MENU HEADER = giống menu con khối danh mục
+   (viền xanh trên, bo góc, đổ bóng, mờ + trượt mượt, hover xanh + thụt lề)
+   Ghi đè theme cũ (.menu>ul>li>ul dùng display none/block, không mượt).
+   ========================================================================= */
+.menu > ul > li > ul {
+  display: block;               /* bỏ display:none -> dùng opacity để animate */
+  top: 100%;
+  left: 0;
+  width: 240px;
+  padding: 6px 0;
+  background: #fff;
+  border-top: 3px solid #00A651;
+  border-radius: 0 0 10px 10px;
+  box-shadow: 0 14px 30px rgba(0, 0, 0, .22);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(12px);
+  transition: opacity .3s ease, transform .3s ease, visibility .3s;
+}
+.menu > ul > li:hover > ul {
+  display: block;
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+.menu > ul > li > ul > li { padding: 0; position: relative; }
+.menu > ul > li > ul > li > a {
+  display: block;
+  padding: 11px 20px;
+  line-height: 1.35;
+  font-size: 14px;
+  color: #222;
+  text-transform: none;
+  border-top: none;
+  border-bottom: 1px solid #f1f1f1;
+  transition: background .22s ease, color .22s ease, padding-left .22s ease;
+}
+.menu > ul > li > ul > li:last-child > a { border-bottom: none; }
+.menu > ul > li > ul > li > a:hover { background: #f4fbf6; color: #00A651; padding-left: 26px; }
+.menu > ul > li > ul > li > a .fa-chevron-right { float: right; margin-top: 4px; color: #00A651; }
+
+/* Cấp 3 (flyout ngang) khớp cùng phong cách */
+.menu > ul > li > ul > li > ul {
+  display: block;
+  top: -3px;
+  left: 100%;
+  right: auto;
+  width: 240px;
+  padding: 6px 0;
+  background: #fff;
+  border-top: 3px solid #00A651;
+  border-radius: 0 8px 8px 8px;
+  box-shadow: 0 14px 30px rgba(0, 0, 0, .22);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateX(8px);
+  transition: opacity .28s ease, transform .28s ease, visibility .28s;
+}
+.menu > ul > li > ul > li:hover > ul {
+  display: block;
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(0);
+}
+.menu > ul > li > ul > li > ul li { background: transparent; }
+.menu > ul > li > ul > li > ul li a {
+  display: block;
+  margin: 0;
+  padding: 10px 18px;
+  line-height: 1.35;
+  color: #222;
+  border-bottom: 1px solid #f2f2f2;
+  transition: background .2s ease, color .2s ease, padding-left .2s ease;
+}
+.menu > ul > li > ul > li > ul li:last-child a { border-bottom: none; }
+.menu > ul > li > ul > li > ul li:hover { background: transparent; }
+.menu > ul > li > ul > li > ul li:hover > a { background: #f4fbf6; color: #00A651; padding-left: 24px; }
+
+/* =========================================================================
    .fx-card — HIỆU ỨNG KHỐI MODULE DÙNG CHUNG TOÀN WEBSITE
    Gắn class "fx-card" vào thẻ bọc khối (có <dl> bên trong) là có ngay:
    hover nhấp nhún XUỐNG 3D + nảy nhẹ. Kết hợp <figure class="effect-v7">
