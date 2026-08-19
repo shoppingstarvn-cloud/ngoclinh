@@ -396,6 +396,25 @@ export const ADMIN_TABLES: AdminTableDef[] = [
       },
     ],
   },
+  {
+    name: 'activity_images',
+    label: 'Hình ảnh hoạt động',
+    icon: 'images',
+    pk: 'id',
+    fields: [
+      { key: 'title', label: 'Chú thích (không bắt buộc)', type: 'text' },
+      { key: 'image_url', label: 'Hình ảnh', type: 'image', required: true },
+      { key: 'display_order', label: 'Thứ tự', type: 'number' },
+      { key: 'is_active', label: 'Kích hoạt', type: 'checkbox' },
+    ],
+    cols: [
+      { key: 'id', label: 'ID' },
+      { key: 'image_url', label: 'Ảnh', render: thumb },
+      { key: 'title', label: 'Chú thích' },
+      { key: 'display_order', label: 'Thứ tự' },
+      { key: 'is_active', label: 'Active', render: boolBadge },
+    ],
+  },
 ];
 
 export const SITE_SETTINGS_FIXED_KEYS = [

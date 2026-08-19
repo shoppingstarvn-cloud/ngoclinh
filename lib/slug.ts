@@ -60,6 +60,9 @@ export function isValidAssetUrl(u?: string | null): boolean {
   if (/\.html?($|\?|#)/i.test(v)) return false;
   if (/^https?:\/\/[^/]+\/?$/i.test(v)) return false;
   if (UNTRUSTED_MEDIA_HOST.test(v)) return false;
+  // Ảnh Google Drive (upload qua app) — link không có đuôi file nhưng vẫn là ảnh thật.
+  if (/lh3\.googleusercontent\.com\/d\//i.test(v)) return true;
+  if (/drive\.google\.com\/(uc|thumbnail)/i.test(v)) return true;
   // Phải là file ảnh / đường dẫn media — không chấp nhận URL trang web làm “logo”
   if (/\.(png|jpe?g|webp|gif|svg|avif)($|\?)/i.test(v)) return true;
   if (v.startsWith('/images/') || v.startsWith('/hpm/') || v.startsWith('/uploads/')) return true;
@@ -77,6 +80,8 @@ export function isTrustedMediaUrl(u?: string | null): boolean {
   const v = assetUrl(u);
   if (v.startsWith('/images/') || v.startsWith('/hpm/') || v.startsWith('/uploads/')) return true;
   if (v.includes('/storage/v1/object/')) return true;
+  if (/lh3\.googleusercontent\.com\/d\//i.test(v)) return true;
+  if (/drive\.google\.com\/(uc|thumbnail)/i.test(v)) return true;
   if (v.startsWith('data:image/')) return true;
   return false;
 }

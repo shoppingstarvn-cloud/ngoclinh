@@ -207,6 +207,77 @@ export function ProductSection({ products }: { products: Product[] }) {
   );
 }
 
+interface ActivityImage {
+  id: number | string;
+  title?: string;
+  image_url?: string;
+  is_active?: boolean;
+}
+
+/** Vùng "Hình ảnh hoạt động" — gallery riêng, tái dùng style carousel sản phẩm. */
+export function ActivitySection({ images }: { images: ActivityImage[] }) {
+  const visible = images.filter((a) => isValidAssetUrl(a.image_url));
+
+  useOwlCarousel(
+    '.product-carousel',
+    {
+      loop: visible.length > 1,
+      autoplay: true,
+      margin: 20,
+      responsiveClass: true,
+      responsive: { 0: { items: 1, dots: true }, 600: { items: 2, dots: true }, 1000: { items: 3, dots: true } },
+    },
+    [visible.length],
+  );
+
+  if (!visible.length) return null;
+
+  return (
+    <div className="product">
+      <div className="container">
+        <div className="title">
+          <p>
+            <span>Hình ảnh hoạt động</span>
+          </p>
+        </div>
+        <div className="brief">
+          <p>
+            <em>
+              <strong>Những hình ảnh hoạt động và sự kiện nổi bật của chúng tôi.</strong>
+            </em>
+          </p>
+        </div>
+        <div className="row">
+          <div className="owl-carousel owl-theme product-carousel">
+            {visible.map((a) => (
+              <div key={a.id} className="item">
+                <dl>
+                  <dt>
+                    <img
+                      src={assetUrl(a.image_url)}
+                      alt={a.title || 'Hình ảnh hoạt động'}
+                      title={a.title || ''}
+                      onError={(e) => {
+                        const el = e.currentTarget;
+                        if (el.dataset.fallback === '1') return;
+                        el.dataset.fallback = '1';
+                        el.style.visibility = 'hidden';
+                      }}
+                    />
+                  </dt>
+                  <dd>
+                    <h3>{a.title || ''}</h3>
+                  </dd>
+                </dl>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 interface Project {
   id: number;
   title: string;

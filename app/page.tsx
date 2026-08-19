@@ -12,10 +12,10 @@ import {
 } from '@/lib/seo';
 import {
   AboutLink,
+  ActivitySection,
   CategoryGrid,
   NewsSection,
   PartnerSection,
-  ProductSection,
   ProjectSection,
   SlideCarousel,
   TestimonialSection,
@@ -54,7 +54,7 @@ export default async function HomePage() {
       <SlideCarousel slides={data.slides} />
       <AboutLink companyName={companyName} introHtml={data.settings.intro_text} />
       <CategoryGrid categories={data.categories} />
-      <ProductSection products={data.products} />
+      <ActivitySection images={data.activityImages} />
       <ProjectSection projects={data.projects} />
       <PartnerSection partners={data.partners} />
       <TestimonialSection testimonials={data.testimonials} />

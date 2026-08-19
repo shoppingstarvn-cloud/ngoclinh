@@ -15,6 +15,7 @@ export const CMS_TABLES: CmsTableConfig[] = [
   { table: 'projects', label: 'Dự án', pk: 'id', publicRead: true },
   { table: 'products', label: 'Sản phẩm', pk: 'id', publicRead: true },
   { table: 'slides', label: 'Slide', pk: 'id', publicRead: true },
+  { table: 'activity_images', label: 'Hình ảnh hoạt động', pk: 'id', publicRead: true },
   { table: 'images', label: 'Hình ảnh', pk: 'id', publicRead: true },
   // 'photos' là bảng thực tế được admin.html + realtime-data.js (loadPhotos) dùng
   // cho "Thư viện ảnh" — server.js CŨ thiếu bảng này trong CMS_TABLES (bug), khiến

@@ -24,6 +24,7 @@ export async function getHomepageData() {
     menus,
     categories,
     links,
+    activityImages,
     settingsRows,
   ] = await Promise.all([
     supabase
@@ -82,6 +83,12 @@ export async function getHomepageData() {
       .eq('is_active', true)
       .order('display_order')
       .limit(40),
+    supabase
+      .from('activity_images')
+      .select('*')
+      .eq('is_active', true)
+      .order('display_order')
+      .limit(30),
     supabase.from('site_settings').select('*'),
   ]);
 
@@ -104,6 +111,8 @@ export async function getHomepageData() {
     menus: menus.data ?? [],
     categories: categories.data ?? [],
     links: links.data ?? [],
+    // Hình ảnh hoạt động — chỉ ảnh hợp lệ (local/Supabase/Drive)
+    activityImages: (activityImages.data ?? []).filter((a) => isValidAssetUrl(a.image_url)),
     settings,
   };
 }
