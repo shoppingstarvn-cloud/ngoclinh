@@ -84,6 +84,7 @@ interface CategorySubmenu {
   id: number;
   label: string;
   link_url?: string;
+  children?: CategorySubmenu[];
 }
 
 interface Category {
@@ -134,14 +135,34 @@ export function CategoryGrid({ categories }: { categories: Category[] }) {
                     {subs.map((s) => {
                       const sHref = s.link_url ? resolveHref(s.link_url) : itemHref(cat);
                       const sExt = /^https?:\/\//i.test(sHref);
+                      const kids = (s.children ?? []).filter((k) => k.label);
                       return (
-                        <li key={s.id}>
+                        <li key={s.id} className={kids.length ? 'has-children' : undefined}>
                           <Link
                             href={sHref}
                             {...(sExt ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
                           >
                             {s.label}
+                            {kids.length > 0 && <span className="caret">›</span>}
                           </Link>
+                          {kids.length > 0 && (
+                            <ul className="cat-submenu-2">
+                              {kids.map((k) => {
+                                const kHref = k.link_url ? resolveHref(k.link_url) : sHref;
+                                const kExt = /^https?:\/\//i.test(kHref);
+                                return (
+                                  <li key={k.id}>
+                                    <Link
+                                      href={kHref}
+                                      {...(kExt ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+                                    >
+                                      {k.label}
+                                    </Link>
+                                  </li>
+                                );
+                              })}
+                            </ul>
+                          )}
                         </li>
                       );
                     })}

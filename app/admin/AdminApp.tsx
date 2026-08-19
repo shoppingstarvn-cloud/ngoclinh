@@ -231,6 +231,7 @@ export default function AdminApp() {
           table={modalState.table}
           item={modalState.item}
           menus={allData.menus || []}
+          allData={allData}
           onClose={() => setModalState(null)}
           onSaved={() => {
             Swal.fire({ icon: 'success', title: 'Đã lưu!', timer: 1000, showConfirmButton: false, ...swalDark });

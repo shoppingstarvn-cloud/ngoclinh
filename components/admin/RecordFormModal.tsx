@@ -52,11 +52,12 @@ interface RecordFormModalProps {
   table: AdminTableDef;
   item: AdminRow | null;
   menus: AdminRow[];
+  allData?: Record<string, AdminRow[]>;
   onClose: () => void;
   onSaved: () => void;
 }
 
-export default function RecordFormModal({ open, table, item, menus, onClose, onSaved }: RecordFormModalProps) {
+export default function RecordFormModal({ open, table, item, menus, allData = {}, onClose, onSaved }: RecordFormModalProps) {
   const [formData, setFormData] = useState<Record<string, unknown>>({});
   const [autoSlug, setAutoSlug] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -105,7 +106,9 @@ export default function RecordFormModal({ open, table, item, menus, onClose, onS
       let v = formData[f.key];
       if (f.type === 'number') v = Number(v) || 0;
       if (f.type === 'checkbox') v = Boolean(v);
-      if (f.type === 'parentselect') v = v === '' || v == null ? null : Number(v);
+      if (f.type === 'parentselect' || f.type === 'selfparentselect')
+        v = v === '' || v == null ? null : Number(v);
+      if (f.type === 'refselect') v = v === '' || v == null ? null : Number(v);
       payload[f.key] = v;
     }
     if (table.name === 'posts' && !item) {
@@ -211,6 +214,40 @@ export default function RecordFormModal({ open, table, item, menus, onClose, onS
                     {m.label}
                   </option>
                 ))}
+              </select>
+            ) : f.type === 'refselect' ? (
+              <select
+                className="form-select"
+                value={value == null ? '' : String(value)}
+                onChange={(e) => setField(f.key, e.target.value)}
+              >
+                <option value="">— Chọn —</option>
+                {(allData[f.refTable ?? ''] ?? []).map((r) => (
+                  <option key={String(r.id)} value={String(r.id)}>
+                    {String(r[f.refLabel ?? 'name'] ?? r.title ?? r.label ?? r.id)}
+                  </option>
+                ))}
+              </select>
+            ) : f.type === 'selfparentselect' ? (
+              <select
+                className="form-select"
+                value={value == null ? '' : String(value)}
+                onChange={(e) => setField(f.key, e.target.value)}
+              >
+                <option value="">— (đây là menu CẤP 1) —</option>
+                {(allData[table.name] ?? [])
+                  .filter((r) => {
+                    if (r.parent_id) return false; // chỉ hiện menu cấp 1
+                    if (item && r.id === item.id) return false; // không tự chọn mình
+                    const scope = f.scopeKey;
+                    if (scope && String(formData[scope] ?? '') !== String(r[scope] ?? '')) return false;
+                    return true;
+                  })
+                  .map((r) => (
+                    <option key={String(r.id)} value={String(r.id)}>
+                      {String(r.label ?? r.id)}
+                    </option>
+                  ))}
               </select>
             ) : f.type === 'number' ? (
               <input

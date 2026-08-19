@@ -8,6 +8,8 @@ export type FieldType =
   | 'select'
   | 'number'
   | 'parentselect'
+  | 'refselect'
+  | 'selfparentselect'
   | 'image'
   | 'attachments';
 
@@ -17,6 +19,12 @@ export interface AdminField {
   type: FieldType;
   required?: boolean;
   options?: string[];
+  /** refselect: bảng nguồn để đổ dropdown (VD 'categories') */
+  refTable?: string;
+  /** refselect: cột hiển thị nhãn (VD 'name' | 'label' | 'title') */
+  refLabel?: string;
+  /** selfparentselect: lọc menu cấp 1 cùng khối theo cột này (VD 'category_id') */
+  scopeKey?: string;
 }
 
 export type AdminRow = Record<string, unknown>;
@@ -402,7 +410,20 @@ export const ADMIN_TABLES: AdminTableDef[] = [
     icon: 'list-ul',
     pk: 'id',
     fields: [
-      { key: 'category_id', label: 'Thuộc khối/danh mục nào (ID)', type: 'number', required: true },
+      {
+        key: 'category_id',
+        label: 'Thuộc khối/danh mục GỐC',
+        type: 'refselect',
+        required: true,
+        refTable: 'categories',
+        refLabel: 'name',
+      },
+      {
+        key: 'parent_id',
+        label: 'Menu CẤP 1 cha (để trống nếu đây LÀ menu cấp 1)',
+        type: 'selfparentselect',
+        scopeKey: 'category_id',
+      },
       { key: 'label', label: 'Tên menu con', type: 'text', required: true },
       { key: 'link_url', label: 'Link đích khi bấm (VD: /cong-tron-c53.html)', type: 'text' },
       { key: 'display_order', label: 'Thứ tự', type: 'number' },
@@ -412,13 +433,28 @@ export const ADMIN_TABLES: AdminTableDef[] = [
       { key: 'id', label: 'ID' },
       {
         key: 'category_id',
-        label: 'Khối cha',
+        label: 'Khối gốc',
         render: (v, _row, allData) => {
           const cat = (allData.categories || []).find((c) => c.id === v);
           return cat ? String(cat.name) : `#${String(v ?? '')}`;
         },
       },
-      { key: 'label', label: 'Tên menu con' },
+      {
+        key: 'label',
+        label: 'Menu con',
+        render: (v, row, allData) => {
+          const pid = row.parent_id as number | null;
+          if (!pid) return <>{String(v ?? '')}</>;
+          const par = (allData.category_submenus || []).find((s) => s.id === pid);
+          return (
+            <>
+              {'    └ '}
+              {String(v ?? '')}
+              <span className="text-secondary"> (cấp 2 · thuộc “{String(par?.label ?? pid)}”)</span>
+            </>
+          );
+        },
+      },
       { key: 'link_url', label: 'Link đích' },
       { key: 'display_order', label: 'Thứ tự' },
       { key: 'is_active', label: 'Active', render: boolBadge },

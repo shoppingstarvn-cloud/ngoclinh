@@ -105,16 +105,31 @@ export async function getHomepageData() {
     settings[r.key] = r.value;
   });
 
-  // Gom menu con theo khối cha để mỗi danh mục có mảng submenus riêng.
-  const submenuByCat = new Map<number, { id: number; label: string; link_url?: string }[]>();
-  (categorySubmenus.data ?? []).forEach((s) => {
-    const cid = Number(s.category_id);
-    if (!submenuByCat.has(cid)) submenuByCat.set(cid, []);
-    submenuByCat.get(cid)!.push({ id: s.id, label: s.label, link_url: s.link_url });
+  // Menu con 2 CẤP: cấp 1 (parent_id rỗng, thuộc category) -> children là cấp 2 (parent_id = id cấp 1).
+  type SubNode = { id: number; label: string; link_url?: string; children: SubNode[] };
+  const rows = categorySubmenus.data ?? [];
+  const level1ByCat = new Map<number, SubNode[]>();
+  const childrenByParent = new Map<number, SubNode[]>();
+  rows.forEach((s) => {
+    const node: SubNode = { id: s.id, label: s.label, link_url: s.link_url, children: [] };
+    if (s.parent_id) {
+      const pid = Number(s.parent_id);
+      if (!childrenByParent.has(pid)) childrenByParent.set(pid, []);
+      childrenByParent.get(pid)!.push(node);
+    } else {
+      const cid = Number(s.category_id);
+      if (!level1ByCat.has(cid)) level1ByCat.set(cid, []);
+      level1ByCat.get(cid)!.push(node);
+    }
   });
+  level1ByCat.forEach((arr) =>
+    arr.forEach((n) => {
+      n.children = childrenByParent.get(n.id) ?? [];
+    }),
+  );
   const categoriesWithSubmenus = (categories.data ?? []).map((c) => ({
     ...c,
-    submenus: submenuByCat.get(Number(c.id)) ?? [],
+    submenus: level1ByCat.get(Number(c.id)) ?? [],
   }));
 
   return {

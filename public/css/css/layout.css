@@ -1837,10 +1837,39 @@ a.more:hover {
 }
 .service_home .item_s.cat-card .cat-submenu li a:hover:before { opacity: 1; }
 
+/* --- Menu CẤP 2 (sổ ngang ra bên phải khi rê vào menu cấp 1 có con) --- */
+.service_home .item_s.cat-card .cat-submenu li.has-children { position: relative; }
+.service_home .item_s.cat-card .cat-submenu li .caret {
+  float: right; color: #00A651; font-weight: 700; margin-left: 8px;
+  transition: transform .2s ease;
+}
+.service_home .item_s.cat-card .cat-submenu li.has-children:hover > a .caret { transform: translateX(3px); }
+.service_home .item_s.cat-card .cat-submenu-2 {
+  position: absolute; top: -9px; left: 100%;
+  min-width: 210px;
+  background: #fff; border-top: 3px solid #00A651;
+  box-shadow: 0 14px 30px rgba(0,0,0,.22); border-radius: 0 8px 8px 8px;
+  list-style: none; padding: 6px 0; margin: 0;
+  opacity: 0; visibility: hidden; transform: translateX(10px);
+  transition: opacity .28s ease, transform .28s ease, visibility .28s; z-index: 70;
+}
+.service_home .item_s.cat-card .cat-submenu li.has-children:hover > .cat-submenu-2 {
+  opacity: 1; visibility: visible; transform: translateX(0);
+}
+.service_home .item_s.cat-card .cat-submenu-2 li a {
+  display: block; padding: 10px 18px; color: #222; font-size: 13.5px;
+  text-decoration: none; border-bottom: 1px solid #f2f2f2;
+  transition: background .2s, color .2s, padding-left .2s;
+}
+.service_home .item_s.cat-card .cat-submenu-2 li:last-child a { border-bottom: none; }
+.service_home .item_s.cat-card .cat-submenu-2 li a:hover { background: #f4fbf6; color: #00A651; padding-left: 24px; }
+
 /* Rê chuột mượt trên di động: giảm hiệu ứng 3D nặng */
 @media (max-width: 767px) {
   .service_home .item_s.cat-card:hover dl { transform: translateY(4px) scale(.99); animation: none; }
   .service_home .item_s.cat-card .cat-submenu { position: static; opacity: 1; visibility: visible; transform: none; margin: 8px 15px 0; }
+  .service_home .item_s.cat-card .cat-submenu-2 { position: static; opacity: 1; visibility: visible; transform: none; box-shadow: none; border-top: none; border-left: 3px solid #d9efe0; border-radius: 0; margin: 2px 0 4px 16px; }
+  .service_home .item_s.cat-card .cat-submenu li .caret { display: none; }
 }
 
 /* =========================================================================
