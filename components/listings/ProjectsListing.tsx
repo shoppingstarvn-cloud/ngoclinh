@@ -1,10 +1,11 @@
 import Link from 'next/link';
-import { assetUrl, postHref } from '@/lib/slug';
+import { assetUrl, itemHref } from '@/lib/slug';
 
 interface Project {
   id: number;
   title: string;
   slug: string;
+  link_url?: string | null;
   excerpt?: string | null;
   thumbnail_url?: string | null;
 }
@@ -29,31 +30,40 @@ export function ProjectsListing({
         </p>
       ) : (
         <div className="row list_project">
-          {projects.map((p) => (
-            <div key={p.id} className="col-12 col-md-6 item">
-              <dl>
-                <dt>
-                  <div className="swing">
-                    <figure>
-                      <Link href={postHref(p.slug)}>
-                        {p.thumbnail_url && (
-                          <img src={assetUrl(p.thumbnail_url)} alt={p.title} />
-                        )}
+          {projects.map((p) => {
+            const href = itemHref(p);
+            const external = /^https?:\/\//i.test(href);
+            const extProps = external
+              ? { target: '_blank', rel: 'noopener noreferrer' as const }
+              : {};
+            return (
+              <div key={p.id} className="col-12 col-md-6 item">
+                <dl>
+                  <dt>
+                    <div className="swing">
+                      <figure>
+                        <Link href={href} {...extProps}>
+                          {p.thumbnail_url && (
+                            <img src={assetUrl(p.thumbnail_url)} alt={p.title} />
+                          )}
+                        </Link>
+                      </figure>
+                    </div>
+                  </dt>
+                  <dd>
+                    <h3>
+                      <Link href={href} {...extProps}>
+                        {p.title}
                       </Link>
-                    </figure>
-                  </div>
-                </dt>
-                <dd>
-                  <h3>
-                    <Link href={postHref(p.slug)}>{p.title}</Link>
-                  </h3>
-                  {p.excerpt && <p>{p.excerpt}</p>}
-                  <Link href={postHref(p.slug)} />
-                </dd>
-                <div className="clearfix" />
-              </dl>
-            </div>
-          ))}
+                    </h3>
+                    {p.excerpt && <p>{p.excerpt}</p>}
+                    <Link href={href} {...extProps} />
+                  </dd>
+                  <div className="clearfix" />
+                </dl>
+              </div>
+            );
+          })}
         </div>
       )}
     </div>

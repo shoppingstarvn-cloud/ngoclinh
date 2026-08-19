@@ -3,7 +3,7 @@
 import { useState, type CSSProperties } from 'react';
 import Link from 'next/link';
 import { SHARE_SITE_NAME } from '@/lib/seo';
-import { assetUrl } from '@/lib/slug';
+import { assetUrl, resolveHref } from '@/lib/slug';
 
 export interface MenuItem {
   id: number;
@@ -19,8 +19,9 @@ function buildMenuTree(items: MenuItem[]) {
 }
 
 function toHref(url: string) {
-  if (!url || url === '#') return '#';
-  return /^(https?:|\/)/.test(url) ? url : `/${url}`;
+  // Dùng chung resolveHref: link "trần" như "shopmartai.com" -> https:// (link
+  // ngoài), không bị ghép nhầm domain ngoclinh phía trước gây 404.
+  return resolveHref(url);
 }
 
 export interface CmsLink {

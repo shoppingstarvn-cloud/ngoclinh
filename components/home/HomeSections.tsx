@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { postHref, itemHref, assetUrl, isTrustedMediaUrl, isValidAssetUrl } from '@/lib/slug';
+import { postHref, itemHref, assetUrl, resolveHref, isTrustedMediaUrl, isValidAssetUrl } from '@/lib/slug';
 import { useOwlCarousel } from '@/lib/hooks/useOwlCarousel';
 
 interface Slide {
@@ -131,11 +131,20 @@ export function CategoryGrid({ categories }: { categories: Category[] }) {
                 </dl>
                 {subs.length > 0 && (
                   <ul className="cat-submenu">
-                    {subs.map((s) => (
-                      <li key={s.id}>
-                        <Link href={s.link_url || itemHref(cat)}>{s.label}</Link>
-                      </li>
-                    ))}
+                    {subs.map((s) => {
+                      const sHref = s.link_url ? resolveHref(s.link_url) : itemHref(cat);
+                      const sExt = /^https?:\/\//i.test(sHref);
+                      return (
+                        <li key={s.id}>
+                          <Link
+                            href={sHref}
+                            {...(sExt ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+                          >
+                            {s.label}
+                          </Link>
+                        </li>
+                      );
+                    })}
                   </ul>
                 )}
               </div>
@@ -307,6 +316,7 @@ interface Project {
   id: number;
   title: string;
   slug: string;
+  link_url?: string;
   excerpt?: string;
   thumbnail_url?: string;
 }
@@ -323,27 +333,37 @@ export function ProjectSection({ projects }: { projects: Project[] }) {
         </div>
         <div className="brief" />
         <div className="row list_project">
-          {projects.map((p) => (
-            <div key={p.id} className="col-12 col-md-6 item proj-card fx-card">
-              <dl>
-                <dt>
-                  {/* effect-v7 = kim tuyến quét sáng; logo canh giữa, không tràn */}
-                  <figure className="effect-v7">
-                    <Link href={postHref(p.slug)} title={p.title}>
-                      {p.thumbnail_url && <img src={assetUrl(p.thumbnail_url)} alt={p.title} />}
-                    </Link>
-                  </figure>
-                </dt>
-                <dd>
-                  <h3>
-                    <Link href={postHref(p.slug)}>{p.title}</Link>
-                  </h3>
-                  <p>{p.excerpt}</p>
-                  <Link className="proj-more" href={postHref(p.slug)} aria-label="Xem thêm" />
-                </dd>
-              </dl>
-            </div>
-          ))}
+          {projects.map((p) => {
+            // Ưu tiên link_url admin nhập (kể cả link NGOÀI); fallback slug nội bộ.
+            const href = itemHref(p);
+            const external = /^https?:\/\//i.test(href);
+            const extProps = external
+              ? { target: '_blank', rel: 'noopener noreferrer' as const }
+              : {};
+            return (
+              <div key={p.id} className="col-12 col-md-6 item proj-card fx-card">
+                <dl>
+                  <dt>
+                    {/* effect-v7 = kim tuyến quét sáng; logo canh giữa, không tràn */}
+                    <figure className="effect-v7">
+                      <Link href={href} title={p.title} {...extProps}>
+                        {p.thumbnail_url && <img src={assetUrl(p.thumbnail_url)} alt={p.title} />}
+                      </Link>
+                    </figure>
+                  </dt>
+                  <dd>
+                    <h3>
+                      <Link href={href} {...extProps}>
+                        {p.title}
+                      </Link>
+                    </h3>
+                    <p>{p.excerpt}</p>
+                    <Link className="proj-more" href={href} aria-label="Xem thêm" {...extProps} />
+                  </dd>
+                </dl>
+              </div>
+            );
+          })}
         </div>
       </div>
     </div>
