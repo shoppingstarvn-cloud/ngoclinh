@@ -1951,6 +1951,46 @@ a.more:hover {
 .menu > ul > li > ul > li > ul li:hover { background: transparent; }
 .menu > ul > li > ul > li > ul li:hover > a { background: #f4fbf6; color: #00A651; padding-left: 24px; }
 
+/* Cầu nối VÔ HÌNH: rê chuột từ menu xuống dropdown không bị "hụt" (mất hover) */
+.menu > ul > li > ul::before {
+  content: "";
+  position: absolute;
+  top: -16px; left: 0; right: 0;
+  height: 16px;
+  background: transparent;
+}
+.menu > ul > li > ul > li > ul::before {
+  content: "";
+  position: absolute;
+  top: 0; left: -14px;
+  width: 14px; height: 100%;
+  background: transparent;
+}
+
+/* =========================================================================
+   KHỐI DANH MỤC: bỏ kiểu khối chữ ĐÈ lên ảnh (top:-50px).
+   Ảnh ở trên trọn vẹn, khối chữ nằm hẳn DƯỚI, khớp biên, không che ảnh.
+   ========================================================================= */
+.service_home .item_s.cat-card dl dd {
+  margin: 0;
+  padding: 0 0 14px;
+}
+.service_home .item_s.cat-card dl dd h3 {
+  position: static;   /* bỏ absolute -50px -> không còn đè ảnh */
+  top: auto;
+  left: auto;
+  width: 100%;
+  height: auto;
+  line-height: 1.35;
+  overflow: visible;
+  margin: 0;
+  background: #fff;
+}
+.service_home .item_s.cat-card dl dd > div {
+  padding: 6px 18px 0;
+  color: #555;
+}
+
 /* =========================================================================
    .fx-card — HIỆU ỨNG KHỐI MODULE DÙNG CHUNG TOÀN WEBSITE
    Gắn class "fx-card" vào thẻ bọc khối (có <dl> bên trong) là có ngay:
