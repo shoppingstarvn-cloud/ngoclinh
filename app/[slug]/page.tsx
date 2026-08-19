@@ -8,8 +8,34 @@ import { createClient } from '@/lib/supabase/server';
 import { getLegacyPathForSlug } from '@/lib/detail-map';
 import { extractBodyHtml, extractTitle, readLegacyHtml } from '@/lib/legacy-html';
 import { SHARE_DESCRIPTION, absoluteUrl, shareOpenGraph, shareTwitter } from '@/lib/seo';
+import { resolveHref } from '@/lib/slug';
 
 const RESERVED = new Set(['legacy', 'api', 'admin', 'uploads']);
+
+/**
+ * Tìm "Link đích" (link_url) TRỎ RA NGOÀI của bản ghi khớp slug (dự án/sản phẩm/
+ * danh mục). Nếu có -> trang chi tiết sẽ redirect thẳng, KHÔNG mở trang nội bộ.
+ * Fix triệt để: link đích đã nhập nhưng vẫn kẹt ở slug nội bộ / 404.
+ */
+async function findExternalLinkForSlug(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  slug: string,
+): Promise<string | null> {
+  const tables = ['projects', 'products', 'categories'] as const;
+  const results = await Promise.all(
+    tables.map((t) =>
+      supabase.from(t).select('link_url').eq('slug', slug).eq('is_active', true).limit(1),
+    ),
+  );
+  for (const r of results) {
+    const raw = String(r.data?.[0]?.link_url || '').trim();
+    if (!raw) continue;
+    const href = resolveHref(raw);
+    // Chỉ chuyển hướng khi là link tuyệt đối ra ngoài và không tự trỏ lại slug này (tránh lặp).
+    if (/^https?:\/\//i.test(href) && !href.includes(`/${slug}.html`)) return href;
+  }
+  return null;
+}
 
 /** Trang listing lấy từ Supabase thay vì HTML tĩnh cũ */
 const PROJECT_LISTING_SLUGS = new Set(['du-an-a3', 'du-an']);
@@ -73,6 +99,11 @@ export default async function SlugPage({ params }: PageProps) {
   if (RESERVED.has(decodedSlug)) notFound();
 
   const supabase = await createClient();
+
+  // Ưu tiên "Link đích" ra ngoài (nếu có) -> chuyển hướng thẳng, không mở trang nội bộ.
+  const externalTarget = await findExternalLinkForSlug(supabase, decodedSlug);
+  if (externalTarget) redirect(externalTarget);
+
   const home = await getHomepageData();
   const shellProps = {
     settings: home.settings,
