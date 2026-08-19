@@ -48,29 +48,31 @@ export function SiteHeader({
   const socialLinks = links.filter((l) => l.link_group === 'social');
   const facebookHref = settings.facebook_url || socialLinks.find((l) => /facebook/i.test(l.label + l.url))?.url;
 
-  const renderMenu = (mobile = false) =>
-    roots.map((m) => {
+  // Render menu ĐỆ QUY: cấp 1 (gốc) → cấp 2 (sổ xuống) → cấp 3 (sổ ngang ra phải).
+  // Theme đã có CSS .menu>ul>li>ul (cấp 2) và .menu>ul>li>ul>li>ul (cấp 3).
+  const renderItems = (items: MenuItem[], mobile: boolean, depth: number) =>
+    items.map((m) => {
       const subs = children(m.id);
+      const hasSub = subs.length > 0;
+      const href = toHref(m.url);
+      const extProps = /^https?:\/\//i.test(href)
+        ? { target: '_blank', rel: 'noopener noreferrer' as const }
+        : {};
       return (
         <li key={m.id}>
-          <Link href={toHref(m.url)}>
-            {m.label}
-            {subs.length > 0 && !mobile && <i className="fa fa-angle-down" />}
+          <Link href={href} {...extProps}>
+            {mobile && depth > 1 && <i className="fa fa-angle-right" />} {m.label}
+            {hasSub && !mobile && depth === 1 && <i className="fa fa-angle-down" />}
+            {hasSub && !mobile && depth >= 2 && <i className="fa fa-chevron-right" />}
           </Link>
-          {subs.length > 0 && (
-            <ul className={mobile ? 'one' : undefined}>
-              {subs.map((s) => (
-                <li key={s.id}>
-                  <Link href={toHref(s.url)}>
-                    {mobile && <i className="fa fa-angle-right" />} {s.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
+          {hasSub && (
+            <ul className={mobile ? 'one' : undefined}>{renderItems(subs, mobile, depth + 1)}</ul>
           )}
         </li>
       );
     });
+
+  const renderMenu = (mobile = false) => renderItems(roots, mobile, 1);
 
   return (
     <>
