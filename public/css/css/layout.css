@@ -1990,8 +1990,12 @@ a.more:hover {
   padding: 6px 18px 0;
   color: #555;
 }
-/* Ảnh phủ KÍN bề ngang, cao theo đúng tỉ lệ gốc — trọn ảnh, TUYỆT ĐỐI không dải trắng thừa */
+/* ===== KHUNG ẢNH CHUẨN TỈ LỆ 320:217 (~3:2) — CHỈ cho khối danh mục (.cat-card) =====
+   Mọi ảnh tự cắt khít về CÙNG tỉ lệ (object-fit: cover) -> 6 khối đều tăm tắp,
+   KHÔNG dải trắng thừa, hiển thị được nhiều nhất. Nhân bản khối (giữ class cat-card)
+   là tự có tính năng này. Các nơi upload khác KHÔNG dính (không dùng .cat-card). */
 .service_home .item_s.cat-card dl dt a {
+  aspect-ratio: 320 / 217;
   height: auto;
   overflow: hidden;
   display: block;
@@ -1999,10 +2003,11 @@ a.more:hover {
 }
 .service_home .item_s.cat-card dl dt a img {
   width: 100%;
-  height: auto;
+  height: 100%;
   min-height: 0;
-  max-width: 100%;
-  object-fit: fill;
+  max-width: none;
+  object-fit: cover;   /* cắt khít khung, không để lộ dải trắng */
+  object-position: center;
   display: block;
 }
 
