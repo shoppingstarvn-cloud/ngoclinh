@@ -1879,6 +1879,43 @@ a.more:hover {
 }
 
 /* =========================================================================
+   TIÊU ĐỀ NEON — nhấp nháy đổi màu (đèn neon nhiều màu)
+   ========================================================================= */
+.neon-title {
+  display: inline-block;
+  font-weight: 800;
+  color: #fff;
+  animation: neonColor 6s linear infinite, neonFlicker 3.2s linear infinite;
+}
+@keyframes neonColor {
+  0%   { color:#ff2d95; }
+  20%  { color:#00e5ff; }
+  40%  { color:#39ff14; }
+  60%  { color:#ffd400; }
+  80%  { color:#b14bff; }
+  100% { color:#ff2d95; }
+}
+/* Quầng sáng neon đổi theo màu + chớp nhẹ ngẫu nhiên */
+@keyframes neonFlicker {
+  0%, 18%, 22%, 25%, 53%, 57%, 100% {
+    text-shadow:
+      0 0 4px currentColor,
+      0 0 11px currentColor,
+      0 0 22px currentColor,
+      0 0 42px currentColor,
+      0 0 80px currentColor;
+    opacity: 1;
+  }
+  20%, 24%, 55% {
+    text-shadow: none;
+    opacity: .78;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .neon-title { animation: neonColor 8s linear infinite; }
+}
+
+/* =========================================================================
    KHỐI DỰ ÁN — THIẾT KẾ LẠI: LOGO Ở TRÊN, CHỮ Ở DƯỚI, KHÔNG ĐÈ NHAU
    ========================================================================= */
 .project .list_project .item.proj-card { margin-bottom: 30px; }

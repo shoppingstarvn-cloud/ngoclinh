@@ -318,8 +318,7 @@ export function ProjectSection({ projects }: { projects: Project[] }) {
       <div className="container">
         <div className="title">
           <p>
-            <span>Những dự án</span>
-            <br /> đã hợp tác
+            <span className="neon-title">Những dự án</span>
           </p>
         </div>
         <div className="brief" />
