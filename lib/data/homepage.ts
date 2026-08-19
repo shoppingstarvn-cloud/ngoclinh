@@ -31,8 +31,10 @@ export async function getHomepageData() {
       .from('slides')
       .select('*')
       .eq('is_active', true)
-      .order('display_order')
-      .limit(10),
+      // Sắp theo thứ tự; khi trùng số (vd tất cả = 0) thì slide mới (id lớn) lên trước.
+      // KHÔNG giới hạn số lượng — hiện TẤT CẢ slide đang bật (Supabase mặc định tối đa 1000).
+      .order('display_order', { ascending: true })
+      .order('id', { ascending: false }),
     supabase
       .from('products')
       .select('*')
