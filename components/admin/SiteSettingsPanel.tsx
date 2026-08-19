@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { AdminRow, SITE_SETTINGS_FIXED_KEYS } from '@/lib/cms/admin-schema';
 import ImageUploadField from './ImageUploadField';
+import RichTextEditor from './RichTextEditor';
 import { saveSiteSettingsAction } from '@/lib/actions/admin-actions';
 
 const LABELS: Record<(typeof SITE_SETTINGS_FIXED_KEYS)[number], string> = {
@@ -106,7 +107,11 @@ export default function SiteSettingsPanel({ rows, onSaved }: SiteSettingsPanelPr
           </div>
           <div className="col-md-12 mb-3">
             <label className="form-label fw-bold">{LABELS.intro_text}</label>
-            <textarea className="form-control" rows={5} value={values.intro_text || ''} onChange={(e) => set('intro_text', e.target.value)} />
+            <RichTextEditor
+              key={`intro-${values.intro_text ? 'loaded' : 'empty'}`}
+              initialValue={values.intro_text || ''}
+              onChange={(html) => set('intro_text', html)}
+            />
           </div>
         </div>
         {error && (
