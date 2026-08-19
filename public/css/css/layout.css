@@ -1765,19 +1765,19 @@ a.more:hover {
   cursor: pointer;
 }
 .service_home .item_s.cat-card:hover dl {
-  transform: translateY(-10px) perspective(760px) rotateX(4deg) scale(1.035);
-  animation: catWiggle .65s ease;
-  filter: drop-shadow(0 16px 26px rgba(0,64,0,.28));
+  /* Nhấp nhún XUỐNG 3D — ấn xuống rồi nảy nhẹ, KHÔNG xoay lúc lắc */
+  transform: translateY(6px) perspective(780px) rotateX(6deg) scale(.985);
+  animation: catPress .5s cubic-bezier(.34,1.56,.64,1);
+  filter: drop-shadow(0 8px 16px rgba(0,64,0,.26));
 }
 .service_home .item_s.cat-card:active dl {
-  transform: translateY(-4px) scale(1.01);
+  transform: translateY(9px) perspective(780px) rotateX(8deg) scale(.975);
 }
-@keyframes catWiggle {
-  0%   { transform: translateY(-10px) rotate(0deg)    scale(1.035); }
-  22%  { transform: translateY(-12px) rotate(-1.3deg) scale(1.045); }
-  48%  { transform: translateY(-12px) rotate(1.3deg)  scale(1.045); }
-  72%  { transform: translateY(-11px) rotate(-.6deg)  scale(1.04); }
-  100% { transform: translateY(-10px) rotate(0deg)    scale(1.035); }
+@keyframes catPress {
+  0%   { transform: translateY(0)   perspective(780px) rotateX(0deg)   scale(1); }
+  45%  { transform: translateY(10px) perspective(780px) rotateX(9deg)  scale(.972); }
+  72%  { transform: translateY(3px)  perspective(780px) rotateX(4deg)  scale(.994); }
+  100% { transform: translateY(6px)  perspective(780px) rotateX(6deg)  scale(.985); }
 }
 .service_home .item_s.cat-card dl dt { transition: box-shadow .38s ease; }
 .service_home .item_s.cat-card:hover dl dt {
@@ -1839,7 +1839,7 @@ a.more:hover {
 
 /* Rê chuột mượt trên di động: giảm hiệu ứng 3D nặng */
 @media (max-width: 767px) {
-  .service_home .item_s.cat-card:hover dl { transform: translateY(-4px) scale(1.01); animation: none; }
+  .service_home .item_s.cat-card:hover dl { transform: translateY(4px) scale(.99); animation: none; }
   .service_home .item_s.cat-card .cat-submenu { position: static; opacity: 1; visibility: visible; transform: none; margin: 8px 15px 0; }
 }
 
