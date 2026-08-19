@@ -325,25 +325,23 @@ export function ProjectSection({ projects }: { projects: Project[] }) {
         <div className="brief" />
         <div className="row list_project">
           {projects.map((p) => (
-            <div key={p.id} className="col-12 col-md-6 item">
+            <div key={p.id} className="col-12 col-md-6 item proj-card fx-card">
               <dl>
                 <dt>
-                  <div className="swing">
-                    <figure>
-                      <Link href={postHref(p.slug)}>
-                        {p.thumbnail_url && <img src={assetUrl(p.thumbnail_url)} alt={p.title} />}
-                      </Link>
-                    </figure>
-                  </div>
+                  {/* effect-v7 = kim tuyến quét sáng; logo canh giữa, không tràn */}
+                  <figure className="effect-v7">
+                    <Link href={postHref(p.slug)} title={p.title}>
+                      {p.thumbnail_url && <img src={assetUrl(p.thumbnail_url)} alt={p.title} />}
+                    </Link>
+                  </figure>
                 </dt>
                 <dd>
                   <h3>
                     <Link href={postHref(p.slug)}>{p.title}</Link>
                   </h3>
                   <p>{p.excerpt}</p>
-                  <Link href={postHref(p.slug)} />
+                  <Link className="proj-more" href={postHref(p.slug)} aria-label="Xem thêm" />
                 </dd>
-                <div className="clearfix" />
               </dl>
             </div>
           ))}
@@ -522,7 +520,7 @@ export function NewsSection({ posts }: { posts: Post[] }) {
           <p>Tin tức mới nhất</p>
         </div>
         <div className="row list_news">
-          <div className="col-12 col-md-6 big_item">
+          <div className="col-12 col-md-6 big_item fx-card">
             <dl>
               <dt>
                 <div className="swing">
@@ -548,7 +546,7 @@ export function NewsSection({ posts }: { posts: Post[] }) {
 
           <div className="col-12 col-md-6 right">
             {rest.slice(0, 4).map((p) => (
-              <div key={p.id} className="col-6 item">
+              <div key={p.id} className="col-6 item fx-card">
                 <dl>
                   <dt>
                     <div className="swing">

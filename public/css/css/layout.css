@@ -1843,6 +1843,123 @@ a.more:hover {
   .service_home .item_s.cat-card .cat-submenu { position: static; opacity: 1; visibility: visible; transform: none; margin: 8px 15px 0; }
 }
 
+/* =========================================================================
+   .fx-card — HIỆU ỨNG KHỐI MODULE DÙNG CHUNG TOÀN WEBSITE
+   Gắn class "fx-card" vào thẻ bọc khối (có <dl> bên trong) là có ngay:
+   hover nhấp nhún XUỐNG 3D + nảy nhẹ. Kết hợp <figure class="effect-v7">
+   quanh ảnh để có thêm kim tuyến quét sáng + zoom.
+   ========================================================================= */
+.fx-card { position: relative; z-index: 1; }
+.fx-card:hover { z-index: 50; }
+.fx-card > dl,
+.fx-card > .fx-inner {
+  transition: transform .38s cubic-bezier(.2,.8,.3,1.15), box-shadow .38s ease, filter .38s ease;
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+.fx-card:hover > dl,
+.fx-card:hover > .fx-inner {
+  transform: translateY(6px) perspective(780px) rotateX(6deg) scale(.985);
+  animation: fxPress .5s cubic-bezier(.34,1.56,.64,1);
+  filter: drop-shadow(0 10px 18px rgba(0,64,0,.24));
+}
+.fx-card:active > dl,
+.fx-card:active > .fx-inner {
+  transform: translateY(9px) perspective(780px) rotateX(8deg) scale(.975);
+}
+@keyframes fxPress {
+  0%   { transform: translateY(0)    perspective(780px) rotateX(0deg)  scale(1); }
+  45%  { transform: translateY(10px) perspective(780px) rotateX(9deg)  scale(.972); }
+  72%  { transform: translateY(3px)  perspective(780px) rotateX(4deg)  scale(.994); }
+  100% { transform: translateY(6px)  perspective(780px) rotateX(6deg)  scale(.985); }
+}
+@media (max-width: 767px) {
+  .fx-card:hover > dl,
+  .fx-card:hover > .fx-inner { transform: translateY(4px) scale(.99); animation: none; }
+}
+
+/* =========================================================================
+   KHỐI DỰ ÁN — THIẾT KẾ LẠI: LOGO Ở TRÊN, CHỮ Ở DƯỚI, KHÔNG ĐÈ NHAU
+   ========================================================================= */
+.project .list_project .item.proj-card { margin-bottom: 30px; }
+.project .list_project .item.proj-card dl {
+  background: #fff;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 6px 18px rgba(0,0,0,.10);
+  height: 100%;
+  margin: 0;
+}
+/* Bỏ xếp 50/50 -> xếp DỌC */
+.project .list_project .item.proj-card dl dt,
+.project .list_project .item.proj-card dl dd {
+  width: 100%;
+  float: none;
+}
+/* Khung logo canh giữa, KHÔNG cho ảnh tràn */
+.project .list_project .item.proj-card dl dt .effect-v7 {
+  display: block;
+  margin: 0;
+  height: 210px;
+  background: #f5f7f9;
+  overflow: hidden;
+}
+.project .list_project .item.proj-card dl dt .effect-v7 > a {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  padding: 22px;
+  box-sizing: border-box;
+}
+.project .list_project .item.proj-card dl dt .effect-v7 > a img {
+  max-width: 88%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+}
+/* Vùng chữ dưới logo */
+.project .list_project .item.proj-card dl dd {
+  position: relative;
+  padding: 22px 28px 52px;
+  text-align: center;
+}
+.project .list_project .item.proj-card dl dd > h3 {
+  height: auto;
+  margin-bottom: 10px;
+  line-height: 26px;
+}
+.project .list_project .item.proj-card dl dd > p {
+  height: auto;
+  max-height: 66px;
+  overflow: hidden;
+  color: #555;
+}
+.project .list_project .item.proj-card dl dd .proj-more {
+  position: absolute;
+  right: 26px;
+  bottom: 16px;
+  width: 26px;
+  height: 26px;
+  display: block;
+}
+.project .list_project .item.proj-card dl dd .proj-more:before {
+  position: absolute;
+  content: "\f138";
+  right: 0;
+  top: 0;
+  font-family: Fontawesome;
+  color: #004000;
+  font-size: 24px;
+  transition: transform .3s ease, color .3s ease;
+}
+.project .list_project .item.proj-card:hover dl dd .proj-more:before {
+  color: #00A651;
+  transform: translateX(4px);
+}
+
 
 
 
