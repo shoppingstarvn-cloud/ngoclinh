@@ -1992,7 +1992,7 @@ a.more:hover {
 }
 /* Khung ảnh CỐ ĐỊNH — 6 khối cao bằng nhau, ảnh THẤY TRỌN (contain) + nền viền 2 bên */
 .service_home .item_s.cat-card dl dt a {
-  height: 200px;
+  height: 260px;
   overflow: hidden;
   display: block;
   background: #f5f7f9;   /* nền viền khi ảnh không phủ kín khung */
