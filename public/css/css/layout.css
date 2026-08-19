@@ -1990,6 +1990,21 @@ a.more:hover {
   padding: 6px 18px 0;
   color: #555;
 }
+/* Khung ảnh CỐ ĐỊNH — 6 khối cao bằng nhau, ảnh THẤY TRỌN (contain) + nền viền 2 bên */
+.service_home .item_s.cat-card dl dt a {
+  height: 200px;
+  overflow: hidden;
+  display: block;
+  background: #f5f7f9;   /* nền viền khi ảnh không phủ kín khung */
+}
+.service_home .item_s.cat-card dl dt a img {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  max-width: 100%;
+  object-fit: contain;   /* thấy trọn ảnh, không cắt xén */
+  display: block;
+}
 
 /* =========================================================================
    .fx-card — HIỆU ỨNG KHỐI MODULE DÙNG CHUNG TOÀN WEBSITE
