@@ -1749,6 +1749,100 @@ a.more:hover {
     background:rgba(255,255,255,0.3)
 }
 
+/* =========================================================================
+   NÂNG CẤP KHỐI DANH MỤC TRANG CHỦ
+   - Hover: nhún xuống + nghiêng 3D + rung nhẹ (wiggle)
+   - Ảnh: kim tuyến quét sáng (dùng .effect-v7 sẵn có) + zoom
+   - Menu con sổ xuống mượt, admin tự thêm/sửa/xóa
+   ========================================================================= */
+.service_home .item_s.cat-card { position: relative; z-index: 1; }
+.service_home .item_s.cat-card:hover { z-index: 50; }
+
+.service_home .item_s.cat-card dl {
+  transition: transform .38s cubic-bezier(.2,.8,.3,1.15), box-shadow .38s ease, filter .38s ease;
+  transform-style: preserve-3d;
+  will-change: transform;
+  cursor: pointer;
+}
+.service_home .item_s.cat-card:hover dl {
+  transform: translateY(-10px) perspective(760px) rotateX(4deg) scale(1.035);
+  animation: catWiggle .65s ease;
+  filter: drop-shadow(0 16px 26px rgba(0,64,0,.28));
+}
+.service_home .item_s.cat-card:active dl {
+  transform: translateY(-4px) scale(1.01);
+}
+@keyframes catWiggle {
+  0%   { transform: translateY(-10px) rotate(0deg)    scale(1.035); }
+  22%  { transform: translateY(-12px) rotate(-1.3deg) scale(1.045); }
+  48%  { transform: translateY(-12px) rotate(1.3deg)  scale(1.045); }
+  72%  { transform: translateY(-11px) rotate(-.6deg)  scale(1.04); }
+  100% { transform: translateY(-10px) rotate(0deg)    scale(1.035); }
+}
+.service_home .item_s.cat-card dl dt { transition: box-shadow .38s ease; }
+.service_home .item_s.cat-card:hover dl dt {
+  box-shadow: -8px 12px 22px rgba(0,64,0,.35);
+}
+/* Tiêu đề đổi màu + gạch chân trượt khi hover khối */
+.service_home .item_s.cat-card dl dd h3 a { transition: color .3s ease; }
+.service_home .item_s.cat-card:hover dl dd h3 a { color: #00A651; }
+
+/* --- Menu con sổ xuống --- */
+.service_home .item_s.cat-card .cat-submenu {
+  position: absolute;
+  left: 15px; right: 15px;
+  top: 100%;
+  margin-top: -6px;
+  background: #fff;
+  border-top: 3px solid #00A651;
+  box-shadow: 0 14px 30px rgba(0,0,0,.22);
+  border-radius: 0 0 10px 10px;
+  list-style: none;
+  padding: 6px 0;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(12px);
+  transition: opacity .32s ease, transform .32s ease, visibility .32s;
+  z-index: 60;
+}
+.service_home .item_s.cat-card:hover .cat-submenu {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+.service_home .item_s.cat-card .cat-submenu li { margin: 0; padding: 0; }
+.service_home .item_s.cat-card .cat-submenu li a {
+  display: block;
+  padding: 11px 20px;
+  color: #222;
+  font-size: 14px;
+  line-height: 1.35;
+  text-decoration: none;
+  border-bottom: 1px solid #f1f1f1;
+  transition: background .22s ease, color .22s ease, padding-left .22s ease;
+}
+.service_home .item_s.cat-card .cat-submenu li:last-child a { border-bottom: none; }
+.service_home .item_s.cat-card .cat-submenu li a:before {
+  content: "›";
+  color: #00A651;
+  font-weight: 700;
+  margin-right: 8px;
+  opacity: 0;
+  transition: opacity .22s ease;
+}
+.service_home .item_s.cat-card .cat-submenu li a:hover {
+  background: #f4fbf6;
+  color: #00A651;
+  padding-left: 26px;
+}
+.service_home .item_s.cat-card .cat-submenu li a:hover:before { opacity: 1; }
+
+/* Rê chuột mượt trên di động: giảm hiệu ứng 3D nặng */
+@media (max-width: 767px) {
+  .service_home .item_s.cat-card:hover dl { transform: translateY(-4px) scale(1.01); animation: none; }
+  .service_home .item_s.cat-card .cat-submenu { position: static; opacity: 1; visibility: visible; transform: none; margin: 8px 15px 0; }
+}
+
 
 
 

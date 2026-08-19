@@ -11,7 +11,7 @@ interface SidebarProps {
 
 const SECTIONS: { title: string; tables: string[] }[] = [
   { title: 'Cấu Hình', tables: ['site_settings'] },
-  { title: 'Nội Dung', tables: ['slides', 'activity_images', 'menus', 'categories', 'posts', 'projects', 'products', 'partners', 'testimonials', 'videos', 'photos'] },
+  { title: 'Nội Dung', tables: ['slides', 'activity_images', 'menus', 'categories', 'category_submenus', 'posts', 'projects', 'products', 'partners', 'testimonials', 'videos', 'photos'] },
   { title: 'Liên Hệ', tables: ['contact_submissions'] },
   { title: 'Hệ Thống', tables: ['links'] },
 ];

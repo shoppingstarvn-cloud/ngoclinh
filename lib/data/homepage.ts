@@ -23,6 +23,7 @@ export async function getHomepageData() {
     projects,
     menus,
     categories,
+    categorySubmenus,
     links,
     activityImages,
     settingsRows,
@@ -80,6 +81,11 @@ export async function getHomepageData() {
       .order('display_order')
       .limit(12),
     supabase
+      .from('category_submenus')
+      .select('*')
+      .eq('is_active', true)
+      .order('display_order'),
+    supabase
       .from('links')
       .select('*')
       .eq('is_active', true)
@@ -99,6 +105,18 @@ export async function getHomepageData() {
     settings[r.key] = r.value;
   });
 
+  // Gom menu con theo khối cha để mỗi danh mục có mảng submenus riêng.
+  const submenuByCat = new Map<number, { id: number; label: string; link_url?: string }[]>();
+  (categorySubmenus.data ?? []).forEach((s) => {
+    const cid = Number(s.category_id);
+    if (!submenuByCat.has(cid)) submenuByCat.set(cid, []);
+    submenuByCat.get(cid)!.push({ id: s.id, label: s.label, link_url: s.link_url });
+  });
+  const categoriesWithSubmenus = (categories.data ?? []).map((c) => ({
+    ...c,
+    submenus: submenuByCat.get(Number(c.id)) ?? [],
+  }));
+
   return {
     slides: slides.data ?? [],
     // Chỉ sản phẩm có ảnh local/Supabase — bỏ video không ảnh, CDN chết (/https://vacdn…)
@@ -111,7 +129,7 @@ export async function getHomepageData() {
     posts: posts.data ?? [],
     projects: projects.data ?? [],
     menus: menus.data ?? [],
-    categories: categories.data ?? [],
+    categories: categoriesWithSubmenus,
     links: links.data ?? [],
     // Hình ảnh hoạt động — chỉ ảnh hợp lệ (local/Supabase/Drive)
     activityImages: (activityImages.data ?? []).filter((a) => isValidAssetUrl(a.image_url)),

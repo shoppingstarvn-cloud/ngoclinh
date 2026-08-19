@@ -397,6 +397,34 @@ export const ADMIN_TABLES: AdminTableDef[] = [
     ],
   },
   {
+    name: 'category_submenus',
+    label: 'Menu con (khối danh mục)',
+    icon: 'list-ul',
+    pk: 'id',
+    fields: [
+      { key: 'category_id', label: 'Thuộc khối/danh mục nào (ID)', type: 'number', required: true },
+      { key: 'label', label: 'Tên menu con', type: 'text', required: true },
+      { key: 'link_url', label: 'Link đích khi bấm (VD: /cong-tron-c53.html)', type: 'text' },
+      { key: 'display_order', label: 'Thứ tự', type: 'number' },
+      { key: 'is_active', label: 'Kích hoạt', type: 'checkbox' },
+    ],
+    cols: [
+      { key: 'id', label: 'ID' },
+      {
+        key: 'category_id',
+        label: 'Khối cha',
+        render: (v, _row, allData) => {
+          const cat = (allData.categories || []).find((c) => c.id === v);
+          return cat ? String(cat.name) : `#${String(v ?? '')}`;
+        },
+      },
+      { key: 'label', label: 'Tên menu con' },
+      { key: 'link_url', label: 'Link đích' },
+      { key: 'display_order', label: 'Thứ tự' },
+      { key: 'is_active', label: 'Active', render: boolBadge },
+    ],
+  },
+  {
     name: 'activity_images',
     label: 'Hình ảnh hoạt động',
     icon: 'images',

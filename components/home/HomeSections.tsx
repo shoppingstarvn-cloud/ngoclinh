@@ -80,6 +80,12 @@ export function AboutLink({
   );
 }
 
+interface CategorySubmenu {
+  id: number;
+  label: string;
+  link_url?: string;
+}
+
 interface Category {
   id: number;
   name: string;
@@ -88,6 +94,7 @@ interface Category {
   description?: string;
   thumbnail_url?: string;
   image_url?: string;
+  submenus?: CategorySubmenu[];
 }
 
 export function CategoryGrid({ categories }: { categories: Category[] }) {
@@ -96,26 +103,44 @@ export function CategoryGrid({ categories }: { categories: Category[] }) {
     <div className="service_home">
       <div className="container">
         <div className="row">
-          {categories.map((cat) => (
-            <div key={cat.id} className="col-12 col-md-4 item_s">
-              <dl>
-                <dt>
-                  <Link href={itemHref(cat)} title={cat.name}>
-                    <img
-                      src={assetUrl(cat.thumbnail_url || cat.image_url) || '/images/placeholder.jpg'}
-                      alt={cat.name}
-                    />
-                  </Link>
-                </dt>
-                <dd>
-                  <h3>
-                    <Link href={itemHref(cat)}>{cat.name}</Link>
-                  </h3>
-                  <div>{cat.description}</div>
-                </dd>
-              </dl>
-            </div>
-          ))}
+          {categories.map((cat) => {
+            const subs = (cat.submenus ?? []).filter((s) => s.label);
+            return (
+              <div key={cat.id} className="col-12 col-md-4 item_s cat-card">
+                <dl>
+                  <dt>
+                    {/* effect-v7 = hiệu ứng kim tuyến quét sáng + zoom (giống vùng bài viết) */}
+                    <figure className="effect-v7">
+                      <Link href={itemHref(cat)} title={cat.name}>
+                        <img
+                          src={
+                            assetUrl(cat.thumbnail_url || cat.image_url) ||
+                            '/images/placeholder.jpg'
+                          }
+                          alt={cat.name}
+                        />
+                      </Link>
+                    </figure>
+                  </dt>
+                  <dd>
+                    <h3>
+                      <Link href={itemHref(cat)}>{cat.name}</Link>
+                    </h3>
+                    <div>{cat.description}</div>
+                  </dd>
+                </dl>
+                {subs.length > 0 && (
+                  <ul className="cat-submenu">
+                    {subs.map((s) => (
+                      <li key={s.id}>
+                        <Link href={s.link_url || itemHref(cat)}>{s.label}</Link>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            );
+          })}
         </div>
       </div>
     </div>
