@@ -550,8 +550,29 @@ interface Post {
 }
 
 export function NewsSection({ posts }: { posts: Post[] }) {
+  useOwlCarousel(
+    '.news-carousel',
+    {
+      loop: posts.length > 2,
+      autoplay: posts.length > 1,
+      autoplayTimeout: 4000,
+      autoplayHoverPause: true,
+      autoplaySpeed: 700,
+      smartSpeed: 700,
+      margin: 20,
+      nav: false,
+      dots: posts.length > 2,
+      slideBy: 1,
+      responsiveClass: true,
+      responsive: {
+        0: { items: 1, dots: true },
+        768: { items: 2, dots: true },
+      },
+    },
+    [posts.length],
+  );
+
   if (!posts.length) return null;
-  const [first, ...rest] = posts;
 
   return (
     <div className="news">
@@ -559,40 +580,18 @@ export function NewsSection({ posts }: { posts: Post[] }) {
         <div className="title">
           <p>Tin tức mới nhất</p>
         </div>
-        <div className="row list_news">
-          <div className="col-12 col-md-6 big_item fx-card">
-            <dl>
-              <dt>
-                <div className="swing">
-                  <figure className="effect-v7">
-                    <Link href={postHref(first.slug)}>
-                      {first.thumbnail_url && (
-                        <img src={assetUrl(first.thumbnail_url)} alt={first.title} />
-                      )}
-                    </Link>
-                  </figure>
-                </div>
-              </dt>
-              <dd>
-                <h3>
-                  <Link href={postHref(first.slug)}>{first.title}</Link>
-                </h3>
-                <p>{first.excerpt}</p>
-                <Link href={postHref(first.slug)}>Xem thêm</Link>
-                <div className="clearfix" />
-              </dd>
-            </dl>
-          </div>
-
-          <div className="col-12 col-md-6 right">
-            {rest.slice(0, 4).map((p) => (
-              <div key={p.id} className="col-6 item fx-card">
+        <div className="list_news">
+          <div className="owl-carousel owl-theme news-carousel">
+            {posts.map((p) => (
+              <div key={p.id} className="item big_item fx-card">
                 <dl>
                   <dt>
                     <div className="swing">
                       <figure className="effect-v7">
                         <Link href={postHref(p.slug)}>
-                          {p.thumbnail_url && <img src={assetUrl(p.thumbnail_url)} alt={p.title} />}
+                          {p.thumbnail_url && (
+                            <img src={assetUrl(p.thumbnail_url)} alt={p.title} />
+                          )}
                         </Link>
                       </figure>
                     </div>
@@ -601,7 +600,9 @@ export function NewsSection({ posts }: { posts: Post[] }) {
                     <h3>
                       <Link href={postHref(p.slug)}>{p.title}</Link>
                     </h3>
-                    <Link href={postHref(p.slug)} />
+                    <p>{p.excerpt}</p>
+                    <Link href={postHref(p.slug)}>Xem thêm</Link>
+                    <div className="clearfix" />
                   </dd>
                 </dl>
               </div>
