@@ -55,10 +55,10 @@ export default async function HomePage() {
       <AboutLink companyName={companyName} introHtml={data.settings.intro_text} />
       <CategoryGrid categories={data.categories} />
       <ActivitySection images={data.activityImages} />
+      <NewsSection posts={data.posts} />
       <ProjectSection projects={data.projects} />
       <PartnerSection partners={data.partners} />
       <TestimonialSection testimonials={data.testimonials} />
-      <NewsSection posts={data.posts} />
     </SiteShell>
   );
 }
