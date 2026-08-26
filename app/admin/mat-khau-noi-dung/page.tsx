@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, type CSSProperties } from 'react';
+import Link from 'next/link';
 
 /**
  * Trang quản lý MẬT KHẨU XEM NỘI DUNG (khối Hoạt động phong trào).
@@ -94,9 +95,9 @@ export default function ContentGateAdminPage() {
           <h2 style={{ color: '#004000', marginTop: 0 }}>🔒 Mật khẩu xem nội dung</h2>
           <p>
             Bạn cần đăng nhập Super Admin trước. Hãy mở{' '}
-            <a href="/admin" style={{ color: '#00A651' }}>
+            <Link href="/admin" style={{ color: '#00A651' }}>
               /admin
-            </a>{' '}
+            </Link>{' '}
             đăng nhập, rồi quay lại trang này.
           </p>
         </div>
