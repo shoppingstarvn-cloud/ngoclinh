@@ -19,9 +19,21 @@ interface Props {
   onAuthed: (user: AuthUser) => void;
 }
 
+interface GoogleGIS {
+  accounts: {
+    id: {
+      initialize: (config: {
+        client_id: string;
+        callback: (resp: { credential: string }) => void;
+      }) => void;
+      renderButton: (parent: HTMLElement, options: Record<string, unknown>) => void;
+    };
+  };
+}
+
 declare global {
   interface Window {
-    google?: any;
+    google?: GoogleGIS;
     __gisLoaded?: boolean;
   }
 }
