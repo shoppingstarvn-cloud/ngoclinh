@@ -17,6 +17,7 @@ export default function ContentGate() {
   const [pw, setPw] = useState('');
   const [err, setErr] = useState('');
   const [busy, setBusy] = useState(false);
+  const [showPw, setShowPw] = useState(false);
 
   useEffect(() => {
     fetch('/api/gate/context')
@@ -128,9 +129,22 @@ export default function ContentGate() {
     boxSizing: 'border-box',
     border: '1px solid #cbd5e1',
     borderRadius: 9,
-    padding: '11px 13px',
+    padding: '11px 44px 11px 13px',
     fontSize: 16,
     outline: 'none',
+  };
+  const eyeBtn: CSSProperties = {
+    position: 'absolute',
+    top: '50%',
+    right: 8,
+    transform: 'translateY(-50%)',
+    border: 'none',
+    background: 'transparent',
+    padding: 6,
+    cursor: 'pointer',
+    color: '#64748b',
+    display: 'flex',
+    alignItems: 'center',
   };
   const note: CSSProperties = {
     marginTop: 12,
@@ -171,15 +185,36 @@ export default function ContentGate() {
           &times;
         </button>
         <h3 style={title}>🔒 Vui lòng nhập Password để xem:</h3>
-        <input
-          style={input}
-          type="password"
-          value={pw}
-          autoFocus
-          placeholder="Nhập mật khẩu"
-          onChange={(e) => setPw(e.target.value)}
-          onKeyDown={(e) => e.key === 'Enter' && submit()}
-        />
+        <div style={{ position: 'relative' }}>
+          <input
+            style={input}
+            type={showPw ? 'text' : 'password'}
+            value={pw}
+            autoFocus
+            placeholder="Nhập mật khẩu"
+            onChange={(e) => setPw(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && submit()}
+          />
+          <button
+            type="button"
+            style={eyeBtn}
+            onClick={() => setShowPw((v) => !v)}
+            aria-label={showPw ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
+            title={showPw ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
+          >
+            {showPw ? (
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
+                <line x1="1" y1="1" x2="23" y2="23" />
+              </svg>
+            ) : (
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                <circle cx="12" cy="12" r="3" />
+              </svg>
+            )}
+          </button>
+        </div>
         {err && <div style={errStyle}>{err}</div>}
         <div style={note}>
           Nếu bạn đăng nhập tài khoản và lưu tài khoản vào trình duyệt + nhập password một lần đầu
