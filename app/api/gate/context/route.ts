@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { resolveHref, itemHref } from '@/lib/slug';
 import { getCurrentUser } from '@/lib/auth/user-session';
-import { GATE_COOKIE, verifyGate, isGatedCategoryName } from '@/lib/gate/gate';
+import { isGatedCategoryName } from '@/lib/gate/gate';
 
 /**
  * Trả về:
@@ -55,17 +55,17 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    let unlocked = await verifyGate(request.cookies.get(GATE_COOKIE)?.value);
-    if (!unlocked) {
-      const user = await getCurrentUser();
-      if (user) {
-        const { data: rows } = await supabase
-          .from('users')
-          .select('content_unlocked')
-          .eq('id', user.id)
-          .limit(1);
-        if (rows?.[0]?.content_unlocked) unlocked = true;
-      }
+    // MỞ KHOÁ chỉ khi: đang đăng nhập tài khoản VÀ tài khoản đó đã nhập mật khẩu 1 lần.
+    // Khách chưa đăng nhập -> luôn phải nhập mật khẩu (không nhớ bằng cookie).
+    let unlocked = false;
+    const user = await getCurrentUser();
+    if (user) {
+      const { data: rows } = await supabase
+        .from('users')
+        .select('content_unlocked')
+        .eq('id', user.id)
+        .limit(1);
+      if (rows?.[0]?.content_unlocked) unlocked = true;
     }
 
     return NextResponse.json({ unlocked, targets });
