@@ -36,7 +36,7 @@ export default function AlbumView({ slug }: { slug: string }) {
 
   const load = useCallback(async () => {
     setLoading(true);
-    const r = await fetch(`/api/album/${slug}`, { cache: 'no-store' });
+    const r = await fetch(`/api/album/lookup?slug=${encodeURIComponent(slug)}`, { cache: 'no-store' });
     if (r.status === 404) { setNotFound(true); setLoading(false); return; }
     const d = await r.json();
     setPage(d.page || null);

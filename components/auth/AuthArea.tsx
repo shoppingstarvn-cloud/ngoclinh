@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import AuthModal, { type AuthUser } from './AuthModal';
 import RequestOpenModal from './RequestOpenModal';
 
@@ -55,6 +56,11 @@ export default function AuthArea({ compact = false }: { compact?: boolean }) {
           {menuOpen && (
             <div className="autharea-menu">
               <div className="autharea-menu-email">{user.email}</div>
+              {(user.role === 'admin1' || user.role === 'superadmin') && (
+                <Link href="/quan-tri-trang-con" onClick={() => setMenuOpen(false)}>
+                  <i className="fa fa-book" /> Trang con / Nhật ký
+                </Link>
+              )}
               <a href="#" onClick={(e) => { e.preventDefault(); logout(); }}>
                 <i className="fa fa-sign-out" /> Đăng xuất
               </a>
