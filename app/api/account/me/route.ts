@@ -1,10 +1,18 @@
 import { NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/auth/user-session';
 import { signMemberToken, MEMBER_COOKIE, memberCookieOptions } from '@/lib/auth/user-jwt';
+import { createAdminClient } from '@/lib/supabase/admin';
 
 export async function GET() {
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ user: null });
+
+  // Lấy vai trò hiện tại (member | admin1 | superadmin) để hiện đúng menu quản trị.
+  let role = 'member';
+  try {
+    const { data } = await createAdminClient().from('users').select('role').eq('id', user.id).limit(1);
+    if (data?.[0]?.role) role = String(data[0].role);
+  } catch { /* giữ mặc định */ }
 
   const res = NextResponse.json({
     user: {
@@ -12,6 +20,7 @@ export async function GET() {
       email: user.email,
       full_name: user.full_name || '',
       avatar_url: user.avatar_url || '',
+      role,
     },
   });
 

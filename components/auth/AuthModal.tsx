@@ -8,6 +8,7 @@ export interface AuthUser {
   email: string;
   full_name?: string;
   avatar_url?: string;
+  role?: string; // member | admin1 | superadmin
 }
 
 type Mode = 'login' | 'register' | 'forgot';
@@ -56,6 +57,7 @@ export default function AuthModal({ open, initialMode = 'login', onClose, onAuth
   const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || '';
   const [inApp, setInApp] = useState<InAppInfo>({ inApp: false, name: '', os: 'other' });
   const [showIosHint, setShowIosHint] = useState(false);
+  const [showPw, setShowPw] = useState(false);
 
   useEffect(() => {
     setInApp(detectInApp());
@@ -124,6 +126,18 @@ export default function AuthModal({ open, initialMode = 'login', onClose, onAuth
     const opened = openInExternalBrowser(inApp);
     if (!opened) setShowIosHint(true); // iOS không có Chrome → hướng dẫn tay
   }
+
+  const renderEye = () => (
+    <button
+      type="button"
+      onClick={() => setShowPw((v) => !v)}
+      aria-label={showPw ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
+      title={showPw ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
+      style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', border: 'none', background: 'transparent', cursor: 'pointer', fontSize: 18, lineHeight: 1, padding: 2 }}
+    >
+      {showPw ? '🙈' : '👁️'}
+    </button>
+  );
 
   if (!open) return null;
 
@@ -266,7 +280,10 @@ export default function AuthModal({ open, initialMode = 'login', onClose, onAuth
             <label>Email</label>
             <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="email@gmail.com" />
             <label>Mật khẩu</label>
-            <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Mật khẩu" onKeyDown={(e) => e.key === 'Enter' && submitLogin()} />
+            <div style={{ position: 'relative' }}>
+              <input type={showPw ? 'text' : 'password'} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Mật khẩu" style={{ paddingRight: 42 }} onKeyDown={(e) => e.key === 'Enter' && submitLogin()} />
+              {renderEye()}
+            </div>
             <div className="authm-row-right">
               <a href="#" onClick={(e) => { e.preventDefault(); setMode('forgot'); setErr(''); setMsg(''); setFpStep(1); }}>
                 🔑 Quên mật khẩu?
@@ -286,7 +303,10 @@ export default function AuthModal({ open, initialMode = 'login', onClose, onAuth
             <label>Email</label>
             <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="email@gmail.com" />
             <label>Mật khẩu</label>
-            <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Ít nhất 6 ký tự" onKeyDown={(e) => e.key === 'Enter' && submitRegister()} />
+            <div style={{ position: 'relative' }}>
+              <input type={showPw ? 'text' : 'password'} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Ít nhất 6 ký tự" style={{ paddingRight: 42 }} onKeyDown={(e) => e.key === 'Enter' && submitRegister()} />
+              {renderEye()}
+            </div>
             <button className="authm-submit" disabled={busy} onClick={submitRegister}>
               {busy ? 'Đang xử lý...' : 'Đăng ký'}
             </button>
@@ -311,7 +331,10 @@ export default function AuthModal({ open, initialMode = 'login', onClose, onAuth
                 <label>Mã xác minh</label>
                 <input type="text" inputMode="numeric" maxLength={6} value={fpCode} onChange={(e) => setFpCode(e.target.value)} placeholder="______" />
                 <label>Mật khẩu mới</label>
-                <input type="password" value={fpNewPw} onChange={(e) => setFpNewPw(e.target.value)} placeholder="Ít nhất 6 ký tự" />
+                <div style={{ position: 'relative' }}>
+                  <input type={showPw ? 'text' : 'password'} value={fpNewPw} onChange={(e) => setFpNewPw(e.target.value)} placeholder="Ít nhất 6 ký tự" style={{ paddingRight: 42 }} />
+                  {renderEye()}
+                </div>
                 <button className="authm-submit" disabled={busy} onClick={fpReset}>
                   {busy ? 'Đang đổi...' : 'Đổi mật khẩu'}
                 </button>

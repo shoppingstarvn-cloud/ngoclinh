@@ -32,6 +32,7 @@ export default function AlbumView({ slug }: { slug: string }) {
   const [pw, setPw] = useState('');
   const [pwErr, setPwErr] = useState('');
   const [pwBusy, setPwBusy] = useState(false);
+  const [showPw, setShowPw] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -137,8 +138,16 @@ export default function AlbumView({ slug }: { slug: string }) {
             ) : (
               <>
                 <h3>🔒 Vui lòng nhập Password để xem</h3>
-                <input className="alb-input" type="password" value={pw} placeholder="Nhập mật khẩu"
-                  onChange={(e) => setPw(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && submitPw()} />
+                <div style={{ position: 'relative' }}>
+                  <input className="alb-input" type={showPw ? 'text' : 'password'} value={pw} placeholder="Nhập mật khẩu"
+                    style={{ paddingRight: 44 }}
+                    onChange={(e) => setPw(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && submitPw()} />
+                  <button type="button" onClick={() => setShowPw((v) => !v)}
+                    aria-label={showPw ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'} title={showPw ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
+                    style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', border: 'none', background: 'transparent', cursor: 'pointer', fontSize: 18, lineHeight: 1, padding: 2 }}>
+                    {showPw ? '🙈' : '👁️'}
+                  </button>
+                </div>
                 {pwErr && <div className="alb-err">{pwErr}</div>}
                 <div className="alb-note">Đăng nhập tài khoản + nhập đúng password một lần đầu duy nhất — các lần sau xem thoải mái, không phải nhập lại.</div>
                 <button className="alb-btn green" disabled={pwBusy} onClick={submitPw}>{pwBusy ? 'Đang kiểm tra…' : 'Xem nội dung'}</button>

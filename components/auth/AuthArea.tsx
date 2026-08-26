@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import AuthModal, { type AuthUser } from './AuthModal';
+import RequestOpenModal from './RequestOpenModal';
 
 export default function AuthArea({ compact = false }: { compact?: boolean }) {
   const [user, setUser] = useState<AuthUser | null>(null);
@@ -9,6 +10,10 @@ export default function AuthArea({ compact = false }: { compact?: boolean }) {
   const [open, setOpen] = useState(false);
   const [mode, setMode] = useState<'login' | 'register'>('login');
   const [menuOpen, setMenuOpen] = useState(false);
+  const [reqOpen, setReqOpen] = useState(false);
+  const [reqType, setReqType] = useState<'website' | 'admin'>('website');
+
+  function openReq(t: 'website' | 'admin') { setReqType(t); setReqOpen(true); }
 
   useEffect(() => {
     fetch('/api/account/me')
@@ -61,8 +66,11 @@ export default function AuthArea({ compact = false }: { compact?: boolean }) {
           <button className="autharea-login" onClick={() => openModal('login')}>
             Đăng nhập
           </button>
-          <button className="autharea-register" onClick={() => openModal('register')}>
-            Đăng ký
+          <button className="autharea-register" onClick={() => openReq('website')}>
+            Đề nghị mở Website
+          </button>
+          <button className="autharea-register" onClick={() => openReq('admin')}>
+            Quản Trị
           </button>
         </span>
       )}
@@ -74,6 +82,16 @@ export default function AuthArea({ compact = false }: { compact?: boolean }) {
         onAuthed={(u) => {
           setUser(u);
           setOpen(false);
+        }}
+      />
+
+      <RequestOpenModal
+        open={reqOpen}
+        requestType={reqType}
+        onClose={() => setReqOpen(false)}
+        onAuthed={(u) => {
+          setUser(u);
+          setReqOpen(false);
         }}
       />
     </span>

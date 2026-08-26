@@ -89,6 +89,17 @@ export default function Sidebar({ activeTab, unreadCount, registerUnreadCount = 
             })}
           </div>
         ))}
+        <div className="nav-section">Thành Viên</div>
+        <a
+          className={`nav-link${activeTab === 'users_mgmt' ? ' active' : ''}`}
+          role="button"
+          tabIndex={0}
+          onClick={() => onSelect('users_mgmt')}
+          onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && onSelect('users_mgmt')}
+        >
+          <i className="fas fa-users-cog" />
+          <span>Quản lý Users</span>
+        </a>
         <div className="nav-section">Trang Con (Album)</div>
         <a
           className={`nav-link${activeTab === 'album' ? ' active' : ''}`}

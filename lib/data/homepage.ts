@@ -1,6 +1,7 @@
 import { createPublicClient } from '@/lib/supabase/public';
 import { isTrustedMediaUrl, isValidAssetUrl } from '@/lib/slug';
 import { DEFAULT_SERVICES } from '@/lib/data/service-defaults';
+import { applyMenuLabelsToCategories } from '@/lib/nav/sync-labels';
 
 export async function getSiteSettings(): Promise<Record<string, string>> {
   const supabase = createPublicClient();
@@ -81,7 +82,8 @@ export async function getHomepageData() {
       .from('menus')
       .select('*')
       .eq('is_active', true)
-      .order('display_order'),
+      .order('display_order', { ascending: true })
+      .order('id', { ascending: true }), // cùng thứ tự -> tạo trước ở trên, tạo sau ở dưới
     supabase
       .from('categories')
       .select('*')
@@ -170,7 +172,7 @@ export async function getHomepageData() {
     posts: posts.data ?? [],
     projects: projects.data ?? [],
     menus: menus.data ?? [],
-    categories: categoriesWithSubmenus,
+    categories: applyMenuLabelsToCategories(categoriesWithSubmenus, menus.data ?? []),
     links: links.data ?? [],
     // Hình ảnh hoạt động — chỉ ảnh hợp lệ (local/Supabase/Drive)
     activityImages: (activityImages.data ?? []).filter((a) => isValidAssetUrl(a.image_url)),
