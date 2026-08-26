@@ -4,6 +4,7 @@ import { useState, type CSSProperties } from 'react';
 import Link from 'next/link';
 import { SHARE_SITE_NAME } from '@/lib/seo';
 import { assetUrl, resolveHref } from '@/lib/slug';
+import AuthArea from '@/components/auth/AuthArea';
 
 export interface MenuItem {
   id: number;
@@ -77,6 +78,9 @@ export function SiteHeader({
   return (
     <>
       <div className={`menu-m${mobileOpen ? ' open' : ''}`}>
+        <div className="menu-m-auth">
+          <AuthArea compact />
+        </div>
         <ul>{renderMenu(true)}</ul>
       </div>
 
@@ -169,6 +173,7 @@ export function SiteHeader({
                 )}
                 {settings.email && <span>Email: {settings.email}</span>}
                 {settings.hotline && <span className="hotline">{settings.hotline}</span>}
+                <AuthArea />
               </div>
               <div className="menu text-right">
                 <ul>{renderMenu()}</ul>
