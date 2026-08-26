@@ -85,7 +85,9 @@ export async function getHomepageData() {
       .from('categories')
       .select('*')
       .eq('is_active', true)
+      .is('parent_id', null)
       .order('display_order')
+      .order('id', { ascending: true })
       .limit(12),
     supabase
       .from('category_submenus')

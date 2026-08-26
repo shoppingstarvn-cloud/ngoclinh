@@ -99,79 +99,89 @@ interface Category {
   submenus?: CategorySubmenu[];
 }
 
+function CategoryCard({ cat }: { cat: Category }) {
+  const subs = (cat.submenus ?? []).filter((s) => s.label);
+  const href = itemHref(cat);
+  const desc = (cat.description || '').trim();
+  return (
+    <div className="col-12 col-md-4 item_s cat-card">
+      <dl>
+        <dt>
+          {/* effect-v7 = hiệu ứng kim tuyến quét sáng + zoom (giống vùng bài viết) */}
+          <figure className="effect-v7">
+            <Link href={href} title={cat.name}>
+              <img
+                src={
+                  assetUrl(cat.thumbnail_url || cat.image_url) ||
+                  '/images/placeholder.jpg'
+                }
+                alt={cat.name}
+              />
+            </Link>
+          </figure>
+        </dt>
+        <dd>
+          <h3>
+            <Link href={href}>{cat.name}</Link>
+          </h3>
+          {desc ? (
+            <div>
+              <Link href={href}>{desc}</Link>
+            </div>
+          ) : null}
+        </dd>
+      </dl>
+      {subs.length > 0 && (
+        <ul className="cat-submenu">
+          {subs.map((s) => {
+            const sHref = s.link_url ? resolveHref(s.link_url) : href;
+            const sExt = /^https?:\/\//i.test(sHref);
+            const kids = (s.children ?? []).filter((k) => k.label);
+            return (
+              <li key={s.id} className={kids.length ? 'has-children' : undefined}>
+                <Link
+                  href={sHref}
+                  {...(sExt ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+                >
+                  {s.label}
+                  {kids.length > 0 && <span className="caret">›</span>}
+                </Link>
+                {kids.length > 0 && (
+                  <ul className="cat-submenu-2">
+                    {kids.map((k) => {
+                      const kHref = k.link_url ? resolveHref(k.link_url) : sHref;
+                      const kExt = /^https?:\/\//i.test(kHref);
+                      return (
+                        <li key={k.id}>
+                          <Link
+                            href={kHref}
+                            {...(kExt ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+                          >
+                            {k.label}
+                          </Link>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                )}
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </div>
+  );
+}
+
 export function CategoryGrid({ categories }: { categories: Category[] }) {
   if (!categories.length) return null;
   return (
     <div className="service_home">
       <div className="container">
         <div className="row">
-          {categories.map((cat) => {
-            const subs = (cat.submenus ?? []).filter((s) => s.label);
-            return (
-              <div key={cat.id} className="col-12 col-md-4 item_s cat-card">
-                <dl>
-                  <dt>
-                    {/* effect-v7 = hiệu ứng kim tuyến quét sáng + zoom (giống vùng bài viết) */}
-                    <figure className="effect-v7">
-                      <Link href={itemHref(cat)} title={cat.name}>
-                        <img
-                          src={
-                            assetUrl(cat.thumbnail_url || cat.image_url) ||
-                            '/images/placeholder.jpg'
-                          }
-                          alt={cat.name}
-                        />
-                      </Link>
-                    </figure>
-                  </dt>
-                  <dd>
-                    <h3>
-                      <Link href={itemHref(cat)}>{cat.name}</Link>
-                    </h3>
-                    <div>{cat.description}</div>
-                  </dd>
-                </dl>
-                {subs.length > 0 && (
-                  <ul className="cat-submenu">
-                    {subs.map((s) => {
-                      const sHref = s.link_url ? resolveHref(s.link_url) : itemHref(cat);
-                      const sExt = /^https?:\/\//i.test(sHref);
-                      const kids = (s.children ?? []).filter((k) => k.label);
-                      return (
-                        <li key={s.id} className={kids.length ? 'has-children' : undefined}>
-                          <Link
-                            href={sHref}
-                            {...(sExt ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
-                          >
-                            {s.label}
-                            {kids.length > 0 && <span className="caret">›</span>}
-                          </Link>
-                          {kids.length > 0 && (
-                            <ul className="cat-submenu-2">
-                              {kids.map((k) => {
-                                const kHref = k.link_url ? resolveHref(k.link_url) : sHref;
-                                const kExt = /^https?:\/\//i.test(kHref);
-                                return (
-                                  <li key={k.id}>
-                                    <Link
-                                      href={kHref}
-                                      {...(kExt ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
-                                    >
-                                      {k.label}
-                                    </Link>
-                                  </li>
-                                );
-                              })}
-                            </ul>
-                          )}
-                        </li>
-                      );
-                    })}
-                  </ul>
-                )}
-              </div>
-            );
-          })}
+          {categories.map((cat) => (
+            <CategoryCard key={cat.id} cat={cat} />
+          ))}
         </div>
       </div>
     </div>

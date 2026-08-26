@@ -215,11 +215,14 @@ export function SiteFooter({
         ];
   const productLinks =
     categories.length > 0
-      ? categories.slice(0, 6).map((c) => ({
-          id: c.id,
-          label: c.name,
-          url: c.slug?.includes('.html') ? `/${c.slug.replace(/^\//, '')}` : `/${c.slug}.html`,
-        }))
+      ? categories
+          .filter((c) => !String(c.slug || '').endsWith('-r2'))
+          .slice(0, 6)
+          .map((c) => ({
+            id: c.id,
+            label: c.name,
+            url: c.slug?.includes('.html') ? `/${c.slug.replace(/^\//, '')}` : `/${c.slug}.html`,
+          }))
       : [
           { id: -11, label: 'Hố ga bê tông', url: '/ho-ga-duc-san-c48.html' },
           { id: -12, label: 'Cống hộp đúc sẵn', url: '/cong-hop--c54.html' },
