@@ -12,8 +12,14 @@ body {
   padding: 0;
 }
 
+/* Owl CSS gốc ẩn .owl-carousel tới khi có .owl-loaded — nếu jQuery chưa init thì cả khối biến mất. */
+.owl-carousel {
+  display: block !important;
+}
+
 /* Carousel React thay Owl — giữ class cũ cho CSS tương thích */
 .product-carousel .item dl,
+.activity-carousel .item dl,
 .partner-carousel .item {
   margin: 0;
 }

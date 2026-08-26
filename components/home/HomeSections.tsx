@@ -285,7 +285,7 @@ export function ActivitySection({ images }: { images: ActivityImage[] }) {
   const visible = images.filter((a) => isValidAssetUrl(a.image_url));
 
   useOwlCarousel(
-    '.product-carousel',
+    '.activity-carousel',
     {
       loop: visible.length > 1,
       autoplay: true,
@@ -314,7 +314,7 @@ export function ActivitySection({ images }: { images: ActivityImage[] }) {
           </p>
         </div>
         <div className="row">
-          <div className="owl-carousel owl-theme product-carousel">
+          <div className="owl-carousel owl-theme activity-carousel">
             {visible.map((a) => (
               <div key={a.id} className="item">
                 <dl>

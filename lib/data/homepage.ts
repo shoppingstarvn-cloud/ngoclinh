@@ -85,10 +85,9 @@ export async function getHomepageData() {
       .from('categories')
       .select('*')
       .eq('is_active', true)
-      .is('parent_id', null)
       .order('display_order')
       .order('id', { ascending: true })
-      .limit(12),
+      .limit(30),
     supabase
       .from('category_submenus')
       .select('*')
@@ -136,7 +135,12 @@ export async function getHomepageData() {
       n.children = childrenByParent.get(n.id) ?? [];
     }),
   );
-  const categoriesWithSubmenus = (categories.data ?? []).map((c) => ({
+  // Gốc trang chủ = parent_id NULL hoặc 0 (CMS cũ ghi 0, không phải SQL NULL).
+  const rootCategories = (categories.data ?? []).filter((c) => {
+    const p = c.parent_id;
+    return p == null || Number(p) === 0;
+  }).slice(0, 12);
+  const categoriesWithSubmenus = rootCategories.map((c) => ({
     ...c,
     submenus: level1ByCat.get(Number(c.id)) ?? [],
   }));

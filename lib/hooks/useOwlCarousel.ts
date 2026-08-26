@@ -29,6 +29,13 @@ export function useOwlCarousel(selector: string, options: OwlOptions, deps: read
     let cancelled = false;
     let pollTimer: ReturnType<typeof setInterval> | null = null;
 
+    const revealFallback = () => {
+      if (typeof document === 'undefined') return;
+      document.querySelectorAll(selector).forEach((el) => {
+        el.classList.add('owl-loaded');
+      });
+    };
+
     const init = () => {
       const $ = window.jQuery;
       if (!$ || !$.fn || !$.fn.owlCarousel) return false;
@@ -45,8 +52,17 @@ export function useOwlCarousel(selector: string, options: OwlOptions, deps: read
       let attempts = 0;
       pollTimer = setInterval(() => {
         attempts += 1;
-        if (cancelled || init() || attempts > 40) {
+        if (cancelled) {
           if (pollTimer) clearInterval(pollTimer);
+          return;
+        }
+        if (init()) {
+          if (pollTimer) clearInterval(pollTimer);
+          return;
+        }
+        if (attempts > 40) {
+          if (pollTimer) clearInterval(pollTimer);
+          revealFallback();
         }
       }, 250);
     }

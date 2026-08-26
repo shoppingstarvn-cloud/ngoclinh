@@ -32,7 +32,7 @@ FROM (
   SELECT *
   FROM public.categories
   WHERE is_active = true
-    AND parent_id IS NULL
+    AND (parent_id IS NULL OR parent_id = 0)
     AND slug NOT LIKE '%-r2'
   ORDER BY display_order NULLS LAST, id
   LIMIT 3
@@ -100,5 +100,5 @@ NOTIFY pgrst, 'reload schema';
 -- Kiểm chứng: 6 khối gốc (3 hàng 1 + 3 hàng 2)
 SELECT id, name, slug, display_order
 FROM public.categories
-WHERE is_active = true AND parent_id IS NULL
+WHERE is_active = true AND (parent_id IS NULL OR parent_id = 0)
 ORDER BY display_order, id;
