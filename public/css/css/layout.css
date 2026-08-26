@@ -2313,11 +2313,15 @@ a.more:hover {
 }
 .dichvu_home .title {
   text-align: center;
-  margin-bottom: 28px;
+  margin-bottom: 30px;
 }
-.dichvu_home .title > p {
-  font-size: 15px;
+.dichvu_home .title > p,
+.dichvu_home .title .neon-title {
+  font-size: 25px;
+  font-weight: bold;
   text-transform: uppercase;
+  text-align: center;
+  font-family: "UTM AvoBold", sans-serif;
   margin: 0;
 }
 .dichvu_home .item_s {
