@@ -25,6 +25,7 @@ export const CMS_TABLES: CmsTableConfig[] = [
   { table: 'videos', label: 'Video', pk: 'id', publicRead: true },
   { table: 'partners', label: 'Đối tác', pk: 'id', publicRead: true },
   { table: 'testimonials', label: 'Đánh giá', pk: 'id', publicRead: true },
+  { table: 'services', label: 'Các dịch vụ', pk: 'id', publicRead: true },
   { table: 'links', label: 'Liên kết', pk: 'id', publicRead: true },
   { table: 'contact_submissions', label: 'Liên hệ', pk: 'id', publicRead: false },
 ];
@@ -38,6 +39,7 @@ export const ORDERED_TABLES = [
   'products',
   'partners',
   'testimonials',
+  'services',
   'links',
   'images',
   'photos',

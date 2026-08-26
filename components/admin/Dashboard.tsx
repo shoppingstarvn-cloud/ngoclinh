@@ -77,6 +77,9 @@ export default function Dashboard({ allData, onSelectTab, onQuickAdd, onDataRelo
                 <button className="btn btn-warning" onClick={() => onQuickAdd('partners')}>
                   <i className="fas fa-handshake" /> Thêm Đối tác
                 </button>
+                <button className="btn btn-outline-success" onClick={() => onQuickAdd('services')}>
+                  <i className="fas fa-th-large" /> Thêm Dịch vụ
+                </button>
                 <button className="btn btn-outline-light" disabled={syncing} onClick={handleRepairSync}>
                   <i className={`fas fa-${syncing ? 'spinner fa-spin' : 'sync-alt'}`} />{' '}
                   {syncing ? 'Đang đồng bộ…' : 'Sửa logo đối tác + Đồng bộ site'}

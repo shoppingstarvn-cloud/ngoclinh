@@ -16,6 +16,7 @@ BEGIN
     'projects',
     'partners',
     'testimonials',
+    'services',
     'videos',
     'photos',
     'links',

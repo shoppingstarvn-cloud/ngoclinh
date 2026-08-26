@@ -19,6 +19,7 @@ export async function getHomepageData() {
     products,
     partners,
     testimonials,
+    services,
     posts,
     projects,
     menus,
@@ -55,6 +56,12 @@ export async function getHomepageData() {
       .eq('is_active', true)
       .order('display_order')
       .limit(10),
+    supabase
+      .from('services')
+      .select('*')
+      .eq('is_active', true)
+      .order('display_order')
+      .order('id', { ascending: true }),
     supabase
       .from('posts')
       .select('*')
@@ -141,6 +148,8 @@ export async function getHomepageData() {
     // Chỉ đối tác có logo ảnh hợp lệ — tránh hiện tên xanh dưới khối dự án
     partners: (partners.data ?? []).filter((p) => isValidAssetUrl(p.logo_url)),
     testimonials: testimonials.data ?? [],
+    // Bảng services chưa chạy SQL → data null, không làm vỡ trang chủ
+    services: services.data ?? [],
     posts: posts.data ?? [],
     projects: projects.data ?? [],
     menus: menus.data ?? [],

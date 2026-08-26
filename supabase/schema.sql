@@ -222,6 +222,22 @@ CREATE TABLE IF NOT EXISTS public.testimonials (
 );
 
 -- ============================================================================
+-- 11b. SERVICES (khối dịch vụ trang chủ — sandwich)
+-- ============================================================================
+CREATE TABLE IF NOT EXISTS public.services (
+  id BIGSERIAL PRIMARY KEY,
+  title_top TEXT NOT NULL DEFAULT '',
+  title_bottom TEXT DEFAULT '',
+  image_url TEXT DEFAULT '',
+  link_top TEXT DEFAULT '',
+  link_bottom TEXT DEFAULT '',
+  display_order INT DEFAULT 0,
+  is_active BOOLEAN DEFAULT true,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- ============================================================================
 -- 12. LINKS (social/footer/quick links)
 -- ============================================================================
 CREATE TABLE IF NOT EXISTS public.links (
@@ -293,6 +309,7 @@ ALTER TABLE public.images ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.videos ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.partners ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.testimonials ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.services ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.links ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.contact_submissions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.admin_users ENABLE ROW LEVEL SECURITY;
@@ -300,7 +317,7 @@ ALTER TABLE public.admin_users ENABLE ROW LEVEL SECURITY;
 GRANT SELECT ON
   public.site_settings, public.menus, public.categories, public.posts,
   public.projects, public.products, public.slides, public.photos,
-  public.images, public.videos, public.partners, public.testimonials, public.links
+  public.images, public.videos, public.partners, public.testimonials, public.services, public.links
 TO anon, authenticated;
 GRANT INSERT ON public.contact_submissions TO anon, authenticated;
 
@@ -340,6 +357,9 @@ CREATE POLICY "Public read active" ON public.partners FOR SELECT USING (is_activ
 DROP POLICY IF EXISTS "Public read active" ON public.testimonials;
 CREATE POLICY "Public read active" ON public.testimonials FOR SELECT USING (is_active = true);
 
+DROP POLICY IF EXISTS "Public read active" ON public.services;
+CREATE POLICY "Public read active" ON public.services FOR SELECT USING (is_active = true);
+
 DROP POLICY IF EXISTS "Public read active" ON public.links;
 CREATE POLICY "Public read active" ON public.links FOR SELECT USING (is_active = true);
 
@@ -353,7 +373,7 @@ DECLARE t TEXT;
 BEGIN
   FOREACH t IN ARRAY ARRAY[
     'site_settings','menus','categories','posts','projects','products','slides',
-    'photos','images','videos','partners','testimonials','links',
+    'photos','images','videos','partners','testimonials','services','links',
     'contact_submissions','admin_users'
   ] LOOP
     EXECUTE format('DROP POLICY IF EXISTS "Service full access" ON public.%I', t);

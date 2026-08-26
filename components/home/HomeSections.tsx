@@ -541,6 +541,103 @@ export function TestimonialSection({ testimonials }: { testimonials: Testimonial
   );
 }
 
+interface Service {
+  id: number;
+  title_top: string;
+  title_bottom?: string;
+  image_url?: string;
+  link_top?: string;
+  link_bottom?: string;
+  is_active?: boolean;
+}
+
+function isExternalHref(href: string) {
+  return /^https?:\/\//i.test(href);
+}
+
+function ServiceBar({ title, href }: { title: string; href: string }) {
+  const clickable = Boolean(href && href !== '#');
+  const inner = (
+    <>
+      <span className="dichvu-bar-text">{title}</span>
+      <i className="fa fa-chevron-right dichvu-chevron" aria-hidden />
+    </>
+  );
+  if (!clickable) {
+    return <div className="dichvu-bar">{inner}</div>;
+  }
+  if (isExternalHref(href)) {
+    return (
+      <a className="dichvu-bar" href={href} target="_blank" rel="noopener noreferrer">
+        {inner}
+      </a>
+    );
+  }
+  return (
+    <Link className="dichvu-bar" href={href}>
+      {inner}
+    </Link>
+  );
+}
+
+function ServicePhoto({ src, alt, href }: { src: string; alt: string; href: string }) {
+  const img = src ? (
+    <img src={assetUrl(src)} alt={alt} />
+  ) : (
+    <span className="dichvu-photo-empty" aria-hidden />
+  );
+  const clickable = Boolean(href && href !== '#');
+  const photo = clickable ? (
+    isExternalHref(href) ? (
+      <a href={href} target="_blank" rel="noopener noreferrer" title={alt}>
+        {img}
+      </a>
+    ) : (
+      <Link href={href} title={alt}>
+        {img}
+      </Link>
+    )
+  ) : (
+    <span>{img}</span>
+  );
+  return <figure className="effect-v7 dichvu-photo">{photo}</figure>;
+}
+
+/** Khối 11 dịch vụ — kiểu sandwich (ảnh 2). KHÔNG dùng class .service_home để khỏi đụng menu danh mục. */
+export function ServiceSection({ services }: { services: Service[] }) {
+  const visible = services.filter((s) => s.is_active !== false && (s.title_top || '').trim());
+  if (!visible.length) return null;
+
+  return (
+    <div className="dichvu_home">
+      <div className="container">
+        <div className="title">
+          <p>
+            <span className="neon-title">Các dịch vụ</span>
+          </p>
+        </div>
+        <div className="row dichvu-grid">
+          {visible.map((s) => {
+            const hrefTop = resolveHref(s.link_top);
+            const hrefBottom = resolveHref(s.link_bottom);
+            const hrefPhoto = hrefTop !== '#' ? hrefTop : hrefBottom;
+            const bottom = (s.title_bottom || '').trim();
+            return (
+              <div key={s.id} className="col-12 col-md-6 col-lg-4 dichvu-col fx-card">
+                <div className="dichvu-card fx-inner">
+                  <ServiceBar title={s.title_top} href={hrefTop} />
+                  <ServicePhoto src={s.image_url || ''} alt={s.title_top} href={hrefPhoto} />
+                  {bottom ? <ServiceBar title={bottom} href={hrefBottom} /> : null}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 interface Post {
   id: number;
   title: string;

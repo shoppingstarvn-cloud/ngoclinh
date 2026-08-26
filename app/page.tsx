@@ -17,6 +17,7 @@ import {
   NewsSection,
   PartnerSection,
   ProjectSection,
+  ServiceSection,
   SlideCarousel,
   TestimonialSection,
 } from '@/components/home/HomeSections';
@@ -59,6 +60,7 @@ export default async function HomePage() {
       <ProjectSection projects={data.projects} />
       <PartnerSection partners={data.partners} />
       <TestimonialSection testimonials={data.testimonials} />
+      <ServiceSection services={data.services} />
     </SiteShell>
   );
 }
