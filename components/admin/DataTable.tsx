@@ -13,11 +13,11 @@ interface DataTableProps {
   onSetOrder?: (row: AdminRow, value: number) => void;
 }
 
-function renderCell(value: unknown): string {
+function renderCell(value: unknown, full = false): string {
   if (value === undefined || value === null) return '';
   if (typeof value === 'boolean') return value ? '✓' : '✗';
   const str = String(value);
-  return str.length > 80 ? `${str.slice(0, 80)}...` : str;
+  return full || str.length <= 80 ? str : `${str.slice(0, 80)}...`;
 }
 
 export default function DataTable({ table, rows, allData, onAdd, onEdit, onDelete, onToggleActive, onSetOrder }: DataTableProps) {
@@ -57,9 +57,11 @@ export default function DataTable({ table, rows, allData, onAdd, onEdit, onDelet
                       key={c.key}
                       className={c.key === 'id' ? 'text-muted' : undefined}
                       style={
-                        !c.render && typeof row[c.key] === 'string' && (row[c.key] as string).length > 80
-                          ? { maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }
-                          : undefined
+                        table.name === 'registrations'
+                          ? { whiteSpace: 'pre-wrap', maxWidth: 280 }
+                          : !c.render && typeof row[c.key] === 'string' && (row[c.key] as string).length > 80
+                            ? { maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }
+                            : undefined
                       }
                     >
                       {c.key === 'is_active' && onToggleActive ? (
@@ -95,7 +97,7 @@ export default function DataTable({ table, rows, allData, onAdd, onEdit, onDelet
                       ) : c.render ? (
                         c.render(row[c.key], row, allData)
                       ) : (
-                        renderCell(row[c.key])
+                        renderCell(row[c.key], table.name === 'registrations')
                       )}
                     </td>
                   ))}

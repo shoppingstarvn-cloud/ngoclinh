@@ -14,6 +14,9 @@ tsconfig.tsbuildinfo
 # Vercel
 .vercel
 
+# Migrate config — chứa service key thật, KHÔNG commit
+migrate.config.json
+
 # Uploads local (fallback) — dữ liệu thật nằm ở Supabase Storage
 /uploads/*
 !/uploads/.gitkeep

@@ -17,6 +17,8 @@ BEGIN
     'partners',
     'testimonials',
     'services',
+    'register_blocks',
+    'registrations',
     'videos',
     'photos',
     'links',

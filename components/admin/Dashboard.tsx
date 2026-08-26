@@ -80,6 +80,12 @@ export default function Dashboard({ allData, onSelectTab, onQuickAdd, onDataRelo
                 <button className="btn btn-outline-success" onClick={() => onQuickAdd('services')}>
                   <i className="fas fa-th-large" /> Thêm Dịch vụ
                 </button>
+                <button className="btn btn-outline-info" onClick={() => onQuickAdd('register_blocks')}>
+                  <i className="fas fa-id-card" /> Thêm khối form đăng ký
+                </button>
+                <button className="btn btn-outline-warning" onClick={() => onSelectTab('registrations')}>
+                  <i className="fas fa-clipboard-list" /> Thông tin đăng ký
+                </button>
                 <button className="btn btn-outline-light" disabled={syncing} onClick={handleRepairSync}>
                   <i className={`fas fa-${syncing ? 'spinner fa-spin' : 'sync-alt'}`} />{' '}
                   {syncing ? 'Đang đồng bộ…' : 'Sửa logo đối tác + Đồng bộ site'}

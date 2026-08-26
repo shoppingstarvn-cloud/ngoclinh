@@ -1,6 +1,6 @@
 'use client';
 
-import type { ReactNode } from 'react';
+import type { MouseEvent as ReactMouseEvent, ReactNode } from 'react';
 import Link from 'next/link';
 import { postHref, itemHref, assetUrl, resolveHref, isTrustedMediaUrl, isValidAssetUrl } from '@/lib/slug';
 import { useOwlCarousel } from '@/lib/hooks/useOwlCarousel';
@@ -570,7 +570,7 @@ export function TestimonialSection({ testimonials }: { testimonials: Testimonial
   );
 }
 
-interface Service {
+export interface Service {
   id: number;
   title_top: string;
   title_bottom?: string;
@@ -606,9 +606,18 @@ function ServiceLink({
 
 /** Mỗi dịch vụ = 1 khối giống danh mục: ảnh trên + thanh trắng tên + mũi tên xanh dưới.
  *  KHÔNG dùng class .service_home / .cat-submenu — giữ nguyên menu danh mục. */
-export function ServiceSection({ services }: { services: Service[] }) {
+export function ServiceSection({
+  services,
+  selectedServiceId,
+  onSelectService,
+}: {
+  services: Service[];
+  selectedServiceId?: number;
+  onSelectService?: (s: Service) => void;
+}) {
   const visible = services.filter((s) => s.is_active !== false && (s.title_top || '').trim());
   if (!visible.length) return null;
+  const pickMode = Boolean(onSelectService);
 
   return (
     <div className="dichvu_home">
@@ -617,6 +626,9 @@ export function ServiceSection({ services }: { services: Service[] }) {
           <p>
             <span className="neon-title">Các dịch vụ</span>
           </p>
+          {pickMode ? (
+            <p className="dichvu-form-hint">Bấm vào ô dịch vụ để điền form đăng ký bên dưới</p>
+          ) : null}
         </div>
         <div className="row">
           {visible.map((s) => {
@@ -626,23 +638,45 @@ export function ServiceSection({ services }: { services: Service[] }) {
                 : resolveHref(s.link_bottom);
             const desc = (s.title_bottom || '').trim();
             const src = s.image_url ? assetUrl(s.image_url) : '';
+            const picked = selectedServiceId != null && selectedServiceId === s.id;
+            const onPick = (e: ReactMouseEvent) => {
+              if (!onSelectService) return;
+              e.preventDefault();
+              onSelectService(s);
+            };
             return (
-              <div key={s.id} className="col-12 col-md-4 item_s cat-card">
+              <div key={s.id} className={`col-12 col-md-4 item_s cat-card${picked ? ' is-picked' : ''}`}>
                 <dl>
                   <dt>
                     <figure className="effect-v7">
-                      <ServiceLink href={href} title={s.title_top}>
-                        {src ? (
-                          <img src={src} alt={s.title_top} />
-                        ) : (
-                          <span className="dichvu-photo-empty" aria-hidden />
-                        )}
-                      </ServiceLink>
+                      {pickMode ? (
+                        <a href="#form-dang-ky" title={s.title_top} onClick={onPick}>
+                          {src ? (
+                            <img src={src} alt={s.title_top} />
+                          ) : (
+                            <span className="dichvu-photo-empty" aria-hidden />
+                          )}
+                        </a>
+                      ) : (
+                        <ServiceLink href={href} title={s.title_top}>
+                          {src ? (
+                            <img src={src} alt={s.title_top} />
+                          ) : (
+                            <span className="dichvu-photo-empty" aria-hidden />
+                          )}
+                        </ServiceLink>
+                      )}
                     </figure>
                   </dt>
                   <dd>
                     <h3>
-                      <ServiceLink href={href}>{s.title_top}</ServiceLink>
+                      {pickMode ? (
+                        <a href="#form-dang-ky" onClick={onPick}>
+                          {s.title_top}
+                        </a>
+                      ) : (
+                        <ServiceLink href={href}>{s.title_top}</ServiceLink>
+                      )}
                     </h3>
                     {desc ? <div>{desc}</div> : null}
                   </dd>

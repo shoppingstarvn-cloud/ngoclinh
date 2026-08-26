@@ -26,8 +26,10 @@ export const CMS_TABLES: CmsTableConfig[] = [
   { table: 'partners', label: 'Đối tác', pk: 'id', publicRead: true },
   { table: 'testimonials', label: 'Đánh giá', pk: 'id', publicRead: true },
   { table: 'services', label: 'Các dịch vụ', pk: 'id', publicRead: true },
+  { table: 'register_blocks', label: 'Khối form đăng ký', pk: 'id', publicRead: true },
   { table: 'links', label: 'Liên kết', pk: 'id', publicRead: true },
   { table: 'contact_submissions', label: 'Liên hệ', pk: 'id', publicRead: false },
+  { table: 'registrations', label: 'Thông tin đăng ký', pk: 'id', publicRead: false },
 ];
 
 export type CmsTableName = (typeof CMS_TABLES)[number]['table'];
@@ -40,6 +42,7 @@ export const ORDERED_TABLES = [
   'partners',
   'testimonials',
   'services',
+  'register_blocks',
   'links',
   'images',
   'photos',

@@ -19,6 +19,7 @@ const CMS_TABLES = [
   'partners',
   'testimonials',
   'services',
+  'register_blocks',
   'videos',
   'photos',
   'links',

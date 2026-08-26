@@ -5,18 +5,19 @@ import { ADMIN_TABLES } from '@/lib/cms/admin-schema';
 interface SidebarProps {
   activeTab: string;
   unreadCount: number;
+  registerUnreadCount?: number;
   onSelect: (tab: string) => void;
   onLogout: () => void;
 }
 
 const SECTIONS: { title: string; tables: string[] }[] = [
   { title: 'Cấu Hình', tables: ['site_settings'] },
-  { title: 'Nội Dung', tables: ['slides', 'activity_images', 'menus', 'categories', 'category_submenus', 'posts', 'projects', 'products', 'partners', 'testimonials', 'services', 'videos', 'photos'] },
-  { title: 'Liên Hệ', tables: ['contact_submissions'] },
+  { title: 'Nội Dung', tables: ['slides', 'activity_images', 'menus', 'categories', 'category_submenus', 'posts', 'projects', 'products', 'partners', 'testimonials', 'services', 'register_blocks', 'videos', 'photos'] },
+  { title: 'Liên Hệ', tables: ['registrations', 'contact_submissions'] },
   { title: 'Hệ Thống', tables: ['links'] },
 ];
 
-export default function Sidebar({ activeTab, unreadCount, onSelect, onLogout }: SidebarProps) {
+export default function Sidebar({ activeTab, unreadCount, registerUnreadCount = 0, onSelect, onLogout }: SidebarProps) {
   const byName = new Map(ADMIN_TABLES.map((t) => [t.name, t]));
 
   return (
@@ -58,6 +59,9 @@ export default function Sidebar({ activeTab, unreadCount, onSelect, onLogout }: 
                   {t.label}
                   {name === 'contact_submissions' && unreadCount > 0 && (
                     <span className="badge bg-danger ms-1">{unreadCount}</span>
+                  )}
+                  {name === 'registrations' && registerUnreadCount > 0 && (
+                    <span className="badge bg-danger ms-1">{registerUnreadCount}</span>
                   )}
                 </span>
               </a>

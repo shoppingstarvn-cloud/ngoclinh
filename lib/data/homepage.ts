@@ -1,5 +1,6 @@
 import { createPublicClient } from '@/lib/supabase/public';
 import { isTrustedMediaUrl, isValidAssetUrl } from '@/lib/slug';
+import { DEFAULT_SERVICES } from '@/lib/data/service-defaults';
 
 export async function getSiteSettings(): Promise<Record<string, string>> {
   const supabase = createPublicClient();
@@ -27,6 +28,7 @@ export async function getHomepageData() {
     categorySubmenus,
     links,
     activityImages,
+    registerBlocks,
     settingsRows,
   ] = await Promise.all([
     supabase
@@ -59,7 +61,6 @@ export async function getHomepageData() {
     supabase
       .from('services')
       .select('*')
-      .eq('is_active', true)
       .order('display_order')
       .order('id', { ascending: true }),
     supabase
@@ -105,6 +106,12 @@ export async function getHomepageData() {
       .eq('is_active', true)
       .order('display_order')
       .limit(30),
+    supabase
+      .from('register_blocks')
+      .select('*')
+      .eq('is_active', true)
+      .order('display_order')
+      .order('id', { ascending: true }),
     supabase.from('site_settings').select('*'),
   ]);
 
@@ -154,8 +161,12 @@ export async function getHomepageData() {
     // Chỉ đối tác có logo ảnh hợp lệ — tránh hiện tên xanh dưới khối dự án
     partners: (partners.data ?? []).filter((p) => isValidAssetUrl(p.logo_url)),
     testimonials: testimonials.data ?? [],
-    // Bảng services chưa chạy SQL → data null, không làm vỡ trang chủ
-    services: services.data ?? [],
+    // Bảng trống / chưa có → 11 dịch vụ mặc định. Đã có dòng trong DB (kể cả tắt hết) → tôn trọng CMS.
+    services: (() => {
+      const rows = services.error ? [] : (services.data ?? []);
+      if (services.error || rows.length === 0) return [...DEFAULT_SERVICES];
+      return rows.filter((s) => s.is_active !== false);
+    })(),
     posts: posts.data ?? [],
     projects: projects.data ?? [],
     menus: menus.data ?? [],
@@ -163,6 +174,8 @@ export async function getHomepageData() {
     links: links.data ?? [],
     // Hình ảnh hoạt động — chỉ ảnh hợp lệ (local/Supabase/Drive)
     activityImages: (activityImages.data ?? []).filter((a) => isValidAssetUrl(a.image_url)),
+    // Bảng register_blocks chưa chạy SQL → data null, form vẫn hiện nội dung mặc định
+    registerBlocks: registerBlocks.data ?? [],
     settings,
   };
 }

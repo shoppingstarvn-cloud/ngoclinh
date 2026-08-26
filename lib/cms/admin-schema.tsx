@@ -66,6 +66,21 @@ function thumb(v: unknown) {
   return typeof v === 'string' && v ? <img src={v} className="thumb-img" alt="" /> : null;
 }
 
+function formatVnTime(v: unknown) {
+  if (v == null || v === '') return '';
+  const d = new Date(String(v));
+  if (Number.isNaN(d.getTime())) return String(v);
+  return d.toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' });
+}
+
+function readBadge(v: unknown) {
+  return v ? (
+    <span className="badge-dot bg-success">Đã xem</span>
+  ) : (
+    <span className="badge-dot bg-warning">Mới</span>
+  );
+}
+
 /**
  * Cấu hình 13 bảng CMS cho dashboard — port 1:1 từ TABLES trong admin.html cũ.
  *
@@ -377,6 +392,37 @@ export const ADMIN_TABLES: AdminTableDef[] = [
     ],
   },
   {
+    name: 'register_blocks',
+    label: 'Khối form đăng ký',
+    icon: 'id-card',
+    pk: 'id',
+    fields: [
+      {
+        key: 'block_key',
+        label: 'Mã khối (form / community / qr / contact / commitment hoặc mã mới)',
+        type: 'text',
+        required: true,
+      },
+      { key: 'title', label: 'Tiêu đề khối', type: 'text', required: true },
+      { key: 'subtitle', label: 'Phụ đề / chữ nút Đăng Ký Ngay (khối form)', type: 'text' },
+      { key: 'body', label: 'Nội dung (Cam kết: mỗi dòng 1 ý)', type: 'textarea' },
+      { key: 'image_url', label: 'Ảnh QR / ảnh khối', type: 'image' },
+      { key: 'link_url', label: 'Link (Zalo cộng đồng / QR)', type: 'text' },
+      { key: 'phone', label: 'Số điện thoại (khối liên hệ)', type: 'text' },
+      { key: 'zalo', label: 'Zalo (khối liên hệ)', type: 'text' },
+      { key: 'display_order', label: 'Thứ tự', type: 'number' },
+      { key: 'is_active', label: 'Kích hoạt', type: 'checkbox' },
+    ],
+    cols: [
+      { key: 'id', label: 'ID' },
+      { key: 'block_key', label: 'Mã khối' },
+      { key: 'title', label: 'Tiêu đề' },
+      { key: 'image_url', label: 'Ảnh', render: thumb },
+      { key: 'display_order', label: 'Thứ tự' },
+      { key: 'is_active', label: 'Active', render: boolBadge },
+    ],
+  },
+  {
     name: 'links',
     label: 'Liên kết',
     icon: 'link',
@@ -415,16 +461,40 @@ export const ADMIN_TABLES: AdminTableDef[] = [
       { key: 'full_name', label: 'Họ tên' },
       { key: 'phone', label: 'SĐT' },
       { key: 'email', label: 'Email' },
+      { key: 'is_read', label: 'Đã đọc', render: readBadge },
+    ],
+  },
+  {
+    name: 'registrations',
+    label: 'Thông tin đăng ký',
+    icon: 'clipboard-list',
+    pk: 'id',
+    fields: [
+      { key: 'full_name', label: 'Họ tên', type: 'text', required: true },
+      { key: 'phone', label: 'Số điện thoại', type: 'text', required: true },
+      { key: 'email', label: 'Email', type: 'text', required: true },
+      { key: 'occupation', label: 'Ngành nghề công tác', type: 'text', required: true },
+      { key: 'service', label: 'Muốn đăng ký (dịch vụ)', type: 'text', required: true },
       {
-        key: 'is_read',
-        label: 'Đã đọc',
-        render: (v) =>
-          v ? (
-            <span className="badge-dot bg-success">Đã xem</span>
-          ) : (
-            <span className="badge-dot bg-warning">Mới</span>
-          ),
+        key: 'service_id',
+        label: 'Khớp khối dịch vụ (nếu có)',
+        type: 'refselect',
+        refTable: 'services',
+        refLabel: 'title_top',
       },
+      { key: 'needs', label: 'Mô tả nhu cầu cụ thể', type: 'textarea' },
+      { key: 'is_read', label: 'Đã đọc', type: 'checkbox' },
+    ],
+    cols: [
+      { key: 'id', label: 'ID' },
+      { key: 'created_at', label: 'Thời gian', render: formatVnTime },
+      { key: 'full_name', label: 'Họ tên' },
+      { key: 'phone', label: 'SĐT' },
+      { key: 'email', label: 'Email' },
+      { key: 'occupation', label: 'Ngành nghề' },
+      { key: 'service', label: 'Muốn đăng ký' },
+      { key: 'needs', label: 'Nhu cầu' },
+      { key: 'is_read', label: 'Đã đọc', render: readBadge },
     ],
   },
   {

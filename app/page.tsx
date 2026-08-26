@@ -17,10 +17,10 @@ import {
   NewsSection,
   PartnerSection,
   ProjectSection,
-  ServiceSection,
   SlideCarousel,
   TestimonialSection,
 } from '@/components/home/HomeSections';
+import { ServicesAndRegister } from '@/components/home/ServicesAndRegister';
 
 // ISR 60s — HTML trang chủ đủ nhanh để crawler đọc hết OG (force-dynamic ~5s
 // khiến Zalo timeout và giữ cache Cửa Âu). Admin vẫn revalidatePath('/') khi lưu.
@@ -60,7 +60,7 @@ export default async function HomePage() {
       <ProjectSection projects={data.projects} />
       <PartnerSection partners={data.partners} />
       <TestimonialSection testimonials={data.testimonials} />
-      <ServiceSection services={data.services} />
+      <ServicesAndRegister services={data.services} blocks={data.registerBlocks} />
     </SiteShell>
   );
 }

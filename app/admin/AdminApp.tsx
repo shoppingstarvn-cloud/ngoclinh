@@ -60,6 +60,15 @@ export default function AdminApp() {
       .finally(() => setCheckingSession(false));
   }, [loadAllData]);
 
+  useEffect(() => {
+    if (!token) return;
+    const ms = activeTab === 'registrations' ? 5000 : 15000;
+    const id = window.setInterval(() => {
+      loadAllData(`Bearer ${token}`);
+    }, ms);
+    return () => window.clearInterval(id);
+  }, [token, activeTab, loadAllData]);
+
   const authHeader = token ? `Bearer ${token}` : '';
 
   async function handleLogin(password: string): Promise<boolean> {
@@ -170,10 +179,17 @@ export default function AdminApp() {
 
   const activeTableDef = ADMIN_TABLES.find((t) => t.name === activeTab);
   const unreadCount = (allData.contact_submissions || []).filter((c) => !c.is_read).length;
+  const registerUnreadCount = (allData.registrations || []).filter((c) => !c.is_read).length;
 
   return (
     <div className="wrapper">
-      <Sidebar activeTab={activeTab} unreadCount={unreadCount} onSelect={setActiveTab} onLogout={handleLogout} />
+      <Sidebar
+        activeTab={activeTab}
+        unreadCount={unreadCount}
+        registerUnreadCount={registerUnreadCount}
+        onSelect={setActiveTab}
+        onLogout={handleLogout}
+      />
 
       <div className="main-content">
         <div className="top-bar">

@@ -6,7 +6,7 @@ type Query = ReturnType<SupabaseClient['from']>;
 export function applyPublicFilters(query: Query, table: CmsTableName) {
   let q = query.select('*');
 
-  if (table !== 'site_settings' && table !== 'contact_submissions') {
+  if (table !== 'site_settings' && table !== 'contact_submissions' && table !== 'registrations') {
     q = q.eq('is_active', true);
   }
   if (table === 'posts') {

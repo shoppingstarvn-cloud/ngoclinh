@@ -1,0 +1,313 @@
+/* Form luôn ngay dưới khối Các dịch vụ, cuối trang — KHÔNG đụng .service_home / .cat-submenu */
+.dichvu-register-stack {
+  display: flex;
+  flex-direction: column;
+}
+.dichvu-register-stack .dichvu_home {
+  order: 1;
+}
+.dichvu-register-stack .register-home {
+  order: 2;
+}
+
+.register-home {
+  background: #070b14;
+  padding: 36px 0 56px;
+  color: #f8fafc;
+}
+
+#form-dang-ky {
+  scroll-margin-top: 96px;
+}
+
+.register-home .register-card,
+.register-home .register-side-card {
+  background: #101826;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.28);
+}
+
+.register-home .register-card {
+  position: relative;
+  padding: 28px 28px 24px;
+}
+
+.register-home .register-form-title {
+  margin: 0 0 22px;
+  font-size: 28px;
+  font-weight: 700;
+  color: #7ee8fa;
+  font-family: Oswald, "Roboto Condensed", sans-serif;
+  letter-spacing: 0.02em;
+}
+
+.register-home .register-field {
+  margin-bottom: 16px;
+}
+
+.register-home .register-field label {
+  display: block;
+  margin-bottom: 6px;
+  color: #c5cdd8;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.register-home .register-field label .req {
+  color: #ef4444;
+}
+
+.register-home .register-field input,
+.register-home .register-field textarea {
+  width: 100%;
+  background: #0b1220;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  color: #f1f5f9;
+  padding: 11px 14px;
+  font-size: 15px;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.register-home .register-field textarea {
+  min-height: 110px;
+  resize: vertical;
+}
+
+.register-home .register-field input::placeholder,
+.register-home .register-field textarea::placeholder {
+  color: #8b95a5;
+}
+
+.register-home .register-field input:focus,
+.register-home .register-field textarea:focus {
+  border-color: #5eead4;
+  box-shadow: 0 0 0 3px rgba(94, 234, 212, 0.15);
+}
+
+.register-home .register-hp {
+  position: absolute;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+.register-home .register-submit {
+  display: block;
+  width: 100%;
+  margin-top: 8px;
+  border: 0;
+  border-radius: 10px;
+  padding: 14px 18px;
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  color: #000;
+  background: linear-gradient(90deg, #22d3ee 0%, #6366f1 52%, #a855f7 100%);
+  cursor: pointer;
+  transition: filter 0.2s ease, transform 0.15s ease;
+}
+
+.register-home .register-submit:hover {
+  filter: brightness(1.06);
+}
+
+.register-home .register-submit:active {
+  transform: scale(0.99);
+}
+
+.register-home .register-submit:disabled {
+  opacity: 0.7;
+  cursor: wait;
+}
+
+.register-home .register-msg {
+  margin: 12px 0 0;
+  font-size: 14px;
+}
+
+.register-home .register-msg.ok {
+  color: #86efac;
+}
+
+.register-home .register-msg.err {
+  color: #fca5a5;
+}
+
+.register-home .register-side {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.register-home .register-side-card {
+  padding: 18px 18px 16px;
+}
+
+.register-home .register-side-card.is-link {
+  display: block;
+  color: inherit;
+  text-decoration: none;
+}
+
+.register-home .register-side-card.is-link:hover {
+  border-color: rgba(126, 232, 250, 0.45);
+}
+
+.register-home .register-community {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.register-home .register-community i {
+  flex: 0 0 42px;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: rgba(126, 232, 250, 0.12);
+  color: #7ee8fa;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+}
+
+.register-home .register-community span {
+  font-weight: 800;
+  font-size: 15px;
+  line-height: 1.35;
+  text-transform: uppercase;
+  color: #fff;
+}
+
+.register-home .register-qr-title {
+  margin: 0 0 12px;
+  text-align: center;
+  font-weight: 800;
+  font-size: 16px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #fff;
+}
+
+.register-home .register-qr-frame {
+  background: #fff;
+  border-radius: 10px;
+  padding: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.register-home .register-qr-frame img {
+  width: 100%;
+  max-width: 260px;
+  height: auto;
+  display: block;
+}
+
+.register-home .register-contact-title,
+.register-home .register-commit-title,
+.register-home .register-extra-title {
+  margin: 0 0 12px;
+  font-weight: 700;
+  font-size: 16px;
+  color: #fff;
+}
+
+.register-home .register-contact-line {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 8px;
+  color: #e2e8f0;
+  font-size: 15px;
+}
+
+.register-home .register-contact-line:last-child {
+  margin-bottom: 0;
+}
+
+.register-home .register-contact-line i {
+  width: 22px;
+  color: #7ee8fa;
+  text-align: center;
+}
+
+.register-home .register-contact-line a {
+  color: #e2e8f0;
+  text-decoration: none;
+}
+
+.register-home .register-contact-line a:hover {
+  color: #7ee8fa;
+}
+
+.register-home .register-commit-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.register-home .register-commit-list li {
+  position: relative;
+  padding-left: 26px;
+  margin: 0 0 10px;
+  color: #e2e8f0;
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.register-home .register-commit-list li:last-child {
+  margin-bottom: 0;
+}
+
+.register-home .register-commit-list li:before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 4px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #22d3ee;
+  box-shadow: inset 0 0 0 3px #101826;
+}
+
+.register-home .register-extra-body {
+  margin: 0;
+  color: #cbd5e1;
+  font-size: 14px;
+  white-space: pre-line;
+}
+
+.dichvu_home .dichvu-form-hint {
+  text-align: center;
+  color: #444;
+  font-size: 14px;
+  margin: 8px 0 0;
+}
+
+.dichvu_home .item_s.cat-card.is-picked dl {
+  outline: 3px solid #22d3ee;
+  outline-offset: 3px;
+}
+
+@media (max-width: 991px) {
+  .register-home {
+    padding: 24px 0 40px;
+  }
+
+  .register-home .register-card {
+    padding: 20px 16px 18px;
+    margin-bottom: 16px;
+  }
+
+  .register-home .register-form-title {
+    font-size: 24px;
+  }
+}

@@ -82,6 +82,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
         <link rel="stylesheet" href="/css/normalize.css" />
         <link rel="stylesheet" href="/css/css/layout.css" />
+        <link rel="stylesheet" href="/css/css/register/register.css" />
         <link rel="stylesheet" href="/css/css/contact/contact.css" />
         <link rel="stylesheet" href="/css/css/news/news.css" />
         <link rel="stylesheet" href="/css/css/product/product.css" />
