@@ -173,14 +173,32 @@ function CategoryCard({ cat }: { cat: Category }) {
   );
 }
 
+/** 3 dãy × 3 khối: 6 gốc + 3 khối dãy 1 lặp lại (SQL -r2 nếu đã chạy, không thì clone trên UI). */
+function homeCategoryRows(categories: Category[]): Category[] {
+  const isClone = (c: Category) => String(c.slug || '').endsWith('-r2');
+  const originals = categories.filter((c) => !isClone(c));
+  const dbClones = categories.filter(isClone);
+  if (!originals.length) return categories;
+  const row3 =
+    dbClones.length >= 3
+      ? dbClones.slice(0, 3)
+      : originals.slice(0, 3).map((c) => ({
+          ...c,
+          slug: `${c.slug || 'cat'}-r2`,
+          link_url: (c.link_url || '').trim() || (c.slug ? `/${c.slug}.html` : ''),
+        }));
+  return [...originals, ...row3];
+}
+
 export function CategoryGrid({ categories }: { categories: Category[] }) {
-  if (!categories.length) return null;
+  const cards = homeCategoryRows(categories);
+  if (!cards.length) return null;
   return (
     <div className="service_home">
       <div className="container">
         <div className="row">
-          {categories.map((cat) => (
-            <CategoryCard key={cat.id} cat={cat} />
+          {cards.map((cat, i) => (
+            <CategoryCard key={`${cat.slug || cat.id}-${i}`} cat={cat} />
           ))}
         </div>
       </div>
