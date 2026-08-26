@@ -107,10 +107,15 @@ export default function ContentGateAdminPage() {
 
   return (
     <div style={wrap}>
+      <div style={{ marginBottom: 14 }}>
+        <Link href="/admin" style={{ color: '#00A651', fontWeight: 700, fontSize: 14 }}>
+          ← Về Dashboard
+        </Link>
+      </div>
       <div style={card}>
         <h2 style={{ color: '#004000', marginTop: 0 }}>🔒 Mật khẩu xem nội dung</h2>
         <p style={{ color: '#555', fontSize: 14 }}>
-          Mật khẩu này áp dụng cho các menu con của khối <b>“Hoạt động phong trào”</b>. Người xem
+          Mật khẩu này áp dụng cho các menu con của khối <b>“Hoạt động trọng tâm”</b>. Người xem
           bấm vào menu con sẽ phải nhập đúng mật khẩu mới xem được.
         </p>
         {note ? <p style={{ color: '#94a3b8', fontSize: 13 }}>{note}</p> : null}

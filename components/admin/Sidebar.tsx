@@ -89,6 +89,17 @@ export default function Sidebar({ activeTab, unreadCount, registerUnreadCount = 
             })}
           </div>
         ))}
+        <div className="nav-section">Bảo Mật</div>
+        <a
+          className={`nav-link${activeTab === 'content_gate' ? ' active' : ''}`}
+          role="button"
+          tabIndex={0}
+          onClick={() => onSelect('content_gate')}
+          onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && onSelect('content_gate')}
+        >
+          <i className="fas fa-lock" />
+          <span>Mật khẩu nội dung</span>
+        </a>
         <a
           className="nav-link"
           role="button"
