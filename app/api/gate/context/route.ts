@@ -22,6 +22,18 @@ export async function GET(request: NextRequest) {
       .filter((c) => isGatedCategoryName(c.name))
       .map((c) => c.id);
 
+    // Chẩn đoán tạm: /api/gate/context?debug=1 -> xem dữ liệu thật để tìm lỗi khớp.
+    if (new URL(request.url).searchParams.get('debug') === '1') {
+      const { data: allSubs } = await supabase
+        .from('category_submenus')
+        .select('id, category_id, parent_id, label, link_url, is_active');
+      return NextResponse.json({
+        categories: (cats ?? []).map((c) => ({ id: c.id, name: c.name })),
+        gatedIds,
+        submenus: allSubs ?? [],
+      });
+    }
+
     let targets: string[] = [];
     if (gatedIds.length) {
       const { data: subs } = await supabase
