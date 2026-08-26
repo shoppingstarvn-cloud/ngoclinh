@@ -2301,12 +2301,15 @@ a.more:hover {
 }
 
 /* =========================================================================
-   .dichvu_home — khối 11 dịch vụ (kiểu sandwich: thanh trên + ảnh + thanh dưới)
-   Đặt NGAY DƯỚI slide SĐT (.comment_home). KHÔNG đụng .service_home / .cat-submenu.
+   .dichvu_home — mỗi dịch vụ 1 khối GIỐNG khối danh mục (ảnh thứ 2):
+   ảnh trên + thanh trắng tên + mũi tên xanh góc phải.
+   Hiệu ứng = cat-card (nhún 3D) + effect-v7 (kim tuyến + zoom).
+   KHÔNG đụng .service_home / .cat-submenu (menu danh mục giữ nguyên).
    ========================================================================= */
 .dichvu_home {
-  background: #ececec;
-  padding: 36px 0 48px;
+  position: relative;
+  background: #EBEBEB;
+  padding: 40px 0;
 }
 .dichvu_home .title {
   text-align: center;
@@ -2317,89 +2320,121 @@ a.more:hover {
   text-transform: uppercase;
   margin: 0;
 }
-.dichvu_home .dichvu-col {
-  margin-bottom: 24px;
-  display: flex;
+.dichvu_home .item_s {
+  margin-bottom: 15px;
 }
-.dichvu_home .dichvu-card {
-  background: #fff;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
-  overflow: hidden;
-  height: 100%;
-  width: 100%;
-  display: flex;
-  flex-direction: column;
+.dichvu_home .item_s.cat-card { position: relative; z-index: 1; }
+.dichvu_home .item_s.cat-card:hover { z-index: 50; }
+.dichvu_home .item_s.cat-card dl {
+  transition: transform .38s cubic-bezier(.2,.8,.3,1.15), box-shadow .38s ease, filter .38s ease;
+  transform-style: preserve-3d;
+  will-change: transform;
+  cursor: pointer;
 }
-.dichvu_home .dichvu-bar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 16px 18px;
-  background: #fff;
-  color: #111;
-  text-decoration: none;
-  min-height: 58px;
+.dichvu_home .item_s.cat-card:hover dl {
+  transform: translateY(6px) perspective(780px) rotateX(6deg) scale(.985);
+  animation: catPress .5s cubic-bezier(.34,1.56,.64,1);
+  filter: drop-shadow(0 8px 16px rgba(0,64,0,.26));
 }
-.dichvu_home a.dichvu-bar {
-  color: #111;
+.dichvu_home .item_s.cat-card:active dl {
+  transform: translateY(9px) perspective(780px) rotateX(8deg) scale(.975);
 }
-.dichvu_home a.dichvu-bar:hover {
-  text-decoration: none;
-  color: #111;
+.dichvu_home .item_s.cat-card dl dt {
+  box-shadow: -5px 5px 5px rgba(0, 0, 0, .3);
+  transition: box-shadow .38s ease;
 }
-.dichvu_home a.dichvu-bar:hover .dichvu-chevron {
-  color: #00A651;
-  transform: translateX(4px);
+.dichvu_home .item_s.cat-card:hover dl dt {
+  box-shadow: -8px 12px 22px rgba(0, 64, 0, .35);
 }
-.dichvu_home .dichvu-bar-text {
-  font-weight: 700;
-  text-transform: uppercase;
-  font-size: 13px;
-  line-height: 1.35;
-  letter-spacing: 0.02em;
-  color: #111;
-  flex: 1;
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-.dichvu_home .dichvu-chevron {
-  color: #00A651;
-  font-size: 18px;
-  flex-shrink: 0;
-  transition: transform 0.3s ease, color 0.3s ease;
-}
-.dichvu_home .dichvu-photo {
+.dichvu_home .item_s.cat-card dl dt .effect-v7 {
   margin: 0;
   display: block;
+}
+.dichvu_home .item_s.cat-card dl dt a {
+  aspect-ratio: 320 / 217;
+  height: auto;
   overflow: hidden;
-  background: #d9d9d9;
-  flex: 1;
-}
-.dichvu_home .dichvu-photo > a,
-.dichvu_home .dichvu-photo > span {
   display: block;
+  background: #d9d9d9;
 }
-.dichvu_home .dichvu-photo img,
-.dichvu_home .dichvu-photo-empty {
+.dichvu_home .item_s.cat-card dl dt a img,
+.dichvu_home .item_s.cat-card .dichvu-photo-empty {
   width: 100%;
-  height: 180px;
+  height: 100%;
+  min-height: 0;
+  max-width: none;
   object-fit: cover;
   object-position: center;
   display: block;
 }
-.dichvu_home .dichvu-photo-empty {
+.dichvu_home .item_s.cat-card .dichvu-photo-empty {
   background: linear-gradient(135deg, #cfcfcf, #e8e8e8);
+  min-height: 160px;
+}
+.dichvu_home .item_s.cat-card dl dd {
+  position: relative;
+  background: #FFF;
+  margin: 0;
+  padding: 0 0 14px;
+  text-align: justify;
+  line-height: 18px;
+}
+.dichvu_home .item_s.cat-card dl dd h3 {
+  position: static;
+  top: auto;
+  left: auto;
+  width: 100%;
+  height: auto;
+  line-height: 1.35;
+  overflow: visible;
+  margin: 0;
+  background: #fff;
+}
+.dichvu_home .item_s.cat-card dl dd h3 a {
+  display: block;
+  line-height: 24px;
+  background: #fff;
+  font-size: 16px;
+  text-decoration: none;
+  font-family: Roboto, sans-serif;
+  font-weight: bold;
+  padding: 10px 28px 0 15px;
+  color: #000;
+  text-transform: uppercase;
+  position: relative;
+  transition: color .3s ease;
+}
+.dichvu_home .item_s.cat-card dl dd h3 a:hover,
+.dichvu_home .item_s.cat-card:hover dl dd h3 a {
+  color: #00A651;
+  text-decoration: none;
+}
+.dichvu_home .item_s.cat-card dl dd h3 a:before {
+  position: absolute;
+  top: 17px;
+  right: 8px;
+  width: 8px;
+  height: 8px;
+  transform: rotate(45deg);
+  -webkit-transform: rotate(45deg);
+  border-top: 2px solid #004000;
+  border-bottom: 2px solid transparent;
+  border-left: 2px solid transparent;
+  border-right: 2px solid #004000;
+  display: block;
+  content: "";
+}
+.dichvu_home .item_s.cat-card dl dd > div {
+  padding: 6px 18px 0;
+  color: #555;
 }
 @media (max-width: 767px) {
   .dichvu_home {
     padding: 24px 0 32px;
   }
-  .dichvu_home .dichvu-photo img,
-  .dichvu_home .dichvu-photo-empty {
-    height: 160px;
+  .dichvu_home .item_s.cat-card:hover dl {
+    transform: translateY(4px) scale(.99);
+    animation: none;
   }
 }
 

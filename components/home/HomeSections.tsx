@@ -1,5 +1,6 @@
 'use client';
 
+import type { ReactNode } from 'react';
 import Link from 'next/link';
 import { postHref, itemHref, assetUrl, resolveHref, isTrustedMediaUrl, isValidAssetUrl } from '@/lib/slug';
 import { useOwlCarousel } from '@/lib/hooks/useOwlCarousel';
@@ -555,55 +556,28 @@ function isExternalHref(href: string) {
   return /^https?:\/\//i.test(href);
 }
 
-function ServiceBar({ title, href }: { title: string; href: string }) {
-  const clickable = Boolean(href && href !== '#');
-  const inner = (
-    <>
-      <span className="dichvu-bar-text">{title}</span>
-      <i className="fa fa-chevron-right dichvu-chevron" aria-hidden />
-    </>
-  );
-  if (!clickable) {
-    return <div className="dichvu-bar">{inner}</div>;
-  }
-  if (isExternalHref(href)) {
-    return (
-      <a className="dichvu-bar" href={href} target="_blank" rel="noopener noreferrer">
-        {inner}
-      </a>
-    );
-  }
+function ServiceLink({
+  href,
+  title,
+  children,
+  className,
+}: {
+  href: string;
+  title?: string;
+  children: ReactNode;
+  className?: string;
+}) {
+  const ext = isExternalHref(href);
+  const extra = ext ? { target: '_blank' as const, rel: 'noopener noreferrer' } : {};
   return (
-    <Link className="dichvu-bar" href={href}>
-      {inner}
+    <Link href={href || '#'} title={title} className={className} {...extra}>
+      {children}
     </Link>
   );
 }
 
-function ServicePhoto({ src, alt, href }: { src: string; alt: string; href: string }) {
-  const img = src ? (
-    <img src={assetUrl(src)} alt={alt} />
-  ) : (
-    <span className="dichvu-photo-empty" aria-hidden />
-  );
-  const clickable = Boolean(href && href !== '#');
-  const photo = clickable ? (
-    isExternalHref(href) ? (
-      <a href={href} target="_blank" rel="noopener noreferrer" title={alt}>
-        {img}
-      </a>
-    ) : (
-      <Link href={href} title={alt}>
-        {img}
-      </Link>
-    )
-  ) : (
-    <span>{img}</span>
-  );
-  return <figure className="effect-v7 dichvu-photo">{photo}</figure>;
-}
-
-/** Khối 11 dịch vụ — kiểu sandwich (ảnh 2). KHÔNG dùng class .service_home để khỏi đụng menu danh mục. */
+/** Mỗi dịch vụ = 1 khối giống danh mục: ảnh trên + thanh trắng tên + mũi tên xanh dưới.
+ *  KHÔNG dùng class .service_home / .cat-submenu — giữ nguyên menu danh mục. */
 export function ServiceSection({ services }: { services: Service[] }) {
   const visible = services.filter((s) => s.is_active !== false && (s.title_top || '').trim());
   if (!visible.length) return null;
@@ -616,19 +590,35 @@ export function ServiceSection({ services }: { services: Service[] }) {
             <span className="neon-title">Các dịch vụ</span>
           </p>
         </div>
-        <div className="row dichvu-grid">
+        <div className="row">
           {visible.map((s) => {
-            const hrefTop = resolveHref(s.link_top);
-            const hrefBottom = resolveHref(s.link_bottom);
-            const hrefPhoto = hrefTop !== '#' ? hrefTop : hrefBottom;
-            const bottom = (s.title_bottom || '').trim();
+            const href =
+              resolveHref(s.link_top) !== '#'
+                ? resolveHref(s.link_top)
+                : resolveHref(s.link_bottom);
+            const desc = (s.title_bottom || '').trim();
+            const src = s.image_url ? assetUrl(s.image_url) : '';
             return (
-              <div key={s.id} className="col-12 col-md-6 col-lg-4 dichvu-col fx-card">
-                <div className="dichvu-card fx-inner">
-                  <ServiceBar title={s.title_top} href={hrefTop} />
-                  <ServicePhoto src={s.image_url || ''} alt={s.title_top} href={hrefPhoto} />
-                  {bottom ? <ServiceBar title={bottom} href={hrefBottom} /> : null}
-                </div>
+              <div key={s.id} className="col-12 col-md-4 item_s cat-card">
+                <dl>
+                  <dt>
+                    <figure className="effect-v7">
+                      <ServiceLink href={href} title={s.title_top}>
+                        {src ? (
+                          <img src={src} alt={s.title_top} />
+                        ) : (
+                          <span className="dichvu-photo-empty" aria-hidden />
+                        )}
+                      </ServiceLink>
+                    </figure>
+                  </dt>
+                  <dd>
+                    <h3>
+                      <ServiceLink href={href}>{s.title_top}</ServiceLink>
+                    </h3>
+                    {desc ? <div>{desc}</div> : null}
+                  </dd>
+                </dl>
               </div>
             );
           })}

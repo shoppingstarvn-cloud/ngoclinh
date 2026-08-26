@@ -1,5 +1,5 @@
 -- =============================================================================
--- BẢNG "CÁC DỊCH VỤ" — khối sandwich (thanh trên + ảnh + thanh dưới)
+-- BẢNG "CÁC DỊCH VỤ" — mỗi dịch vụ 1 khối: ảnh trên + thanh trắng tên + mũi tên
 -- Chạy 1 lần: Supabase ngoclinh (pglbhoitmcflpvoasewr) → SQL Editor → Run.
 -- An toàn chạy lại (IF NOT EXISTS / WHERE NOT EXISTS).
 -- =============================================================================
@@ -17,11 +17,11 @@ CREATE TABLE IF NOT EXISTS public.services (
   updated_at    TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
-COMMENT ON TABLE public.services IS 'Khối dịch vụ trang chủ (kiểu sandwich: tiêu đề trên + ảnh + tiêu đề dưới)';
-COMMENT ON COLUMN public.services.title_top IS 'Tiêu đề thanh trên';
-COMMENT ON COLUMN public.services.title_bottom IS 'Tiêu đề thanh dưới (để trống thì ẩn thanh dưới)';
-COMMENT ON COLUMN public.services.link_top IS 'Link khi bấm thanh trên / ảnh';
-COMMENT ON COLUMN public.services.link_bottom IS 'Link khi bấm thanh dưới';
+COMMENT ON TABLE public.services IS 'Khối dịch vụ trang chủ (ảnh trên + thanh trắng tên + mũi tên xanh)';
+COMMENT ON COLUMN public.services.title_top IS 'Tên dịch vụ trên thanh trắng dưới ảnh';
+COMMENT ON COLUMN public.services.title_bottom IS 'Mô tả ngắn dưới tên (để trống thì ẩn)';
+COMMENT ON COLUMN public.services.link_top IS 'Link khi bấm ảnh / tên dịch vụ';
+COMMENT ON COLUMN public.services.link_bottom IS 'Link phụ nếu không có link_top';
 
 ALTER TABLE public.services ENABLE ROW LEVEL SECURITY;
 

@@ -222,7 +222,7 @@ CREATE TABLE IF NOT EXISTS public.testimonials (
 );
 
 -- ============================================================================
--- 11b. SERVICES (khối dịch vụ trang chủ — sandwich)
+-- 11b. SERVICES (khối dịch vụ trang chủ — ảnh trên + thanh trắng tên)
 -- ============================================================================
 CREATE TABLE IF NOT EXISTS public.services (
   id BIGSERIAL PRIMARY KEY,
