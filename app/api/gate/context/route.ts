@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
-import { resolveHref } from '@/lib/slug';
+import { resolveHref, itemHref } from '@/lib/slug';
 import { getCurrentUser } from '@/lib/auth/user-session';
 import { GATE_COOKIE, verifyGate, isGatedCategoryName } from '@/lib/gate/gate';
 
@@ -16,38 +16,43 @@ export async function GET(request: NextRequest) {
 
     const { data: cats } = await supabase
       .from('categories')
-      .select('id, name')
+      .select('id, name, slug, link_url')
       .eq('is_active', true);
-    const gatedIds = (cats ?? [])
-      .filter((c) => isGatedCategoryName(c.name))
-      .map((c) => c.id);
+    const gatedCats = (cats ?? []).filter((c) => isGatedCategoryName(c.name));
+    const gatedIds = gatedCats.map((c) => c.id);
 
-    // Chẩn đoán tạm: /api/gate/context?debug=1 -> xem dữ liệu thật để tìm lỗi khớp.
-    if (new URL(request.url).searchParams.get('debug') === '1') {
-      const { data: allSubs } = await supabase
-        .from('category_submenus')
-        .select('id, category_id, parent_id, label, link_url, is_active');
-      return NextResponse.json({
-        categories: (cats ?? []).map((c) => ({ id: c.id, name: c.name })),
-        gatedIds,
-        submenus: allSubs ?? [],
-      });
+    const set = new Set<string>();
+    // (1) Link CHUNG của khối "Hoạt động phong trào" — nơi menu con trỏ về khi
+    //     chưa điền Link đích riêng. Chặn cả link này để mọi menu con đều bị hỏi mật khẩu.
+    for (const c of gatedCats) {
+      const h = itemHref({ slug: c.slug, link_url: c.link_url });
+      if (h && h !== '#') set.add(h);
     }
-
-    let targets: string[] = [];
+    // (2) Link đích RIÊNG của từng menu con (nếu admin đã điền).
     if (gatedIds.length) {
       const { data: subs } = await supabase
         .from('category_submenus')
         .select('link_url')
         .in('category_id', gatedIds)
         .eq('is_active', true);
-      targets = Array.from(
-        new Set(
-          (subs ?? [])
-            .map((s) => resolveHref(s.link_url || ''))
-            .filter((h) => h && h !== '#'),
-        ),
-      );
+      for (const s of subs ?? []) {
+        const h = resolveHref(s.link_url || '');
+        if (h && h !== '#') set.add(h);
+      }
+    }
+    const targets = Array.from(set);
+
+    // Chẩn đoán tạm: /api/gate/context?debug=1
+    if (new URL(request.url).searchParams.get('debug') === '1') {
+      const { data: allSubs } = await supabase
+        .from('category_submenus')
+        .select('id, category_id, parent_id, label, link_url, is_active');
+      return NextResponse.json({
+        categories: (cats ?? []).map((c) => ({ id: c.id, name: c.name, slug: c.slug, link_url: c.link_url })),
+        gatedIds,
+        targets,
+        submenus: allSubs ?? [],
+      });
     }
 
     let unlocked = await verifyGate(request.cookies.get(GATE_COOKIE)?.value);
