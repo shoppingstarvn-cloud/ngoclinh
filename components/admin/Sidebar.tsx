@@ -45,7 +45,7 @@ export default function Sidebar({ activeTab, unreadCount, registerUnreadCount = 
         <h5>
           <i className="fas fa-crown" /> ADMIN
         </h5>
-        <small>Bê Tông Cửa Âu</small>
+        <small>Ngọc Linh · Hệ Sinh Thái AI</small>
       </div>
       <div className="sidebar-nav">
         <div className="nav-section">Tổng Quan</div>

@@ -5,7 +5,7 @@ import Modal from './Modal';
 import ImageUploadField from './ImageUploadField';
 import RichTextEditor from './RichTextEditor';
 import AttachmentField from './AttachmentField';
-import { AdminField, AdminRow, AdminTableDef, isImageField } from '@/lib/cms/admin-schema';
+import { AdminField, AdminRow, AdminTableDef, categoryAdminLabel, isImageField } from '@/lib/cms/admin-schema';
 import { slugify } from '@/lib/slug';
 import { createRecordAction, updateRecordAction } from '@/lib/actions/admin-actions';
 
@@ -74,6 +74,11 @@ export default function RecordFormModal({ open, table, item, menus, allData = {}
         initial[f.key] = f.key === 'is_active' ? true : defaultValueFor(f);
       }
     });
+    if (!item && table.fields.some((f) => f.key === 'display_order')) {
+      const rows = allData[table.name] ?? [];
+      const max = rows.reduce((m, r) => Math.max(m, Number(r.display_order) || 0), 0);
+      initial.display_order = max + 1;
+    }
     setFormData(initial);
     setAutoSlug(!item);
     setError('');
@@ -224,7 +229,9 @@ export default function RecordFormModal({ open, table, item, menus, allData = {}
                 <option value="">— Chọn —</option>
                 {(allData[f.refTable ?? ''] ?? []).map((r) => (
                   <option key={String(r.id)} value={String(r.id)}>
-                    {String(r[f.refLabel ?? 'name'] ?? r.title ?? r.label ?? r.id)}
+                    {f.refTable === 'categories'
+                      ? categoryAdminLabel(r)
+                      : String(r[f.refLabel ?? 'name'] ?? r.title ?? r.label ?? r.id)}
                   </option>
                 ))}
               </select>

@@ -208,6 +208,37 @@ export async function repairPartnersAndSyncAction(): Promise<
   }
 }
 
+/**
+ * Tạo 3 khối MENU hàng 3 (slug *-r2) độc lập — Super Admin sửa/xóa hàng 3
+ * không đụng 3 khối hàng 1. Idempotent; `force` đắp lại sau khi đã xóa clone.
+ */
+export async function seedHomeMenuAction(): Promise<
+  ActionResult<{ created: number; cloneCount: number }>
+> {
+  try {
+    await requireAdminAction();
+    const { ensureHomeMenuCategorySlots } = await import(
+      '@/lib/data/ensure-home-categories'
+    );
+    const result = await ensureHomeMenuCategorySlots({ force: true });
+    if (result.reason === 'not-ngoclinh') {
+      throw new Error(
+        'Máy này đang trỏ nhầm kho Cửa Âu. Cần .env.local ngoclinh (pglbhoitmcflpvoasewr) rồi mở lại Admin.',
+      );
+    }
+    syncSite();
+    return {
+      success: true,
+      data: { created: result.created, cloneCount: result.cloneCount },
+    };
+  } catch (e) {
+    return {
+      success: false,
+      error: e instanceof Error ? e.message : 'Bổ sung khối MENU thất bại',
+    };
+  }
+}
+
 /** Revalidate toàn site sau khi sync script chạy xong. */
 export async function revalidateSiteAction(): Promise<ActionResult> {
   try {

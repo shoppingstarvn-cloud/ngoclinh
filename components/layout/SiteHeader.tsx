@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, type CSSProperties } from 'react';
+import { useState, type CSSProperties, type FormEvent } from 'react';
 import Link from 'next/link';
 import { SHARE_SITE_NAME } from '@/lib/seo';
 import { assetUrl, resolveHref } from '@/lib/slug';
@@ -23,6 +23,13 @@ function toHref(url: string) {
   // Dùng chung resolveHref: link "trần" như "shopmartai.com" -> https:// (link
   // ngoài), không bị ghép nhầm domain ngoclinh phía trước gây 404.
   return resolveHref(url);
+}
+
+function onSiteSearch(e: FormEvent<HTMLFormElement>) {
+  e.preventDefault();
+  const fd = new FormData(e.currentTarget);
+  const q = String(fd.get('q') || fd.get('txtkeyword') || '').trim();
+  window.location.href = q ? `/?q=${encodeURIComponent(q)}#tin-tuc` : '/#tin-tuc';
 }
 
 export interface CmsLink {
@@ -99,12 +106,8 @@ export function SiteHeader({
             <Link className="logo" href="/">
               <img src={logo} alt={siteName} />
             </Link>
-            <form
-              className="search_form"
-              action="https://congbetongcuaau.com/index.php/tim-kiem.html"
-              method="GET"
-            >
-              <input type="text" name="txtkeyword" placeholder="Từ khóa tìm kiếm..." autoComplete="off" />
+            <form className="search_form" onSubmit={onSiteSearch}>
+              <input type="text" name="q" placeholder="Từ khóa tìm kiếm..." autoComplete="off" />
               <button type="submit">
                 <i className="fa fa-search" />
               </button>
@@ -124,10 +127,10 @@ export function SiteHeader({
             <div className="col-6 right">
               <div className="row no-gutters">
                 <div className="search">
-                  <form action="https://congbetongcuaau.com/index.php/tim-kiem.html" method="GET">
+                  <form onSubmit={onSiteSearch}>
                     <input
                       type="text"
-                      name="txtkeyword"
+                      name="q"
                       placeholder="Từ khóa tìm kiếm..."
                       autoComplete="off"
                     />
@@ -214,9 +217,10 @@ export function SiteFooter({
     footerLinks.length > 0
       ? footerLinks.slice(0, 6)
       : [
-          { id: -1, label: 'Giới thiệu công ty', url: '/gioi-thieu-a1.html' },
-          { id: -2, label: 'Dự án tiêu biểu', url: '/du-an-a3.html' },
-          { id: -3, label: 'Liên hệ', url: '/lien-he.html' },
+          { id: -1, label: 'Giới thiệu', url: '/#gioi-thieu' },
+          { id: -2, label: 'Dịch vụ', url: '/#cac-dich-vu' },
+          { id: -3, label: 'Đăng ký', url: '/#form-dang-ky' },
+          { id: -4, label: 'Liên hệ', url: '/#form-dang-ky' },
         ];
   const productLinks =
     categories.length > 0
@@ -229,9 +233,12 @@ export function SiteFooter({
             url: c.slug?.includes('.html') ? `/${c.slug.replace(/^\//, '')}` : `/${c.slug}.html`,
           }))
       : [
-          { id: -11, label: 'Hố ga bê tông', url: '/ho-ga-duc-san-c48.html' },
-          { id: -12, label: 'Cống hộp đúc sẵn', url: '/cong-hop--c54.html' },
-          { id: -13, label: 'Cống tròn bê tông', url: '/cong-tron-c53.html' },
+          { id: -11, label: 'Truyền thông', url: '/truyen-thong.html' },
+          { id: -12, label: 'Tổ chức sự kiện', url: '/to-chuc-su-kien.html' },
+          { id: -13, label: 'Đào tạo AI', url: '/dao-tao-ai.html' },
+          { id: -14, label: 'Thiết kế Website/App', url: '/thiet-ke-app.html' },
+          { id: -15, label: 'Luyện thi Toán Lý Hóa Sinh', url: '/luyen-thi-toan-ly-hoa-sinh.html' },
+          { id: -16, label: 'Hoạt động phong trào', url: '/hoat-dong-phong-trao.html' },
         ];
 
   return (
@@ -335,7 +342,7 @@ export function SiteFooter({
 
             <div className="col-12 col-md-2 mb-4">
               <h5 style={{ fontWeight: 'bold', textTransform: 'uppercase', marginBottom: 20, color: '#fff' }}>
-                SẢN PHẨM
+                NĂNG LỰC
               </h5>
               <ul style={{ listStyle: 'none', padding: 0, margin: 0, lineHeight: 2 }}>
                 {productLinks.map((l) => (

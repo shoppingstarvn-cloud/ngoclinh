@@ -13,9 +13,10 @@ interface DashboardProps {
   onSelectTab: (tab: string) => void;
   onQuickAdd: (tab: string) => void;
   onDataReload: () => void;
+  onSeedHomeMenu?: () => void;
 }
 
-export default function Dashboard({ allData, onSelectTab, onQuickAdd, onDataReload }: DashboardProps) {
+export default function Dashboard({ allData, onSelectTab, onQuickAdd, onDataReload, onSeedHomeMenu }: DashboardProps) {
   const [syncing, setSyncing] = useState(false);
 
   async function handleRepairSync() {
@@ -44,8 +45,41 @@ export default function Dashboard({ allData, onSelectTab, onQuickAdd, onDataRelo
     }
   }
 
+  const homeCats = (allData.categories || []).filter((c) => {
+    const p = c.parent_id;
+    return p == null || p === '' || Number(p) === 0;
+  });
+  const homeClones = homeCats.filter((c) => String(c.slug || '').endsWith('-r2'));
+  const needHomeMenuSeed = homeClones.length < 3;
+
   return (
     <div>
+      {needHomeMenuSeed ? (
+        <div className="alert alert-info d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+          <div>
+            Trang chủ đang hiện <strong>9 khối MENU</strong> (hàng 3 đang đắp ảo từ hàng 1),
+            còn tab <strong>Danh mục (MENU trang chủ)</strong> mới có{' '}
+            <strong>{homeCats.length}</strong> dòng thật.
+            Bấm nút để tạo 3 dòng độc lập — sửa/xóa hàng 3 không đụng hàng 1.
+          </div>
+          <div className="d-flex gap-2">
+            <button type="button" className="btn btn-sm btn-outline-light" onClick={() => onSelectTab('categories')}>
+              Mở tab Danh mục
+            </button>
+            {onSeedHomeMenu ? (
+              <button type="button" className="btn btn-sm btn-info" onClick={onSeedHomeMenu}>
+                Bổ sung 3 khối hàng 3
+              </button>
+            ) : null}
+          </div>
+        </div>
+      ) : (
+        <div className="alert alert-success mb-3">
+          Tab Danh mục đã khớp trang chủ: <strong>{homeCats.length}</strong> khối gốc
+          (trong đó <strong>{homeClones.length}</strong> khối hàng 3 độc lập). Thêm / sửa / xóa / tắt Active
+          đồng bộ realtime với trang chủ.
+        </div>
+      )}
       <div className="stats-grid">
         {ADMIN_TABLES.map((t, idx) => (
           <div className="stat-card" style={{ cursor: 'pointer' }} key={t.name} onClick={() => onSelectTab(t.name)}>
@@ -65,6 +99,9 @@ export default function Dashboard({ allData, onSelectTab, onQuickAdd, onDataRelo
             </div>
             <div className="card-body">
               <div className="d-grid gap-2">
+                <button className="btn btn-outline-primary" onClick={() => onQuickAdd('categories')}>
+                  <i className="fas fa-th" /> Thêm khối MENU trang chủ
+                </button>
                 <button className="btn btn-primary" onClick={() => onQuickAdd('slides')}>
                   <i className="fas fa-images" /> Thêm Slide
                 </button>

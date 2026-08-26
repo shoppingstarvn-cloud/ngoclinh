@@ -1,13 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { CMS_TABLES, ORDERED_TABLES } from '@/lib/cms/tables';
 import { requireAdmin, isAdminPayload } from '@/lib/auth/session';
+import { ensureHomeMenuCategorySlots } from '@/lib/data/ensure-home-categories';
 
 export async function GET(request: NextRequest) {
   const admin = await requireAdmin(request);
   if (!isAdminPayload(admin)) return admin;
 
   try {
+    const seeded = await ensureHomeMenuCategorySlots();
+    if (seeded.created > 0) {
+      revalidatePath('/', 'layout');
+    }
     const supabase = createAdminClient();
     const result: Record<string, unknown[]> = {};
 

@@ -11,6 +11,7 @@ interface DataTableProps {
   onDelete: (row: AdminRow) => void;
   onToggleActive?: (row: AdminRow, value: boolean) => void;
   onSetOrder?: (row: AdminRow, value: number) => void;
+  onSeedHomeMenu?: () => void;
 }
 
 function renderCell(value: unknown, full = false): string {
@@ -20,7 +21,16 @@ function renderCell(value: unknown, full = false): string {
   return full || str.length <= 80 ? str : `${str.slice(0, 80)}...`;
 }
 
-export default function DataTable({ table, rows, allData, onAdd, onEdit, onDelete, onToggleActive, onSetOrder }: DataTableProps) {
+function isRootCategory(row: AdminRow) {
+  const p = row.parent_id;
+  return p == null || p === '' || Number(p) === 0;
+}
+
+export default function DataTable({ table, rows, allData, onAdd, onEdit, onDelete, onToggleActive, onSetOrder, onSeedHomeMenu }: DataTableProps) {
+  const rootCats = table.name === 'categories' ? rows.filter(isRootCategory) : [];
+  const cloneCats = rootCats.filter((r) => String(r.slug || '').endsWith('-r2'));
+  const needHomeMenuSeed = table.name === 'categories' && cloneCats.length < 3;
+
   return (
     <div className="card">
       <div className="card-header">
@@ -29,9 +39,37 @@ export default function DataTable({ table, rows, allData, onAdd, onEdit, onDelet
         </span>
       </div>
       <div className="card-body">
-        <button className="btn btn-primary btn-sm mb-3" onClick={onAdd}>
+        {table.hint ? (
+          <p className="text-muted small mb-3" style={{ lineHeight: 1.45 }}>
+            {table.hint}
+          </p>
+        ) : null}
+        {table.name === 'categories' ? (
+          <p className="small mb-3" style={{ lineHeight: 1.45 }}>
+            Đang có <strong>{rootCats.length}</strong> khối gốc trên trang chủ
+            {' '}(<strong>{cloneCats.length}</strong> khối hàng 3 độc lập).
+            {needHomeMenuSeed
+              ? ' Trang chủ đang đắp ảo 3 ô hàng 3 — bấm nút bên dưới để tạo 3 dòng thật, sửa được riêng.'
+              : ' Hàng 3 đã là dòng thật — sửa/xóa từng ô không đụng hàng 1.'}
+          </p>
+        ) : null}
+        <button className="btn btn-primary btn-sm mb-3 me-2" onClick={onAdd}>
           <i className="fas fa-plus" /> Thêm
         </button>
+        {table.name === 'categories' && onSeedHomeMenu ? (
+          <button
+            className="btn btn-outline-info btn-sm mb-3"
+            onClick={onSeedHomeMenu}
+            disabled={!needHomeMenuSeed}
+            title={
+              needHomeMenuSeed
+                ? 'Tạo 3 dòng TRUYỀN THÔNG / TỔ CHỨC SỰ KIỆN / ĐÀO TẠO AI cho hàng 3'
+                : 'Đã đủ 3 khối hàng 3'
+            }
+          >
+            <i className="fas fa-clone" /> Bổ sung 3 khối hàng 3
+          </button>
+        ) : null}
         <div className="table-responsive">
           <table className="table">
             <thead>

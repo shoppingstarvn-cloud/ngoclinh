@@ -1,18 +1,46 @@
 /**
- * scripts/seed-menus-categories.js
+ * scripts/seed-menus-categories.js — NGOCLINH ONLY
  *
- * Kích hoạt CMS cho menu điều hướng + danh mục nổi bật trang chủ,
- * bằng cách chèn ĐÚNG dữ liệu menu/danh mục gốc (legacy-html/index.html),
- * (giữ nguyên href, kể cả các link index.php/...) -> KHÔNG đổi giao diện,
- * chỉ mở khoá khả năng sửa qua Super Admin từ nay về sau.
+ * Seed header (public.menus) + khối trang chủ (public.categories) cho
+ * https://ngoclinh.shopmartai.com  — kho pglbhoitmcflpvoasewr.
  *
- * An toàn: idempotent — nếu bảng đã có dữ liệu thì bỏ qua, không chèn trùng.
- * Cách chạy: node scripts/seed-menus-categories.js
+ * KHÔNG mặc định URL/key Cửa Âu. Cấm chạy nếu URL chứa bfruxinvvvaqufghtigw.
+ *
+ * An toàn: nếu bảng đã có dữ liệu thì BỎ QUA.
+ *   Tab Menu đang là cây Cửa Âu → chạy SQL:
+ *   sql/07_THAY_MENU_HEADER_NGOCLINH.sql trên SQL Editor ngoclinh.
+ *   9 khối sandwich → sql/04_DONG_BO_9_KHOI_MENU_TRANG_CHU.sql
+ *
+ * Cách chạy (PowerShell, từ thư mục repo):
+ *   $env:SUPABASE_URL="https://pglbhoitmcflpvoasewr.supabase.co"
+ *   $env:SUPABASE_SERVICE_KEY="<service_role>"
+ *   node scripts/seed-menus-categories.js
  */
 const { createClient } = require('@supabase/supabase-js');
 
-const SUPABASE_URL = process.env.SUPABASE_URL || 'https://bfruxinvvvaqufghtigw.supabase.co';
-const SUPABASE_KEY = process.env.SUPABASE_KEY || 'sb_publishable_QUYv4qEJntioJJ-XWtHkdA_haHovSml';
+const NGOCLINH_REF = 'pglbhoitmcflpvoasewr';
+const CUA_AU_REF = 'bfruxinvvvaqufghtigw';
+
+const SUPABASE_URL = (process.env.SUPABASE_URL || '').trim();
+const SUPABASE_KEY = (
+  process.env.SUPABASE_SERVICE_KEY ||
+  process.env.SUPABASE_KEY ||
+  ''
+).trim();
+
+if (!SUPABASE_URL || !SUPABASE_KEY) {
+  console.error('❌ Thiếu SUPABASE_URL và SUPABASE_SERVICE_KEY (hoặc SUPABASE_KEY). Không mặc định kho Cửa Âu.');
+  process.exit(1);
+}
+if (SUPABASE_URL.includes(CUA_AU_REF) || /congbetongcuaau/i.test(SUPABASE_URL)) {
+  console.error('❌ URL đang trỏ Cửa Âu. Script này chỉ chạy trên ngoclinh (' + NGOCLINH_REF + ').');
+  process.exit(1);
+}
+if (!SUPABASE_URL.includes(NGOCLINH_REF)) {
+  console.error('❌ URL không phải kho ngoclinh (' + NGOCLINH_REF + '):', SUPABASE_URL);
+  process.exit(1);
+}
+
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 async function insertMenu(label, url, parent_id, display_order) {
@@ -21,83 +49,92 @@ async function insertMenu(label, url, parent_id, display_order) {
     .insert({ label, url, parent_id: parent_id || null, display_order, is_active: true })
     .select()
     .single();
-  if (error) { console.error('  ❌ menu', label, error.message); return null; }
+  if (error) {
+    console.error('  ❌ menu', label, error.message);
+    return null;
+  }
   return data.id;
 }
 
 async function seedMenus() {
   const { count } = await supabase.from('menus').select('*', { count: 'exact', head: true });
-  if (count && count > 0) { console.log('⏭  menus đã có dữ liệu (' + count + ' dòng) — bỏ qua seed.'); return; }
+  if (count && count > 0) {
+    console.log('⏭  menus đã có ' + count + ' dòng — không chèn đè.');
+    console.log('    Tab Menu còn cây Cửa Âu? Run sql/07_THAY_MENU_HEADER_NGOCLINH.sql trên kho ngoclinh.');
+    return;
+  }
 
-  console.log('🌱 Seeding menus...');
-  const trangChu = await insertMenu('Trang chủ', 'index.html', null, 0);
+  console.log('🌱 Seeding menus ngoclinh...');
+  await insertMenu('Trang chủ', '/', null, 0);
+  await insertMenu('Giới thiệu', '/#gioi-thieu', null, 1);
 
-  const gioiThieu = await insertMenu('Giới thiệu', 'gioi-thieu-a1.html', null, 1);
-  await insertMenu('Thông tin công ty', 'thong-tin-cong-ty-a6.html', gioiThieu, 0);
-  await insertMenu('Chính sách chất lượng', 'chinh-sach-chat-luong--a5.html', gioiThieu, 1);
-  await insertMenu('Năng lực công ty', 'nhan-luc-a4.html', gioiThieu, 2);
+  const nangLuc = await insertMenu('Năng lực', '/#menu-trang-chu', null, 2);
+  const daoTao = await insertMenu('ĐÀO TẠO AI', '/dao-tao-ai.html', nangLuc, 2);
+  await insertMenu('TRUYỀN THÔNG', '/truyen-thong.html', nangLuc, 0);
+  await insertMenu('TỔ CHỨC SỰ KIỆN', '/to-chuc-su-kien.html', nangLuc, 1);
+  await insertMenu('THIẾT KẾ WEBSITE/APP', '/thiet-ke-app.html', nangLuc, 3);
+  await insertMenu('LUYỆN THI TOÁN LÝ HÓA SINH', '/luyen-thi-toan-ly-hoa-sinh.html', nangLuc, 4);
+  const phongTrao = await insertMenu('HOẠT ĐỘNG PHONG TRÀO', '/hoat-dong-phong-trao.html', nangLuc, 5);
 
-  await insertMenu('Chứng nhận tiêu chuẩn sản phẩm', 'index.php/chung-nhan-tieu-chuan-san-pham-a9.html', null, 2);
-  await insertMenu('Dự án', 'du-an-a3.html', null, 3);
+  await insertMenu('Đào Tạo AI Khối Hành Chính', '/dao-tao-ai.html', daoTao, 0);
+  await insertMenu('Đào Tạo AI Khối Doanh Nghiệp', '/dao-tao-ai.html', daoTao, 1);
+  await insertMenu('Đào Tạo AI Giáo Viên Khối Trường Học', '/dao-tao-ai.html', daoTao, 2);
+  await insertMenu('Đào Tạo AI for Kids (học sinh)', '/dao-tao-ai.html', daoTao, 3);
 
-  const sanPham = await insertMenu('Sản phẩm', '#', null, 4);
-  const congBeTong = await insertMenu('CỐNG BÊ TÔNG', 'cong-be-tong-c46.html', sanPham, 0);
-  await insertMenu('ĐẾ CỐNG (GỐI ĐỠ CỐNG)', 'index.php/de-cong-(goi-do-cong)-c60.html', congBeTong, 0);
-  await insertMenu('GIOĂNG CAO SU', 'index.php/gioang-cao-su-c58.html', congBeTong, 1);
-  await insertMenu('CỐNG TRÒN', 'cong-tron-c53.html', congBeTong, 2);
-  await insertMenu('CỐNG HỘP', 'cong-hop--c54.html', congBeTong, 3);
-  await insertMenu('CỐNG HỘP ĐÔI', 'cong-hop-doi-c55.html', congBeTong, 4);
-  await insertMenu('HỐ GA ĐÚC SẴN', 'ho-ga-duc-san-c48.html', sanPham, 1);
-  await insertMenu('HÀO KỸ THUẬT, RÃNH BÊ TÔNG', 'index.php/cac-san-pham-khac-c51.html', sanPham, 2);
-  await insertMenu('BÓ VỈA BÊ TÔNG, GẠCH BLOCK BÊ TÔNG', 'index.php/cac-san-pham-cau-kien-be-tong-duc-san-c50.html', sanPham, 3);
-  await insertMenu('CỌC VÁN CỪ BÊ TÔNG DỰ ỨNG LỰC', 'index.php/coc-van-cu-be-tong-du-ung-luc-c59.html', sanPham, 4);
-  await insertMenu('TẤM TƯỜNG BÊ TÔNG ACOTEC', 'tam-tuong-be-tong-acotec-c47.html', sanPham, 5);
-  await insertMenu('CẦU THANG ĐÚC SẴN', 'cau-thang-duc-san-c49.html', sanPham, 6);
+  await insertMenu('Viện Ứng Dụng Công Nghệ và Chuyển Đổi Số Quốc Gia', '/hoat-dong-phong-trao.html', phongTrao, 0);
+  await insertMenu('Viện Nghiên Cứu Đào Tạo Công Nghệ và Chuyển Đổi Số AVG', '/hoat-dong-phong-trao.html', phongTrao, 1);
+  await insertMenu('Trường Tiểu Học Nguyễn Công Trứ', '/hoat-dong-phong-trao.html', phongTrao, 2);
+  await insertMenu('Lớp 1A3', '/hoat-dong-phong-trao.html', phongTrao, 3);
 
-  const doiTac = await insertMenu('Đối tác', 'du-an-l7.html', null, 5);
-  await insertMenu('Khách hàng', 'khach-hang-l10.html', doiTac, 0);
-  await insertMenu('Nhà cung cấp', 'nha-cung-cap-l8.html', doiTac, 1);
+  const dichVu = await insertMenu('Dịch vụ', '/#cac-dich-vu', null, 3);
+  const services = [
+    'Làm Ảnh, Video, Voice AI',
+    'Các Siêu Trợ Lý AI',
+    'Các gói Đào Tạo AI',
+    'Dịch Vụ Cài Đặt AI',
+    'Dịch Vụ làm APP, Web, Landing Page, Xây Kênh',
+    'Dịch vụ tạo CHAT BOT AI',
+    'DỊCH VỤ TÍCH HỢP CHAT BOT – AUTOMATION',
+    'ĐÀO TẠO, CÀI ĐẶT, HƯỚNG DẪN OPENCLAW',
+    'Bot Siêu Kế Toán Trưởng, Bot Trưởng Phòng, Bot Chuyên Gia',
+    'Hệ Thống Bot Đa Tầng cho Tổ Chức, Doanh Nghiệp',
+    'Sáng tác bài hát cho Tổ Chức, Trường Học, Doanh Nghiệp',
+  ];
+  for (let i = 0; i < services.length; i++) {
+    await insertMenu(services[i], '/#form-dang-ky', dichVu, i);
+  }
 
-  await insertMenu('Thư viện Video', 'index.php/vi-deo--a10.html', null, 6);
-
-  const tinTuc = await insertMenu('Tin tức', 'tin-tuc-l2.html', null, 7);
-  await insertMenu('Chính sách', 'index.php/tin-tuyen-dung--l5.html', tinTuc, 0);
-  await insertMenu('Tin tức nội bộ', 'tin-tuc-l2.html', tinTuc, 1);
-  await insertMenu('Tin tức chuyên ngành', 'tin-tuc-l2.html', tinTuc, 2);
-
-  await insertMenu('Liên hệ', 'lien-he.html', null, 8);
-  console.log('✅ menus seeded xong.');
+  await insertMenu('Dự án', '/#du-an', null, 4);
+  await insertMenu('Tin tức', '/#tin-tuc', null, 5);
+  await insertMenu('Đăng ký', '/#form-dang-ky', null, 6);
+  await insertMenu('Liên hệ', '/#form-dang-ky', null, 7);
+  console.log('✅ menus ngoclinh seeded.');
 }
 
 async function seedCategories() {
-  // Xoá row placeholder cũ không khớp trang thật nào (nếu có, và nếu là dòng duy nhất/rác)
   const { data: existing } = await supabase.from('categories').select('*');
   if (existing && existing.length > 0) {
-    const isOnlyPlaceholder = existing.length === 1 && existing[0].slug === 'be-tong-cot-thep';
-    if (!isOnlyPlaceholder) { console.log('⏭  categories đã có dữ liệu thật — bỏ qua seed.'); return; }
-    await supabase.from('categories').delete().eq('id', existing[0].id);
-    console.log('🗑  Đã xoá category placeholder "Bê tông cốt thép"');
+    console.log('⏭  categories đã có dữ liệu — bỏ qua seed.');
+    console.log('    9 khối sandwich: Run sql/04_DONG_BO_9_KHOI_MENU_TRANG_CHU.sql nếu hàng 3 chưa có *-r2.');
+    return;
   }
 
-  console.log('🌱 Seeding categories...');
+  console.log('🌱 Seeding 6 khối năng lực ngoclinh...');
   const cats = [
-    { name: 'CỐNG BÊ TÔNG', slug: 'cong-be-tong-c46', type: 'product', display_order: 0, is_active: true,
-      thumbnail_url: 'images/link/612img_4659.jpg',
-      description: 'Cống tròn, cống hộp, hào kỹ thuật, hộp cáp điện, hố ga đúc sẵn, rãnh thoát nước, cột điện, cọc bê tông và các cấu kiện bê tông khác…' },
-    { name: 'TẤM TƯỜNG BÊ TÔNG ACOTEC', slug: 'tam-tuong-be-tong-acotec-c47', type: 'product', display_order: 1, is_active: true,
-      thumbnail_url: 'images/link/2964acotec_3_large.jpg',
-      description: 'Thi công các công trình hạ tầng, thi công thoát nước, xây dựng dân dụng, giao thông, các khu công nghiệp cũng như khu đô thị' },
-    { name: 'KINH DOANH THƯƠNG MẠI, VLXD', slug: 'cong-tron-c53', type: 'product', display_order: 2, is_active: true,
-      thumbnail_url: 'images/link/9297link3.png',
-      description: 'Cung cấp các sản phẩm phụ trợ cho hệ thống thoát nước như nắp ga chắn rác, ghi chắn rác, lượn sóng, biển báo giao thông…' },
+    { name: 'TRUYỀN THÔNG', slug: 'truyen-thong', type: 'product', display_order: 0, is_active: true, link_url: '/truyen-thong.html' },
+    { name: 'TỔ CHỨC SỰ KIỆN', slug: 'to-chuc-su-kien', type: 'product', display_order: 1, is_active: true, link_url: '/to-chuc-su-kien.html' },
+    { name: 'ĐÀO TẠO AI', slug: 'dao-tao-ai', type: 'product', display_order: 2, is_active: true, link_url: '/dao-tao-ai.html' },
+    { name: 'THIẾT KẾ WEBSITE/APP', slug: 'thiet-ke-app', type: 'product', display_order: 3, is_active: true, link_url: '/thiet-ke-app.html' },
+    { name: 'LUYỆN THI TOÁN LÝ HÓA SINH', slug: 'luyen-thi-toan-ly-hoa-sinh', type: 'product', display_order: 4, is_active: true, link_url: '/luyen-thi-toan-ly-hoa-sinh.html' },
+    { name: 'HOẠT ĐỘNG PHONG TRÀO', slug: 'hoat-dong-phong-trao', type: 'product', display_order: 5, is_active: true, link_url: '/hoat-dong-phong-trao.html' },
   ];
   const { error } = await supabase.from('categories').insert(cats);
   if (error) console.error('  ❌ categories', error.message);
-  else console.log('✅ categories seeded xong (' + cats.length + ' dòng).');
+  else console.log('✅ categories seeded (' + cats.length + ' khối). Hàng 3: Run sql/04.');
 }
 
 (async () => {
   await seedMenus();
   await seedCategories();
-  console.log('🎉 Hoàn tất seed menus + categories.');
+  console.log('🎉 Xong seed ngoclinh menus + categories.');
 })();

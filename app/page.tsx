@@ -54,7 +54,10 @@ export default async function HomePage() {
     >
       <SlideCarousel slides={data.slides} />
       <AboutLink companyName={companyName} introHtml={data.settings.intro_text} />
-      <CategoryGrid categories={data.categories} />
+      <CategoryGrid
+        categories={data.categories}
+        padMissingRow3={data.settings.home_category_row3_seeded !== '1'}
+      />
       <ActivitySection images={data.activityImages} />
       <NewsSection posts={data.posts} />
       <ProjectSection projects={data.projects} />

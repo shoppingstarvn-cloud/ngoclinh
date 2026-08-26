@@ -146,7 +146,7 @@ export async function getHomepageData() {
   const rootCategories = (categories.data ?? []).filter((c) => {
     const p = c.parent_id;
     return p == null || Number(p) === 0;
-  }).slice(0, 12);
+  }).slice(0, 18);
   const categoriesWithSubmenus = rootCategories.map((c) => ({
     ...c,
     submenus: level1ByCat.get(Number(c.id)) ?? [],

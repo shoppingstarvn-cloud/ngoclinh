@@ -13,14 +13,14 @@ ALTER TABLE public.category_submenus ADD COLUMN IF NOT EXISTS parent_id BIGINT N
 ALTER TABLE public.category_submenus ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ DEFAULT now();
 
 -- 1) 3 khối gốc (không lấy bản -r2) → 3 khối mới slug + '-r2', display_order + 100
+-- Không ghi image_url: schema LIVE có thể chưa có cột này (ảnh dùng thumbnail_url).
 INSERT INTO public.categories
-  (name, slug, description, thumbnail_url, image_url, type, link_url, parent_id, display_order, is_active, created_at, updated_at)
+  (name, slug, description, thumbnail_url, type, link_url, parent_id, display_order, is_active, created_at, updated_at)
 SELECT
   c.name,
   c.slug || '-r2',
   c.description,
   c.thumbnail_url,
-  c.image_url,
   COALESCE(NULLIF(BTRIM(c.type), ''), 'product'),
   COALESCE(NULLIF(BTRIM(c.link_url), ''), '/' || c.slug || '.html'),
   NULL,
@@ -95,9 +95,22 @@ WHERE s.parent_id IS NOT NULL
       AND x.label = s.label
   );
 
+-- 4) Cờ đã seed hàng 3 — Super Admin xóa clone thì code không tự tạo lại
+INSERT INTO public.site_settings (key, value, created_at, updated_at)
+SELECT 'home_category_row3_seeded', '1', now(), now()
+WHERE EXISTS (SELECT 1 FROM public.categories WHERE slug LIKE '%-r2')
+  AND NOT EXISTS (
+    SELECT 1 FROM public.site_settings WHERE key = 'home_category_row3_seeded'
+  );
+
+UPDATE public.site_settings
+SET value = '1', updated_at = now()
+WHERE key = 'home_category_row3_seeded'
+  AND EXISTS (SELECT 1 FROM public.categories WHERE slug LIKE '%-r2');
+
 NOTIFY pgrst, 'reload schema';
 
--- Kiểm chứng: 6 khối gốc (3 hàng 1 + 3 hàng 2)
+-- Kiểm chứng: 6 khối gốc + 3 khối hàng 3 (slug *-r2)
 SELECT id, name, slug, display_order
 FROM public.categories
 WHERE is_active = true AND (parent_id IS NULL OR parent_id = 0)

@@ -1,11 +1,9 @@
 import { createClient } from '@supabase/supabase-js';
+import { getSupabaseUrl } from '@/lib/supabase/env';
 
 /** Client service_role — CHỈ dùng server-side (API routes, Server Actions). */
 export function createAdminClient() {
-  const url =
-    process.env.NEXT_PUBLIC_SUPABASE_URL ||
-    process.env.SUPABASE_URL ||
-    'https://pglbhoitmcflpvoasewr.supabase.co';
+  const url = getSupabaseUrl();
   const key =
     process.env.SUPABASE_SERVICE_KEY ||
     process.env.SUPABASE_SERVICE_ROLE_KEY ||

@@ -59,7 +59,7 @@ export function AboutLink({
 }) {
   if (!introHtml) return null;
   return (
-    <div className="about_link">
+    <div className="about_link" id="gioi-thieu">
       <div className="container">
         <div className="title">
           <p>Giới thiệu về chúng tôi</p>
@@ -173,28 +173,38 @@ function CategoryCard({ cat }: { cat: Category }) {
   );
 }
 
-/** 3 dãy × 3 khối: 6 gốc + 3 khối dãy 1 lặp lại (SQL -r2 nếu đã chạy, không thì clone trên UI). */
-function homeCategoryRows(categories: Category[]): Category[] {
+/**
+ * Khối MENU trang chủ = đúng các dòng `categories` gốc trong DB.
+ * Chỉ clone ảo hàng 1 khi chưa seed (chưa có *-r2 và chưa bật cờ).
+ * Sau khi Super Admin seed/SQL: tôn trọng thêm/bớt/sửa/xóa — không tự đắp lại.
+ */
+function homeCategoryRows(
+  categories: Category[],
+  padMissingRow3: boolean,
+): Category[] {
   const isClone = (c: Category) => String(c.slug || '').endsWith('-r2');
   const originals = categories.filter((c) => !isClone(c));
   const dbClones = categories.filter(isClone);
-  if (!originals.length) return categories;
-  const row3 =
-    dbClones.length >= 3
-      ? dbClones.slice(0, 3)
-      : originals.slice(0, 3).map((c) => ({
-          ...c,
-          slug: `${c.slug || 'cat'}-r2`,
-          link_url: (c.link_url || '').trim() || (c.slug ? `/${c.slug}.html` : ''),
-        }));
+  if (dbClones.length > 0 || !originals.length || !padMissingRow3) return categories;
+  const row3 = originals.slice(0, 3).map((c) => ({
+    ...c,
+    slug: `${c.slug || 'cat'}-r2`,
+    link_url: (c.link_url || '').trim() || (c.slug ? `/${c.slug}.html` : ''),
+  }));
   return [...originals, ...row3];
 }
 
-export function CategoryGrid({ categories }: { categories: Category[] }) {
-  const cards = homeCategoryRows(categories);
+export function CategoryGrid({
+  categories,
+  padMissingRow3 = true,
+}: {
+  categories: Category[];
+  padMissingRow3?: boolean;
+}) {
+  const cards = homeCategoryRows(categories, padMissingRow3);
   if (!cards.length) return null;
   return (
-    <div className="service_home">
+    <div className="service_home" id="menu-trang-chu">
       <div className="container">
         <div className="row">
           {cards.map((cat, i) => (
@@ -374,7 +384,7 @@ interface Project {
 export function ProjectSection({ projects }: { projects: Project[] }) {
   if (!projects.length) return null;
   return (
-    <div className="project">
+    <div className="project" id="du-an">
       <div className="container">
         <div className="title">
           <p>
@@ -620,7 +630,7 @@ export function ServiceSection({
   const pickMode = Boolean(onSelectService);
 
   return (
-    <div className="dichvu_home">
+    <div className="dichvu_home" id="cac-dich-vu">
       <div className="container">
         <div className="title">
           <p>
@@ -724,7 +734,7 @@ export function NewsSection({ posts }: { posts: Post[] }) {
   if (!posts.length) return null;
 
   return (
-    <div className="news">
+    <div className="news" id="tin-tuc">
       <div className="container">
         <div className="title">
           <p>Tin tức mới nhất</p>

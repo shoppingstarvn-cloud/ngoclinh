@@ -40,8 +40,17 @@ export interface AdminTableDef {
   label: string;
   icon: string;
   pk: string;
+  /** Ghi chú ngay dưới tiêu đề bảng — tránh nhầm tab Menu vs khối MENU trang chủ */
+  hint?: string;
   fields: AdminField[];
   cols: AdminColumn[];
+}
+
+export function categoryAdminLabel(row: AdminRow): string {
+  const name = String(row.name ?? row.title ?? row.label ?? row.id ?? '');
+  const slug = String(row.slug ?? '');
+  const hang3 = slug.endsWith('-r2') ? ' · hàng 3' : '';
+  return slug ? `${name} · ${slug}${hang3}` : name;
 }
 
 /** Trường được coi là ảnh/media — tự động hiện widget upload kéo-thả */
@@ -106,12 +115,13 @@ export const ADMIN_TABLES: AdminTableDef[] = [
   },
   {
     name: 'menus',
-    label: 'Menu',
+    label: 'Menu (thanh điều hướng)',
     icon: 'bars',
     pk: 'id',
+    hint: 'Thanh điều hướng header LIVE (ngoclinh.shopmartai.com) — KHÔNG phải 9 khối sandwich. Cây Cửa Âu (Cống tròn, Chứng nhận tiêu chuẩn, tin-tuc-l2.html…) phải thay bằng sql/07_THAY_MENU_HEADER_NGOCLINH.sql trên kho pglbhoitmcflpvoasewr rồi F5 tab này. 9 khối trang chủ nằm tab “Danh mục (MENU trang chủ)”.',
     fields: [
       { key: 'label', label: 'Tên menu', type: 'text', required: true },
-      { key: 'url', label: 'URL (VD: cong-tron-c53.html hoặc # nếu chỉ là nhóm)', type: 'text' },
+      { key: 'url', label: 'URL (VD: /#gioi-thieu, /dao-tao-ai.html, hoặc # nếu chỉ là nhóm)', type: 'text' },
       { key: 'parent_id', label: 'Menu cha (để trống = menu cấp 1)', type: 'parentselect' },
       { key: 'display_order', label: 'Thứ tự', type: 'number' },
       { key: 'is_active', label: 'Kích hoạt', type: 'checkbox' },
@@ -155,26 +165,40 @@ export const ADMIN_TABLES: AdminTableDef[] = [
   },
   {
     name: 'categories',
-    label: 'Danh mục',
+    label: 'Danh mục (MENU trang chủ)',
     icon: 'sitemap',
     pk: 'id',
+    hint: 'Đây là các khối MENU sandwich trên trang chủ (thường 9 ô: 6 gốc + 3 hàng 3). Thêm / sửa / xóa / đổi thứ tự / tắt Active ở đây thì trang chủ đổi theo realtime. Badge “hàng 3” = slug đuôi -r2 (sửa độc lập, không đụng hàng 1). Nếu bảng mới có 6 dòng: bấm “Bổ sung 3 khối hàng 3”.',
     fields: [
       { key: 'name', label: 'Tên danh mục', type: 'text', required: true },
-      { key: 'slug', label: 'Slug', type: 'text', required: true },
-      { key: 'link_url', label: 'Link đích khi bấm vào (VD: /cong-tron-c53.html). Để trống = tự dùng slug', type: 'text' },
+      { key: 'slug', label: 'Slug (hàng 3 dùng đuôi -r2, VD: truyen-thong-r2)', type: 'text', required: true },
+      { key: 'link_url', label: 'Link đích khi bấm vào (VD: /dao-tao-ai.html). Để trống = tự dùng slug', type: 'text' },
       { key: 'description', label: 'Mô tả', type: 'textarea' },
       { key: 'thumbnail_url', label: 'Ảnh danh mục', type: 'image' },
       { key: 'type', label: 'Loại', type: 'select', options: ['product', 'post', 'project', 'gallery'] },
-      { key: 'parent_id', label: 'Danh mục cha (ID)', type: 'number' },
-      { key: 'display_order', label: 'Thứ tự', type: 'number' },
+      { key: 'parent_id', label: 'Danh mục cha (ID) — 0 / trống = khối gốc trang chủ', type: 'number' },
+      { key: 'display_order', label: 'Thứ tự (số nhỏ hiện trước trên trang chủ)', type: 'number' },
       { key: 'is_active', label: 'Kích hoạt', type: 'checkbox' },
     ],
     cols: [
       { key: 'id', label: 'ID' },
       { key: 'thumbnail_url', label: 'Ảnh', render: thumb },
-      { key: 'name', label: 'Tên' },
+      {
+        key: 'name',
+        label: 'Tên',
+        render: (v, row) => (
+          <>
+            {String(v ?? '')}
+            {String(row.slug || '').endsWith('-r2') ? (
+              <span className="badge bg-info ms-2">hàng 3</span>
+            ) : null}
+          </>
+        ),
+      },
+      { key: 'slug', label: 'Slug' },
       { key: 'link_url', label: 'Link đích', render: (v, row) => String(v || (row.slug ? `/${row.slug}.html` : '')) },
       { key: 'type', label: 'Loại' },
+      { key: 'display_order', label: 'Thứ tự' },
       { key: 'is_active', label: 'Active', render: boolBadge },
     ],
   },
@@ -236,7 +260,7 @@ export const ADMIN_TABLES: AdminTableDef[] = [
     fields: [
       { key: 'name', label: 'Tên sản phẩm', type: 'text', required: true },
       { key: 'slug', label: 'Slug', type: 'text', required: true },
-      { key: 'link_url', label: 'Link đích khi bấm vào (VD: /cong-tron-c53.html). Để trống = tự dùng slug', type: 'text' },
+      { key: 'link_url', label: 'Link đích khi bấm vào (VD: /dao-tao-ai.html). Để trống = tự dùng slug', type: 'text' },
       { key: 'category_id', label: 'Danh mục (ID)', type: 'number' },
       { key: 'description', label: 'Mô tả', type: 'textarea' },
       { key: 'content', label: 'Nội dung chi tiết', type: 'richtext' },
@@ -499,9 +523,10 @@ export const ADMIN_TABLES: AdminTableDef[] = [
   },
   {
     name: 'category_submenus',
-    label: 'Menu con (khối danh mục)',
+    label: 'Menu con (khối MENU trang chủ)',
     icon: 'list-ul',
     pk: 'id',
+    hint: 'Menu xổ xuống khi rê chuột vào từng khối MENU trang chủ. Chọn đúng khối gốc (hàng 3 có đuôi -r2).',
     fields: [
       {
         key: 'category_id',
@@ -518,7 +543,7 @@ export const ADMIN_TABLES: AdminTableDef[] = [
         scopeKey: 'category_id',
       },
       { key: 'label', label: 'Tên menu con', type: 'text', required: true },
-      { key: 'link_url', label: 'Link đích khi bấm (VD: /cong-tron-c53.html)', type: 'text' },
+      { key: 'link_url', label: 'Link đích khi bấm (VD: /dao-tao-ai.html)', type: 'text' },
       { key: 'display_order', label: 'Thứ tự', type: 'number' },
       { key: 'is_active', label: 'Kích hoạt', type: 'checkbox' },
     ],
@@ -529,7 +554,7 @@ export const ADMIN_TABLES: AdminTableDef[] = [
         label: 'Khối gốc',
         render: (v, _row, allData) => {
           const cat = (allData.categories || []).find((c) => c.id === v);
-          return cat ? String(cat.name) : `#${String(v ?? '')}`;
+          return cat ? categoryAdminLabel(cat) : `#${String(v ?? '')}`;
         },
       },
       {

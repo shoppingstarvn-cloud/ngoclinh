@@ -9,7 +9,7 @@ import DataTable from '@/components/admin/DataTable';
 import SiteSettingsPanel from '@/components/admin/SiteSettingsPanel';
 import RecordFormModal from '@/components/admin/RecordFormModal';
 import { ADMIN_TABLES, AdminRow } from '@/lib/cms/admin-schema';
-import { deleteRecordAction, updateRecordAction } from '@/lib/actions/admin-actions';
+import { deleteRecordAction, seedHomeMenuAction, updateRecordAction } from '@/lib/actions/admin-actions';
 
 const swalDark = { background: '#1a1a2e', color: '#fff' };
 const TOKEN_STORAGE_KEY = 'admin_token';
@@ -150,6 +150,39 @@ export default function AdminApp() {
     }
   }
 
+  async function handleSeedHomeMenu() {
+    const confirm = await Swal.fire({
+      icon: 'question',
+      title: 'Bổ sung 3 khối hàng 3?',
+      html: 'Tạo 3 dòng độc lập (TRUYỀN THÔNG, TỔ CHỨC SỰ KIỆN, ĐÀO TẠO AI) cho hàng 3 trên trang chủ. Sửa/xóa hàng 3 <b>không</b> đụng 3 khối hàng 1.',
+      showCancelButton: true,
+      confirmButtonText: 'Tạo 3 khối',
+      cancelButtonText: 'Hủy',
+      ...swalDark,
+    });
+    if (!confirm.isConfirmed) return;
+    try {
+      const result = await seedHomeMenuAction();
+      if (!result.success) throw new Error(result.error || 'Bổ sung thất bại');
+      const created = result.data?.created ?? 0;
+      const cloneCount = result.data?.cloneCount ?? 0;
+      await Swal.fire({
+        icon: 'success',
+        title: created > 0 ? 'Đã tạo khối hàng 3!' : 'Hàng 3 đã đủ',
+        html: `Vừa tạo <b>${created}</b> dòng mới. Hiện có <b>${cloneCount}</b> khối hàng 3 độc lập. Tab Danh mục và trang chủ đã đồng bộ.`,
+        ...swalDark,
+      });
+      loadAllData(authHeader);
+    } catch (e) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Lỗi',
+        text: e instanceof Error ? e.message : 'Bổ sung thất bại',
+        ...swalDark,
+      });
+    }
+  }
+
   async function handleSetOrder(tableName: string, row: AdminRow, value: number) {
     setAllData((prev) => {
       const list = prev[tableName] || [];
@@ -214,6 +247,7 @@ export default function AdminApp() {
             onSelectTab={setActiveTab}
             onQuickAdd={openAddForm}
             onDataReload={() => loadAllData(authHeader)}
+            onSeedHomeMenu={handleSeedHomeMenu}
           />
         )}
 
@@ -237,6 +271,7 @@ export default function AdminApp() {
             onDelete={(row) => handleDelete(activeTableDef.name, row)}
             onToggleActive={(row, value) => handleToggleActive(activeTableDef.name, row, value)}
             onSetOrder={(row, value) => handleSetOrder(activeTableDef.name, row, value)}
+            onSeedHomeMenu={activeTableDef.name === 'categories' ? handleSeedHomeMenu : undefined}
           />
         )}
       </div>

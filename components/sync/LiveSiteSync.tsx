@@ -12,6 +12,8 @@ const CMS_TABLES = [
   'site_settings',
   'menus',
   'categories',
+  'category_submenus',
+  'activity_images',
   'slides',
   'products',
   'posts',
