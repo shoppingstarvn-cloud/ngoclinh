@@ -9,6 +9,7 @@ import { useEffect, useRef, useState, type CSSProperties } from 'react';
  */
 export default function ContentGate() {
   const [targets, setTargets] = useState<string[]>([]);
+  const [patterns, setPatterns] = useState<string[]>([]);
   const unlockedRef = useRef(false);
   const pendingRef = useRef<{ href: string; external: boolean } | null>(null);
 
@@ -23,19 +24,23 @@ export default function ContentGate() {
       .then((d) => {
         unlockedRef.current = !!d.unlocked;
         setTargets(Array.isArray(d.targets) ? d.targets : []);
+        setPatterns(Array.isArray(d.patterns) ? d.patterns : []);
       })
       .catch(() => {});
   }, []);
 
   useEffect(() => {
-    if (!targets.length) return;
+    if (!targets.length && !patterns.length) return;
     function onClick(e: MouseEvent) {
       if (unlockedRef.current) return;
       let el = e.target as HTMLElement | null;
       while (el && el.tagName !== 'A') el = el.parentElement;
       if (!el) return;
       const raw = (el as HTMLAnchorElement).getAttribute('href') || '';
-      if (!raw || !targets.includes(raw)) return;
+      if (!raw) return;
+      const rawLc = raw.toLowerCase();
+      const hit = targets.includes(raw) || patterns.some((p) => p && rawLc.includes(p));
+      if (!hit) return;
       e.preventDefault();
       e.stopPropagation();
       pendingRef.current = { href: raw, external: /^https?:\/\//i.test(raw) };

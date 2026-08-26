@@ -42,6 +42,16 @@ export async function GET(request: NextRequest) {
     }
     const targets = Array.from(set);
 
+    // Pattern nhận diện theo họ slug (2 từ đầu, vd "hoat-dong") — bắt được cả link
+    // slug cũ còn kẹt trong HTML cache lẫn slug mới sau khi đổi tên khối.
+    const patterns = Array.from(
+      new Set(
+        gatedCats
+          .map((c) => String(c.slug || '').toLowerCase().split('-').slice(0, 2).join('-'))
+          .filter((p) => p.length >= 4),
+      ),
+    );
+
     // Chẩn đoán tạm: /api/gate/context?debug=1
     if (new URL(request.url).searchParams.get('debug') === '1') {
       const { data: allSubs } = await supabase
@@ -51,6 +61,7 @@ export async function GET(request: NextRequest) {
         categories: (cats ?? []).map((c) => ({ id: c.id, name: c.name, slug: c.slug, link_url: c.link_url })),
         gatedIds,
         targets,
+        patterns,
         submenus: allSubs ?? [],
       });
     }
@@ -68,8 +79,8 @@ export async function GET(request: NextRequest) {
       if (rows?.[0]?.content_unlocked) unlocked = true;
     }
 
-    return NextResponse.json({ unlocked, targets });
+    return NextResponse.json({ unlocked, targets, patterns });
   } catch {
-    return NextResponse.json({ unlocked: false, targets: [] });
+    return NextResponse.json({ unlocked: false, targets: [], patterns: [] });
   }
 }
