@@ -89,13 +89,10 @@ export default function Sidebar({ activeTab, unreadCount, registerUnreadCount = 
             })}
           </div>
         ))}
-      </div>
-      <div className="sidebar-footer">
         <a
           className="nav-link"
           role="button"
           tabIndex={0}
-          style={{ color: '#dc3545' }}
           onClick={onLogout}
           onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && onLogout()}
         >
