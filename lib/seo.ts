@@ -10,7 +10,7 @@ export const SHARE_TITLE = 'Hệ Sinh Thái AI - Học AI cùng Chuyên Gia';
 export const SHARE_TITLE_FULL =
   'Hệ Sinh Thái AI - Học AI cùng Chuyên Gia | Mr Ngọc Linh';
 export const SHARE_DESCRIPTION =
-  'Chia sẻ hệ sinh thái AI với bạn. Học AI cùng chuyên gia Mr Ngọc Linh. Không cần kỹ năng vẫn chuyên nghiệp.';
+  'Chia sẻ hệ sinh thái AI với bạn. Học AI cùng chuyên gia Mr Ngọc Linh. Giúp bạn biết cách ứng dụng AI cho cuộc sống và trong công việc nhanh, mạnh và hiệu quả.';
 export const SHARE_SITE_NAME = 'Hệ Sinh Thái AI';
 /** Ảnh banner tĩnh (anh Ngọc Linh + nền AI), CHUẨN OG 1200x630 JPG. */
 export const SHARE_IMAGE_PATH = '/og/ngoclinh-og.jpg';

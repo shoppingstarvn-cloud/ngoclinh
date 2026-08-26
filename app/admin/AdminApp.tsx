@@ -8,6 +8,7 @@ import Dashboard from '@/components/admin/Dashboard';
 import DataTable from '@/components/admin/DataTable';
 import SiteSettingsPanel from '@/components/admin/SiteSettingsPanel';
 import ContentGatePanel from '@/components/admin/ContentGatePanel';
+import AlbumAdminPanel from '@/components/admin/AlbumAdminPanel';
 import RecordFormModal from '@/components/admin/RecordFormModal';
 import { ADMIN_TABLES, AdminRow } from '@/lib/cms/admin-schema';
 import { deleteRecordAction, seedHomeMenuAction, updateRecordAction } from '@/lib/actions/admin-actions';
@@ -230,14 +231,16 @@ export default function AdminApp() {
           <h4>
             <i
               className={`fas fa-${
-                activeTab === 'content_gate' ? 'lock' : activeTableDef ? activeTableDef.icon : 'tachometer-alt'
+                activeTab === 'content_gate' ? 'lock' : activeTab === 'album' ? 'images' : activeTableDef ? activeTableDef.icon : 'tachometer-alt'
               } text-primary`}
             />{' '}
             {activeTab === 'dashboard'
               ? 'Dashboard'
               : activeTab === 'content_gate'
                 ? 'Mật khẩu nội dung'
-                : activeTableDef?.label || activeTab}
+                : activeTab === 'album'
+                  ? 'Trang con / Nhật ký'
+                  : activeTableDef?.label || activeTab}
           </h4>
           <div>
             <span className="badge bg-success me-2">
@@ -271,6 +274,8 @@ export default function AdminApp() {
         )}
 
         {activeTab === 'content_gate' && <ContentGatePanel authHeader={authHeader} />}
+
+        {activeTab === 'album' && <AlbumAdminPanel authHeader={authHeader} />}
 
         {activeTableDef && activeTab !== 'site_settings' && (
           <DataTable

@@ -5,12 +5,29 @@ import { ProjectsListing } from '@/components/listings/ProjectsListing';
 import { fetchDetailBySlug } from '@/lib/data/detail';
 import { getHomepageData } from '@/lib/data/homepage';
 import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
+import AlbumView from '@/components/album/AlbumView';
 import { getLegacyPathForSlug } from '@/lib/detail-map';
 import { extractBodyHtml, extractTitle, readLegacyHtml } from '@/lib/legacy-html';
 import { SHARE_DESCRIPTION, absoluteUrl, shareOpenGraph, shareTwitter } from '@/lib/seo';
 import { resolveHref } from '@/lib/slug';
 
 const RESERVED = new Set(['legacy', 'api', 'admin', 'uploads']);
+
+/** Trang con Album (vd /lop1a3): trả tiêu đề nếu slug là 1 trang con đang bật. */
+async function getAlbumTitle(slug: string): Promise<string | null> {
+  try {
+    const { data } = await createAdminClient()
+      .from('album_pages')
+      .select('title')
+      .eq('slug', slug)
+      .eq('is_active', true)
+      .limit(1);
+    return data?.[0] ? String(data[0].title) : null;
+  } catch {
+    return null;
+  }
+}
 
 /**
  * Tìm "Link đích" (link_url) TRỎ RA NGOÀI của bản ghi khớp slug (dự án/sản phẩm/
@@ -49,6 +66,17 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const decodedSlug = decodeURIComponent(slug).replace(/\.html$/i, '');
   const canonical = `/${decodedSlug}.html`;
   const url = absoluteUrl(canonical);
+
+  const albumTitle = await getAlbumTitle(decodedSlug);
+  if (albumTitle) {
+    const cleanUrl = absoluteUrl(`/${decodedSlug}`);
+    return {
+      title: albumTitle,
+      alternates: { canonical: `/${decodedSlug}` },
+      openGraph: shareOpenGraph({ title: albumTitle, url: cleanUrl }),
+      twitter: shareTwitter({ title: albumTitle }),
+    };
+  }
 
   if (PROJECT_LISTING_SLUGS.has(decodedSlug)) {
     const title = 'Dự án tiêu biểu';
@@ -97,6 +125,11 @@ export default async function SlugPage({ params }: PageProps) {
   }
 
   if (RESERVED.has(decodedSlug)) notFound();
+
+  // Trang con Album (vd /lop1a3) — ưu tiên trước mọi thứ, giao diện riêng toàn màn hình.
+  if (await getAlbumTitle(decodedSlug)) {
+    return <AlbumView slug={decodedSlug} />;
+  }
 
   const supabase = await createClient();
 

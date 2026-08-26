@@ -89,6 +89,17 @@ export default function Sidebar({ activeTab, unreadCount, registerUnreadCount = 
             })}
           </div>
         ))}
+        <div className="nav-section">Trang Con (Album)</div>
+        <a
+          className={`nav-link${activeTab === 'album' ? ' active' : ''}`}
+          role="button"
+          tabIndex={0}
+          onClick={() => onSelect('album')}
+          onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && onSelect('album')}
+        >
+          <i className="fas fa-images" />
+          <span>Trang con / Nhật ký</span>
+        </a>
         <div className="nav-section">Bảo Mật</div>
         <a
           className={`nav-link${activeTab === 'content_gate' ? ' active' : ''}`}
