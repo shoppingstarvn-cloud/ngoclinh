@@ -1,7 +1,8 @@
 import { SignJWT, jwtVerify } from 'jose';
 
 export const MEMBER_COOKIE = 'member_token';
-const TOKEN_TTL = '30d';
+// Phiên sống 1 NĂM (giống Facebook: luôn giữ đăng nhập). Tự gia hạn mỗi lần truy cập.
+const TOKEN_TTL = '365d';
 
 export interface MemberPayload {
   id: number;
@@ -46,13 +47,13 @@ export async function verifyMemberToken(token: string): Promise<MemberPayload | 
   }
 }
 
-/** Tuỳ chọn cookie phiên thành viên — 30 ngày, httpOnly. */
+/** Tuỳ chọn cookie phiên thành viên — 1 NĂM, httpOnly (luôn giữ đăng nhập như Facebook). */
 export function memberCookieOptions() {
   return {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax' as const,
-    maxAge: 60 * 60 * 24 * 30,
+    maxAge: 60 * 60 * 24 * 365,
     path: '/',
   };
 }
