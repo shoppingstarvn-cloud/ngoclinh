@@ -16,6 +16,7 @@ import {
 } from '@/lib/seo';
 import './globals.css';
 import ContentGate from '@/components/gate/ContentGate';
+import PresenceHeartbeat from '@/components/auth/PresenceHeartbeat';
 
 const SHOPMARTAI_FAVICON = '/logo/shopmartai-ai.png';
 
@@ -95,6 +96,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {children}
         {/* Cổng mật khẩu xem nội dung (chỉ khối "Hoạt động phong trào") — chặn click toàn cục */}
         <ContentGate />
+        <PresenceHeartbeat />
         {/* jQuery PHẢI nạp trước Bootstrap JS và Owl Carousel JS (giữ đúng thứ tự như bản tĩnh cũ) */}
         <Script
           src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.js"

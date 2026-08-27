@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { verifyGoogleIdToken } from '@/lib/auth/google';
 import { signMemberToken, MEMBER_COOKIE, memberCookieOptions } from '@/lib/auth/user-jwt';
+import { markUserOnline } from '@/lib/auth/presence';
 
 export async function POST(request: NextRequest) {
   try {
@@ -57,6 +58,8 @@ export async function POST(request: NextRequest) {
     if (user.is_active === false) {
       return NextResponse.json({ success: false, error: 'Tài khoản đã bị khóa' }, { status: 403 });
     }
+
+    await markUserOnline(user.id, 'main', true);
 
     const token = await signMemberToken({
       id: user.id,

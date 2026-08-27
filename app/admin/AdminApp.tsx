@@ -29,6 +29,7 @@ export default function AdminApp() {
   const [checkingSession, setCheckingSession] = useState(true);
   const [allData, setAllData] = useState<Record<string, AdminRow[]>>({});
   const [activeTab, setActiveTab] = useState('dashboard');
+  const [userStats, setUserStats] = useState({ registered: 0, online: 0, pendingWebsite: 0 });
   const [modalState, setModalState] = useState<{ table: (typeof ADMIN_TABLES)[number]; item: AdminRow | null } | null>(null);
 
   const loadAllData = useCallback(async (authHeader: string) => {
@@ -38,6 +39,22 @@ export default function AdminApp() {
       if (result.success) setAllData(result.data);
     } catch {
       // Giữ dữ liệu cũ nếu tải lại thất bại (mất mạng tạm thời)
+    }
+  }, []);
+
+  const loadUserStats = useCallback(async (authHeader: string) => {
+    try {
+      const resp = await fetch('/api/admin/users/stats', { headers: { Authorization: authHeader } });
+      const result = await resp.json();
+      if (result.ok) {
+        setUserStats({
+          registered: Number(result.registered) || 0,
+          online: Number(result.online) || 0,
+          pendingWebsite: Number(result.pendingWebsite) || 0,
+        });
+      }
+    } catch {
+      /* giữ số cũ */
     }
   }, []);
 
@@ -55,13 +72,14 @@ export default function AdminApp() {
           setToken(saved);
           setUser(result.user);
           loadAllData(authHeader);
+          loadUserStats(authHeader);
         } else {
           sessionStorage.removeItem(TOKEN_STORAGE_KEY);
         }
       })
       .catch(() => sessionStorage.removeItem(TOKEN_STORAGE_KEY))
       .finally(() => setCheckingSession(false));
-  }, [loadAllData]);
+  }, [loadAllData, loadUserStats]);
 
   useEffect(() => {
     if (!token) return;
@@ -71,6 +89,14 @@ export default function AdminApp() {
     }, ms);
     return () => window.clearInterval(id);
   }, [token, activeTab, loadAllData]);
+
+  useEffect(() => {
+    if (!token) return;
+    const header = `Bearer ${token}`;
+    loadUserStats(header);
+    const id = window.setInterval(() => loadUserStats(header), 10_000);
+    return () => window.clearInterval(id);
+  }, [token, loadUserStats]);
 
   const authHeader = token ? `Bearer ${token}` : '';
 
@@ -88,6 +114,7 @@ export default function AdminApp() {
         sessionStorage.setItem(TOKEN_STORAGE_KEY, result.token);
         Swal.fire({ icon: 'success', title: 'Chào mừng!', text: 'Hệ thống đã sẵn sàng', timer: 1500, showConfirmButton: false, ...swalDark });
         loadAllData(`Bearer ${result.token}`);
+        loadUserStats(`Bearer ${result.token}`);
         return true;
       }
     } catch {
@@ -223,6 +250,7 @@ export default function AdminApp() {
         activeTab={activeTab}
         unreadCount={unreadCount}
         registerUnreadCount={registerUnreadCount}
+        userStats={userStats}
         onSelect={setActiveTab}
         onLogout={handleLogout}
       />

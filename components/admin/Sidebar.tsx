@@ -3,10 +3,17 @@
 import { Fragment } from 'react';
 import { ADMIN_TABLES } from '@/lib/cms/admin-schema';
 
+export type UserMgmtStats = {
+  registered: number;
+  online: number;
+  pendingWebsite: number;
+};
+
 interface SidebarProps {
   activeTab: string;
   unreadCount: number;
   registerUnreadCount?: number;
+  userStats?: UserMgmtStats;
   onSelect: (tab: string) => void;
   onLogout: () => void;
 }
@@ -37,7 +44,14 @@ const SECTIONS: { title: string; tables: string[] }[] = [
   { title: 'Hệ Thống', tables: ['links'] },
 ];
 
-export default function Sidebar({ activeTab, unreadCount, registerUnreadCount = 0, onSelect, onLogout }: SidebarProps) {
+export default function Sidebar({
+  activeTab,
+  unreadCount,
+  registerUnreadCount = 0,
+  userStats = { registered: 0, online: 0, pendingWebsite: 0 },
+  onSelect,
+  onLogout,
+}: SidebarProps) {
   const byName = new Map(ADMIN_TABLES.map((t) => [t.name, t]));
 
   return (
@@ -110,7 +124,29 @@ export default function Sidebar({ activeTab, unreadCount, registerUnreadCount = 
                       onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && onSelect('users_mgmt')}
                     >
                       <i className="fas fa-users-cog" />
-                      <span>Quản lý Users</span>
+                      <span className="nav-link-text">
+                        Quản lý Users
+                        <span className="nav-stat-badges">
+                          <span
+                            className="badge nav-stat-badge is-yellow"
+                            title="Tổng số tài khoản đã đăng ký thành công trên toàn website"
+                          >
+                            {userStats.registered}
+                          </span>
+                          <span
+                            className="badge nav-stat-badge is-green"
+                            title="User đang online trên ngoclinh.shopmartai.com và các website con thành viên"
+                          >
+                            {userStats.online}
+                          </span>
+                          <span
+                            className="badge nav-stat-badge is-red"
+                            title="Đề nghị mở Website con đang chờ Super Admin duyệt"
+                          >
+                            {userStats.pendingWebsite}
+                          </span>
+                        </span>
+                      </span>
                     </a>
                   </Fragment>
                 );

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { verifyPassword } from '@/lib/auth/password';
 import { signMemberToken, MEMBER_COOKIE, memberCookieOptions } from '@/lib/auth/user-jwt';
+import { markUserOnline } from '@/lib/auth/presence';
 
 export async function POST(request: NextRequest) {
   try {
@@ -37,7 +38,7 @@ export async function POST(request: NextRequest) {
     const ok = await verifyPassword(password, user.password_hash);
     if (!ok) return badCreds;
 
-    await supabase.from('users').update({ last_login: new Date().toISOString() }).eq('id', user.id);
+    await markUserOnline(user.id, 'main', true);
 
     const token = await signMemberToken({
       id: user.id,

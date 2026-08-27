@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/auth/user-session';
 import { signMemberToken, MEMBER_COOKIE, memberCookieOptions } from '@/lib/auth/user-jwt';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { markUserOnline } from '@/lib/auth/presence';
 
 export async function GET() {
   const user = await getCurrentUser();
@@ -27,6 +28,8 @@ export async function GET() {
       if (row) profile = row;
     }
   } catch { /* giữ mặc định */ }
+
+  void markUserOnline(user.id, null);
 
   const res = NextResponse.json({
     user: {

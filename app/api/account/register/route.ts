@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { hashPassword } from '@/lib/auth/password';
 import { signMemberToken, MEMBER_COOKIE, memberCookieOptions } from '@/lib/auth/user-jwt';
+import { markUserOnline } from '@/lib/auth/presence';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -47,6 +48,7 @@ export async function POST(request: NextRequest) {
       .select('id, email, full_name, avatar_url')
       .single();
     if (error) throw error;
+    await markUserOnline(data.id, 'main', true);
 
     const token = await signMemberToken({
       id: data.id,
