@@ -2,6 +2,7 @@
 
 import { CSSProperties, DragEvent, useRef, useState } from 'react';
 import { uploadMediaFile } from '@/lib/client/upload-media';
+import BulkImageDrop, { type BulkImageItem } from './BulkImageDrop';
 
 export interface AttachmentItem {
   name: string;
@@ -41,9 +42,7 @@ function prevent(e: DragEvent) {
 export default function AttachmentField({ value, onChange }: AttachmentFieldProps) {
   const items = parseItems(value);
   const [status, setStatus] = useState('');
-  const [dragImg, setDragImg] = useState(false);
   const [dragFile, setDragFile] = useState(false);
-  const imgInputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   async function addFiles(files: FileList | File[], forceKind?: 'image' | 'file') {
@@ -70,8 +69,16 @@ export default function AttachmentField({ value, onChange }: AttachmentFieldProp
     onChange(items.filter((_, i) => i !== idx));
   }
 
-  const images = items.map((it, idx) => ({ it, idx })).filter((x) => x.it.kind === 'image');
+  const imageItems = items.filter((it) => it.kind === 'image');
   const files = items.map((it, idx) => ({ it, idx })).filter((x) => x.it.kind !== 'image');
+
+  function setImages(next: BulkImageItem[]) {
+    const rest = items.filter((it) => it.kind !== 'image');
+    onChange([
+      ...next.map((it) => ({ name: it.name, url: it.url, type: it.type, kind: 'image' as const })),
+      ...rest,
+    ]);
+  }
 
   const zoneStyle = (active: boolean): CSSProperties => ({
     border: `2px dashed ${active ? '#0dcaf0' : '#0d6efd'}`,
@@ -90,49 +97,8 @@ export default function AttachmentField({ value, onChange }: AttachmentFieldProp
         </div>
       )}
 
-      {/* ẢNH GỬI KÈM */}
       <div style={{ marginBottom: 14 }}>
-        <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.75)', marginBottom: 6 }}>🖼️ Ảnh gửi kèm</div>
-        <div
-          role="button"
-          tabIndex={0}
-          style={zoneStyle(dragImg)}
-          onClick={() => imgInputRef.current?.click()}
-          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') imgInputRef.current?.click(); }}
-          onDragEnter={(e) => { prevent(e); setDragImg(true); }}
-          onDragOver={(e) => { prevent(e); e.dataTransfer.dropEffect = 'copy'; setDragImg(true); }}
-          onDragLeave={(e) => { prevent(e); setDragImg(false); }}
-          onDrop={(e) => { prevent(e); setDragImg(false); if (e.dataTransfer.files?.length) void addFiles(e.dataTransfer.files, 'image'); }}
-        >
-          <div style={{ color: 'rgba(255,255,255,0.75)' }}>Kéo-thả ảnh vào đây, hoặc bấm để chọn ảnh</div>
-          <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.45)' }}>Chọn NHIỀU ảnh cùng lúc · PC & điện thoại · giữ nguyên gốc</div>
-          <input
-            ref={imgInputRef}
-            type="file"
-            accept="image/*"
-            multiple
-            style={{ display: 'none' }}
-            onChange={(e) => { if (e.target.files) void addFiles(e.target.files, 'image'); e.target.value = ''; }}
-          />
-        </div>
-        {images.length > 0 && (
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, marginTop: 10 }}>
-            {images.map(({ it, idx }) => (
-              <div key={it.url} style={{ position: 'relative' }}>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={it.url} alt={it.name} style={{ width: 90, height: 90, objectFit: 'cover', borderRadius: 8, border: '2px solid rgba(255,255,255,0.1)' }} />
-                <button
-                  type="button"
-                  onClick={() => removeAt(idx)}
-                  title="Gỡ ảnh"
-                  style={{ position: 'absolute', top: -8, right: -8, width: 22, height: 22, borderRadius: '50%', border: 'none', background: '#dc3545', color: '#fff', cursor: 'pointer', lineHeight: '20px' }}
-                >
-                  ×
-                </button>
-              </div>
-            ))}
-          </div>
-        )}
+        <BulkImageDrop items={imageItems} onChange={setImages} />
       </div>
 
       {/* FILE ĐÍNH KÈM */}

@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Swal from 'sweetalert2';
+import ImageUploadField from './ImageUploadField';
 
 const swalDark = { background: '#1a1a2e', color: '#fff' };
 
@@ -20,7 +21,7 @@ export default function AlbumAdminPanel({ authHeader }: Props) {
   const [pSlug, setPSlug] = useState('');
   const [pSub, setPSub] = useState('');
   const [pBg, setPBg] = useState('');
-  const [pSlides, setPSlides] = useState('');
+  const [pSlides, setPSlides] = useState<string[]>([]);
 
   // form khối
   const [bTitle, setBTitle] = useState('');
@@ -45,7 +46,7 @@ export default function AlbumAdminPanel({ authHeader }: Props) {
   const curBlocks = blocks.filter((b) => b.page_id === sel);
 
   useEffect(() => {
-    if (cur) { setPTitle(cur.title); setPSlug(cur.slug); setPSub(cur.subtitle || ''); setPBg(cur.bg_image_url || ''); setPSlides((cur.slide_urls || []).join('\n')); }
+    if (cur) { setPTitle(cur.title); setPSlug(cur.slug); setPSub(cur.subtitle || ''); setPBg(cur.bg_image_url || ''); setPSlides(cur.slide_urls || []); }
   }, [sel]); // eslint-disable-line react-hooks/exhaustive-deps
 
   async function savePage(id?: number) {
@@ -55,7 +56,7 @@ export default function AlbumAdminPanel({ authHeader }: Props) {
       slug: id ? pSlug : '',
       subtitle: id ? pSub : '',
       bg_image_url: id ? pBg : '',
-      slide_urls: id ? pSlides.split('\n').map((s) => s.trim()).filter(Boolean) : [],
+      slide_urls: id ? pSlides.filter(Boolean) : [],
     };
     if (!body.title) return;
     const r = await fetch('/api/admin/album', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: authHeader }, body: JSON.stringify(body) });
@@ -97,6 +98,11 @@ export default function AlbumAdminPanel({ authHeader }: Props) {
     const reg = await fetch('/api/upload/drive-register', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: authHeader }, body: JSON.stringify({ file_id: pj.id, original_name: file.name, file_type: file.type }) }).then((r) => r.json());
     if (!reg.success) throw new Error(reg.error || 'Ghi Drive lỗi');
     return { kind: (file.type || '').startsWith('video/') ? 'video' : 'image', url: reg.url, driveFileId: reg.fileId, name: file.name };
+  }
+
+  async function uploadImageUrl(file: File) {
+    const item = await uploadOne(file);
+    return item.url;
   }
 
   async function handleFiles(blockId: number, files: FileList | File[]) {
@@ -142,8 +148,14 @@ export default function AlbumAdminPanel({ authHeader }: Props) {
             <div className="col-md-4"><label className="form-label fw-bold">Tên trang</label><input className="form-control" value={pTitle} onChange={(e) => setPTitle(e.target.value)} /></div>
             <div className="col-md-4"><label className="form-label fw-bold">Đường dẫn (slug)</label><input className="form-control" value={pSlug} onChange={(e) => setPSlug(e.target.value)} placeholder="lop1a3" /></div>
             <div className="col-md-4"><label className="form-label fw-bold">Phụ đề</label><input className="form-control" value={pSub} onChange={(e) => setPSub(e.target.value)} /></div>
-            <div className="col-md-6"><label className="form-label fw-bold">Ảnh NỀN website con (URL)</label><input className="form-control" value={pBg} onChange={(e) => setPBg(e.target.value)} placeholder="Dán link ảnh nền (hoa lá cành…)" /></div>
-            <div className="col-md-6"><label className="form-label fw-bold">Ảnh SLIDE đại diện (mỗi dòng 1 URL)</label><textarea className="form-control" rows={2} value={pSlides} onChange={(e) => setPSlides(e.target.value)} /></div>
+            <div className="col-12">
+              <label className="form-label fw-bold">Ảnh nền website con</label>
+              <ImageUploadField theme="light" value={pBg} onChange={setPBg} uploadFile={uploadImageUrl} />
+            </div>
+            <div className="col-12">
+              <label className="form-label fw-bold">Ảnh slide đại diện (kéo-thả nhiều ảnh, không giới hạn)</label>
+              <ImageUploadField theme="light" mode="many" values={pSlides} onChangeUrls={setPSlides} uploadFile={uploadImageUrl} />
+            </div>
           </div>
           <button className="btn btn-success btn-sm mt-2" onClick={() => savePage(cur.id)}><i className="fas fa-save" /> Lưu trang</button>
         </div>
@@ -152,10 +164,15 @@ export default function AlbumAdminPanel({ authHeader }: Props) {
       {cur && (
         <>
           <h6 className="fw-bold mt-3">Thêm khối sự kiện</h6>
-          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
-            <input className="form-control" style={{ maxWidth: 280 }} placeholder="Tên khối (vd Khai giảng)" value={bTitle} onChange={(e) => setBTitle(e.target.value)} />
-            <input className="form-control" style={{ maxWidth: 280 }} placeholder="URL ảnh bìa (tuỳ chọn)" value={bCover} onChange={(e) => setBCover(e.target.value)} />
-            <button className="btn btn-success btn-sm" onClick={addBlock}><i className="fas fa-plus" /> Thêm khối</button>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10, maxWidth: 560 }}>
+            <input className="form-control" placeholder="Tên khối (vd Khai giảng)" value={bTitle} onChange={(e) => setBTitle(e.target.value)} />
+            <div>
+              <label className="form-label fw-bold mb-1">Ảnh bìa (tuỳ chọn)</label>
+              <ImageUploadField theme="light" value={bCover} onChange={setBCover} uploadFile={uploadImageUrl} />
+            </div>
+            <div>
+              <button className="btn btn-success btn-sm" onClick={addBlock}><i className="fas fa-plus" /> Thêm khối</button>
+            </div>
           </div>
 
           {progress && <div className="alert alert-info py-2 mt-2 mb-0" style={{ fontSize: 13 }}><i className="fas fa-spinner fa-spin" /> {progress}</div>}

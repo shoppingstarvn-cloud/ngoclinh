@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState, type CSSProperties } from 'react';
+import ImageUploadField from '@/components/admin/ImageUploadField';
 
 type Block = { id: number; title: string; cover_url: string; photos: number; videos: number };
 type Page = { id: number; slug: string; title: string; subtitle: string; bg_image_url: string; slide_urls: string[] };
@@ -17,7 +18,7 @@ export default function MyAlbumPanel() {
   const [blocks, setBlocks] = useState<Block[]>([]);
   const [bg, setBg] = useState('');
   const [sub, setSub] = useState('');
-  const [slides, setSlides] = useState('');
+  const [slides, setSlides] = useState<string[]>([]);
   const [bTitle, setBTitle] = useState('');
   const [bCover, setBCover] = useState('');
   const [progress, setProgress] = useState('');
@@ -29,14 +30,14 @@ export default function MyAlbumPanel() {
     const d = await r.json();
     if (d.ok) {
       setPage(d.page); setBlocks(d.blocks || []);
-      setBg(d.page.bg_image_url || ''); setSub(d.page.subtitle || ''); setSlides((d.page.slide_urls || []).join('\n'));
+      setBg(d.page.bg_image_url || ''); setSub(d.page.subtitle || ''); setSlides(d.page.slide_urls || []);
     }
     setLoading(false);
   }, []);
   useEffect(() => { load(); }, [load]);
 
   async function savePage() {
-    await post({ action: 'savePage', subtitle: sub, bg_image_url: bg, slide_urls: slides.split('\n').map((s) => s.trim()).filter(Boolean) });
+    await post({ action: 'savePage', subtitle: sub, bg_image_url: bg, slide_urls: slides.filter(Boolean) });
     alert('Đã lưu trang.'); load();
   }
   async function addBlock() {
@@ -58,6 +59,10 @@ export default function MyAlbumPanel() {
     const reg = await post({ action: 'driveRegister', file_id: pj.id, original_name: file.name, file_type: file.type });
     if (!reg.ok) throw new Error(reg.error || 'register lỗi');
     return { kind: (file.type || '').startsWith('video/') ? 'video' : 'image', url: reg.url, driveFileId: reg.fileId, name: file.name };
+  }
+  async function uploadImageUrl(file: File) {
+    const item = await uploadOne(file);
+    return item.url;
   }
   async function handleFiles(blockId: number, files: FileList | File[]) {
     const arr = Array.from(files); if (!arr.length) return;
@@ -82,19 +87,25 @@ export default function MyAlbumPanel() {
 
       <div style={{ background: '#f7fbf9', border: '1px solid #d7e8de', borderRadius: 12, padding: 16, margin: '12px 0' }}>
         <b>Cài đặt trang</b>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginTop: 8 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 10, marginTop: 8 }}>
           <div><label>Phụ đề</label><input style={inp} value={sub} onChange={(e) => setSub(e.target.value)} /></div>
-          <div><label>Ảnh nền (URL)</label><input style={inp} value={bg} onChange={(e) => setBg(e.target.value)} placeholder="Link ảnh nền" /></div>
+          <div>
+            <label>Ảnh nền</label>
+            <ImageUploadField theme="light" value={bg} onChange={setBg} uploadFile={uploadImageUrl} />
+          </div>
         </div>
-        <label>Ảnh slide (mỗi dòng 1 URL)</label>
-        <textarea style={{ ...inp, height: 60 }} value={slides} onChange={(e) => setSlides(e.target.value)} />
+        <label>Ảnh slide (kéo-thả nhiều ảnh, không giới hạn)</label>
+        <ImageUploadField theme="light" mode="many" values={slides} onChangeUrls={setSlides} uploadFile={uploadImageUrl} />
         <button style={btn} onClick={savePage}>💾 Lưu trang</button>
       </div>
 
       <b>Thêm khối sự kiện</b>
-      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', margin: '8px 0' }}>
-        <input style={{ ...inp, maxWidth: 260 }} placeholder="Tên khối (vd Khai giảng)" value={bTitle} onChange={(e) => setBTitle(e.target.value)} />
-        <input style={{ ...inp, maxWidth: 260 }} placeholder="URL ảnh bìa (tuỳ chọn)" value={bCover} onChange={(e) => setBCover(e.target.value)} />
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8, margin: '8px 0', maxWidth: 560 }}>
+        <input style={inp} placeholder="Tên khối (vd Khai giảng)" value={bTitle} onChange={(e) => setBTitle(e.target.value)} />
+        <div>
+          <label>Ảnh bìa (tuỳ chọn)</label>
+          <ImageUploadField theme="light" value={bCover} onChange={setBCover} uploadFile={uploadImageUrl} />
+        </div>
         <button style={btn} onClick={addBlock}>➕ Thêm khối</button>
       </div>
       {progress && <div style={{ background: '#eef6ff', padding: '8px 12px', borderRadius: 8, fontSize: 13 }}>⏳ {progress}</div>}
