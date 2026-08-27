@@ -5,12 +5,15 @@ import { getAlbumAccess } from '@/lib/album/album';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-const TYPES = ['like', 'love', 'haha', 'wow', 'sad', 'angry'];
+const TYPES = ['like', 'love', 'haha', 'wow'];
 
 async function countByType(supabase: ReturnType<typeof createAdminClient>, mediaId: number) {
   const { data } = await supabase.from('album_reactions').select('type').eq('media_id', mediaId);
   const counts: Record<string, number> = {};
-  for (const r of data ?? []) counts[r.type] = (counts[r.type] || 0) + 1;
+  for (const r of data ?? []) {
+    if (!TYPES.includes(r.type)) continue;
+    counts[r.type] = (counts[r.type] || 0) + 1;
+  }
   return counts;
 }
 
@@ -29,7 +32,8 @@ export async function GET(req: NextRequest) {
       .eq('media_id', mediaId)
       .eq('user_id', access.userId)
       .limit(1);
-    mine = data?.[0]?.type ?? null;
+    const t = data?.[0]?.type ?? null;
+    mine = t && TYPES.includes(t) ? t : null;
   }
   return NextResponse.json({ ok: true, counts, mine });
 }

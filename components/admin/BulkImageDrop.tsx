@@ -2,7 +2,7 @@
 
 import { CSSProperties, DragEvent, useRef, useState } from 'react';
 import { uploadMediaFile } from '@/lib/client/upload-media';
-import { isAcceptedMediaFile, isVideoAsset, isVideoFile, tagIfVideo } from '@/lib/media-url';
+import { isAcceptedMediaFile, isVideoAsset, isVideoFile, tagIfVideo, videoThumbUrl } from '@/lib/media-url';
 
 export type BulkImageTheme = 'dark' | 'light';
 export type BulkAcceptMode = 'image' | 'media';
@@ -195,10 +195,16 @@ export default function BulkImageDrop({
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, marginTop: 10 }}>
           {items.map((it, idx) => {
             const video = isVideoAsset(it.url, it.type);
+            const poster = video ? videoThumbUrl(it.url) : null;
             return (
               <div key={`${it.url}-${idx}`} style={{ position: 'relative' }}>
                 {video ? (
-                  <video src={it.url} muted playsInline preload="metadata" style={thumbStyle} />
+                  poster ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={poster} alt={it.name} style={thumbStyle} />
+                  ) : (
+                    <video src={it.url} muted playsInline preload="metadata" style={thumbStyle} />
+                  )
                 ) : (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={it.url} alt={it.name} style={thumbStyle} />

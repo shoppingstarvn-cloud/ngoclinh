@@ -20,9 +20,9 @@ function assertUploadable(file: File) {
   const ok =
     mime.startsWith('image/') ||
     mime.startsWith('video/') ||
-    /\.(jpe?g|png|webp|gif|svg|avif|mp4|webm|mov)$/i.test(name);
+    /\.(jpe?g|png|webp|gif|svg|avif|mp4|webm|mov|m4v|avi|mkv|3gp)$/i.test(name);
   if (!ok) {
-    throw new Error('Chỉ nhận ảnh (JPG/PNG/WEBP/GIF) hoặc video MP4.');
+    throw new Error('Chỉ nhận ảnh (JPG/PNG/WEBP/GIF) hoặc video (MP4/WEBM/MOV/MKV/AVI).');
   }
 }
 

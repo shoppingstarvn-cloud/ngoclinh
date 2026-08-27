@@ -65,3 +65,62 @@ export function isImageAttachment(a: { kind?: string; url?: string; type?: strin
   if (/drive\.google\.com\/(uc|thumbnail)/i.test(url)) return true;
   return false;
 }
+
+/** Lấy file id Google Drive từ mọi dạng URL (uc, preview, lh3, open?id=). */
+export function extractDriveFileId(url?: string | null): string | null {
+  const u = String(url || '');
+  if (!u) return null;
+  const patterns = [
+    /\/file\/d\/([a-zA-Z0-9_-]+)/,
+    /lh3\.googleusercontent\.com\/d\/([a-zA-Z0-9_-]+)/,
+    /[?&]id=([a-zA-Z0-9_-]+)/,
+    /drive\.google\.com\/open\?id=([a-zA-Z0-9_-]+)/,
+  ];
+  for (const p of patterns) {
+    const m = u.match(p);
+    if (m?.[1]) return m[1];
+  }
+  return null;
+}
+
+export function drivePreviewUrl(fileId: string): string {
+  return `https://drive.google.com/file/d/${fileId}/preview`;
+}
+
+export function driveThumbnailUrl(fileId: string, size = 'w1280'): string {
+  return `https://drive.google.com/thumbnail?id=${fileId}&sz=${size}`;
+}
+
+export function driveDownloadUrl(fileId: string): string {
+  return `https://drive.google.com/uc?export=download&id=${fileId}&confirm=t`;
+}
+
+/** Ảnh poster khi Drive video không có frame (thẻ <video> download URL không load được). */
+export function videoThumbUrl(url?: string | null): string | null {
+  const id = extractDriveFileId(url);
+  return id ? driveThumbnailUrl(id) : null;
+}
+
+/**
+ * File phát được bằng HTML5 <video> (blob/data, mp4/webm/m4v cùng origin).
+ * Link Drive `uc?export=download` KHÔNG stream được — phải dùng iframe preview
+ * (Google transcode MOV/MKV/AVI).
+ */
+export function isDirectPlayableVideoUrl(url?: string | null): boolean {
+  const v = String(url || '').trim();
+  if (!v) return false;
+  if (/^(blob:|data:)/i.test(v)) return true;
+  if (extractDriveFileId(v) && /(?:drive\.google|googleusercontent\.com)/i.test(v)) return false;
+  const path = v.split(/[?#]/)[0] || '';
+  if (/supabase\.(co|in)\/storage/i.test(v)) {
+    return /\.(mp4|webm|m4v)(\?|$)/i.test(path) || /video\/(mp4|webm)/i.test(v);
+  }
+  return /\.(mp4|webm|m4v)$/i.test(path);
+}
+
+export function videoPlaybackMode(url?: string | null): 'html5' | 'drive-iframe' {
+  const v = String(url || '');
+  if (isDirectPlayableVideoUrl(v)) return 'html5';
+  if (extractDriveFileId(v)) return 'drive-iframe';
+  return 'html5';
+}

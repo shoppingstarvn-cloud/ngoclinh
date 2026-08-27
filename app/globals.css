@@ -30,6 +30,230 @@ body {
   height: auto;
 }
 
+.detail-content video,
+.content_news_page video,
+.detail_product video,
+.post-attachments video,
+.legacy-static-page video {
+  aspect-ratio: 16 / 9;
+  width: 100%;
+  height: auto;
+  background: #000;
+  object-fit: contain;
+}
+
+.nl-yt-host {
+  width: 100%;
+}
+.nl-yt {
+  width: 100%;
+  background: #0b0b0b;
+  border-radius: 12px;
+  overflow: hidden;
+}
+.nl-yt:fullscreen,
+.nl-yt:-webkit-full-screen {
+  border-radius: 0;
+  background: #000;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.nl-yt-stage {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  min-height: 0;
+  background: #000;
+  overflow: hidden;
+}
+.nl-yt:fullscreen .nl-yt-stage,
+.nl-yt:-webkit-full-screen .nl-yt-stage {
+  flex: 1;
+  min-height: 0;
+  max-height: none !important;
+  aspect-ratio: auto;
+}
+.nl-yt-stage iframe,
+.nl-yt-stage video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  object-fit: contain;
+  background: #000;
+}
+.nl-yt-stage.nl-yt-drive iframe {
+  height: calc(100% + 72px);
+  top: -36px;
+  left: 0;
+}
+.nl-yt-err {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  color: #fff;
+  background: rgba(0, 0, 0, 0.72);
+  font-size: 14px;
+  text-align: center;
+  z-index: 2;
+}
+.nl-yt-bigplay {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 76px;
+  height: 76px;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(0, 166, 81, 0.94);
+  color: #fff;
+  font-size: 30px;
+  line-height: 1;
+  cursor: pointer;
+  z-index: 3;
+  pointer-events: auto;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+}
+.nl-yt-bigplay:hover {
+  background: #00c45f;
+}
+.nl-yt-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px 10px;
+  background: #161616;
+  color: #fff;
+  position: relative;
+  z-index: 3;
+  pointer-events: auto;
+}
+.nl-yt-btn {
+  border: 0;
+  background: #2a2a2a;
+  color: #fff;
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.nl-yt-btn:hover,
+.nl-yt-btn.on {
+  background: #00a651;
+}
+.nl-yt-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.nl-yt-time {
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  opacity: 0.9;
+}
+.nl-yt-seek {
+  flex: 1;
+  min-width: 80px;
+}
+.nl-yt-vol {
+  width: 72px;
+}
+.nl-yt-hint {
+  font-size: 12px;
+  opacity: 0.8;
+  flex: 1;
+  min-width: 140px;
+}
+.nl-yt-qwrap {
+  position: relative;
+}
+.nl-yt-qmenu {
+  position: absolute;
+  right: 0;
+  bottom: 38px;
+  background: #222;
+  border-radius: 10px;
+  padding: 6px;
+  min-width: 140px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.nl-yt-qmenu button {
+  border: 0;
+  background: transparent;
+  color: #fff;
+  text-align: left;
+  padding: 8px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 13px;
+}
+.nl-yt-qmenu button.on,
+.nl-yt-qmenu button:hover:not(:disabled) {
+  background: #00a651;
+}
+.nl-yt-qmenu button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.nl-media-thumb {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+.nl-media-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.nl-media-play {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  pointer-events: none;
+}
+.nl-video-embed {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background: #000;
+  margin: 8px 0;
+}
+.nl-video-embed iframe,
+.nl-video-embed video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  object-fit: contain;
+}
+
 .detail-content table {
   max-width: 100%;
   overflow-x: auto;

@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { isVideoAsset } from '@/lib/media-url';
+import { isVideoAsset, videoThumbUrl } from '@/lib/media-url';
 
 export type FieldType =
   | 'text'
@@ -81,6 +81,10 @@ function boolBadge(v: unknown) {
 function thumb(v: unknown) {
   if (typeof v !== 'string' || !v) return null;
   if (isVideoAsset(v)) {
+    const poster = videoThumbUrl(v);
+    if (poster) {
+      return <img src={poster} className="thumb-img" alt="" />;
+    }
     return <video src={v} className="thumb-img" muted playsInline preload="metadata" />;
   }
   return <img src={v} className="thumb-img" alt="" />;

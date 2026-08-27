@@ -233,8 +233,8 @@ export default async function SlugPage({ params }: PageProps) {
                           {detail.attachments
                             .filter((a) => isVideoAttachment(a))
                             .map((a) => (
-                              <div key={a.url} style={{ width: 280, borderRadius: 8, overflow: 'hidden', border: '1px solid #eee' }}>
-                                <MediaAsset src={a.url} alt={a.name} variant="gallery" />
+                              <div key={a.url} style={{ width: '100%', maxWidth: 960, borderRadius: 12, overflow: 'hidden' }}>
+                                <MediaAsset src={a.url} alt={a.name} variant="gallery" kind="video" />
                               </div>
                             ))}
                         </div>

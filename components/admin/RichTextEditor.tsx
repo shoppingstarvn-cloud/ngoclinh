@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import 'quill/dist/quill.snow.css';
 import { uploadMediaFile } from '@/lib/client/upload-media';
-import { isImageFile, isVideoAsset, isVideoFile, tagIfVideo } from '@/lib/media-url';
+import { isImageFile, isVideoAsset, isVideoFile, tagIfVideo, extractDriveFileId, drivePreviewUrl } from '@/lib/media-url';
 import {
   listTemplatesAction,
   saveTemplateAction,
@@ -24,6 +24,33 @@ function dataUrlToFile(dataUrl: string, baseName: string): File | null {
   while (n--) u8[n] = bstr.charCodeAt(n);
   const ext = (mime.split('/')[1] || 'png').replace('jpeg', 'jpg').replace('svg+xml', 'svg');
   return new File([u8], `${baseName}.${ext}`, { type: mime });
+}
+
+/** Khối video 16:9 — Drive dùng iframe preview (transcode MOV/MKV), còn lại HTML5. */
+function fillVideoEmbedNode(node: HTMLElement, src: string) {
+  const url = String(src || '');
+  node.classList.add('nl-video-embed');
+  node.setAttribute('data-src', url);
+  node.setAttribute('contenteditable', 'false');
+  node.innerHTML = '';
+  const id = extractDriveFileId(url);
+  if (id) {
+    const iframe = document.createElement('iframe');
+    iframe.src = drivePreviewUrl(id);
+    iframe.setAttribute('allow', 'autoplay; fullscreen; encrypted-media; picture-in-picture');
+    iframe.setAttribute('allowfullscreen', 'true');
+    iframe.setAttribute('referrerpolicy', 'no-referrer-when-downgrade');
+    iframe.setAttribute('title', 'Video');
+    node.appendChild(iframe);
+  } else {
+    const v = document.createElement('video');
+    v.setAttribute('src', url);
+    v.setAttribute('controls', 'true');
+    v.setAttribute('playsinline', 'true');
+    v.setAttribute('preload', 'metadata');
+    node.appendChild(v);
+  }
+  return node;
 }
 
 interface RichTextEditorProps {
@@ -162,14 +189,34 @@ export default function RichTextEditor({ initialValue, onChange }: RichTextEdito
       const file = dataUrlToFile(src, `video-dan-${Date.now()}-${i}`);
       if (!file) continue;
       try {
-        const url = await uploadMediaFile(file);
-        el.setAttribute('src', tagIfVideo(url, file));
+        const url = tagIfVideo(await uploadMediaFile(file), file);
+        const wrap = document.createElement('div');
+        fillVideoEmbedNode(wrap, url);
+        el.replaceWith(wrap);
       } catch {
         /* lỗi thì giữ nguyên video đó */
       }
     }
+    upgradeLegacyVideos();
     setStatus('');
     onChangeRef.current(q.root.innerHTML);
+  }
+
+  // Bài cũ còn thẻ <video src="Drive download"> — bọc thành blot iframe 16:9.
+  function upgradeLegacyVideos() {
+    const q = quillRef.current;
+    if (!q) return;
+    let changed = false;
+    q.root.querySelectorAll('video').forEach((el) => {
+      if (el.closest('.nl-video-embed')) return;
+      const src = el.getAttribute('src') || el.querySelector('source')?.getAttribute('src') || '';
+      if (!src) return;
+      const wrap = document.createElement('div');
+      fillVideoEmbedNode(wrap, src);
+      el.replaceWith(wrap);
+      changed = true;
+    });
+    if (changed) onChangeRef.current(q.root.innerHTML);
   }
 
   // Sửa link cũ bị TRẦN (vd href="shopmartai.com") → thêm https:// để không 404.
@@ -217,6 +264,7 @@ export default function RichTextEditor({ initialValue, onChange }: RichTextEdito
     // Chèn nội dung mẫu tại vị trí con trỏ
     q.clipboard.dangerouslyPasteHTML(at, tpl.content || '', 'user');
     onChangeRef.current(q.root.innerHTML);
+    setTimeout(() => upgradeLegacyVideos(), 50);
   }
 
   async function handleDeleteTemplate() {
@@ -265,18 +313,19 @@ export default function RichTextEditor({ initialValue, onChange }: RichTextEdito
       const BlockEmbed = Quill.import('blots/block/embed') as any;
       class NlVideoBlot extends BlockEmbed {
         static blotName = 'nlvideo';
-        static tagName = 'VIDEO';
+        static tagName = 'DIV';
+        static className = 'nl-video-embed';
         static create(value: string) {
-          const node = super.create(value) as HTMLVideoElement;
-          node.setAttribute('src', String(value || ''));
-          node.setAttribute('controls', 'true');
-          node.setAttribute('playsinline', 'true');
-          node.setAttribute('preload', 'metadata');
-          node.setAttribute('style', 'max-width:100%;height:auto;display:block');
+          const node = super.create(value) as HTMLElement;
+          fillVideoEmbedNode(node, String(value || ''));
           return node;
         }
         static value(node: HTMLElement) {
-          return node.getAttribute('src') || '';
+          return (
+            node.getAttribute('data-src') ||
+            node.querySelector('iframe,video')?.getAttribute('src') ||
+            ''
+          );
         }
       }
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -316,12 +365,27 @@ export default function RichTextEditor({ initialValue, onChange }: RichTextEdito
       });
       quillRef.current = quill;
       if (initialValue) quill.root.innerHTML = initialValue;
-      // Bài cũ: chuyển ảnh base64 → Drive + sửa link trần (shopmartai.com → https://…).
+      // Bài cũ: chuyển ảnh base64 → Drive + sửa link trần + video Drive → iframe.
       setTimeout(() => {
+        upgradeLegacyVideos();
         void convertBase64Images();
         fixBareLinks();
       }, 400);
       quill.on('text-change', () => onChangeRef.current(quill.root.innerHTML));
+
+      try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const Delta = Quill.import('delta') as any;
+        quill.clipboard.addMatcher('VIDEO', (node: HTMLElement) => {
+          const src =
+            node.getAttribute('src') ||
+            node.querySelector('source')?.getAttribute('src') ||
+            '';
+          return new Delta().insert({ nlvideo: src });
+        });
+      } catch {
+        /* Quill bản cũ có thể không có matcher VIDEO */
+      }
 
       quill.root.addEventListener('drop', (ev: Event) => {
         const e = ev as DragEvent;
@@ -359,13 +423,16 @@ export default function RichTextEditor({ initialValue, onChange }: RichTextEdito
       // nhấn phím Delete/Backspace. Bấm ra ngoài → bỏ chọn.
       quill.root.addEventListener('click', (ev: Event) => {
         const target = ev.target as HTMLElement | null;
-        if (target && (target.tagName === 'IMG' || target.tagName === 'VIDEO')) {
+        const wrap = target?.closest('.nl-video-embed') as HTMLElement | null;
+        const mediaEl = target && (target.tagName === 'IMG' || target.tagName === 'VIDEO' || wrap);
+        if (mediaEl) {
           try {
-            const blot = (Quill as unknown as { find: (n: Node) => unknown }).find(target);
+            const node = wrap || target;
+            const blot = (Quill as unknown as { find: (n: Node) => unknown }).find(node as Node);
             if (blot) {
               const index = quill.getIndex(blot as never);
-              selectedImgIndexRef.current = index; // nhớ vị trí ảnh để xoá đúng
-              quill.setSelection(index, 1, 'user'); // chọn ảnh (Quill tô sáng vùng chọn)
+              selectedImgIndexRef.current = index;
+              quill.setSelection(index, 1, 'user');
             }
           } catch {
             selectedImgIndexRef.current = null;
@@ -395,6 +462,7 @@ export default function RichTextEditor({ initialValue, onChange }: RichTextEdito
     if (isEmpty && initialValue && initialValue !== cur) {
       q.root.innerHTML = initialValue;
       setTimeout(() => {
+        upgradeLegacyVideos();
         void convertBase64Images();
         fixBareLinks();
       }, 300);
@@ -414,8 +482,11 @@ export default function RichTextEditor({ initialValue, onChange }: RichTextEdito
           max-width: 92%;
         }
         .ql-snow .ql-tooltip input[type=text] { width: 280px; max-width: 60vw; }
-        .ql-editor img, .ql-editor video { cursor: pointer; max-width: 100%; height: auto; display: block; }
-        .ql-editor img:hover, .ql-editor video:hover { outline: 2px dashed rgba(13,110,253,0.85); outline-offset: 2px; }
+        .ql-editor img, .ql-editor video, .ql-editor .nl-video-embed { cursor: pointer; max-width: 100%; display: block; }
+        .ql-editor .nl-video-embed { width: 100%; aspect-ratio: 16 / 9; background: #000; position: relative; }
+        .ql-editor .nl-video-embed iframe,
+        .ql-editor .nl-video-embed video { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; object-fit: contain; pointer-events: none; }
+        .ql-editor img:hover, .ql-editor video:hover, .ql-editor .nl-video-embed:hover { outline: 2px dashed rgba(13,110,253,0.85); outline-offset: 2px; }
       `}</style>
       {/* Thanh MẪU (template) */}
       <div

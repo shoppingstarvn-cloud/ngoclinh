@@ -1,10 +1,13 @@
 'use client';
 /* eslint-disable @next/next/no-img-element */
 
-import { useCallback, useEffect, useState, type CSSProperties } from 'react';
+import { useCallback, useEffect, useState, type CSSProperties, type ReactNode } from 'react';
 import AuthModal from '@/components/auth/AuthModal';
 import MediaAsset from '@/components/ui/MediaAsset';
-import { isVideoAsset } from '@/lib/media-url';
+import VideoPlayer from '@/components/ui/VideoPlayer';
+import FbCareHeart from '@/components/ui/FbCareHeart';
+import { driveDownloadUrl, extractDriveFileId, isVideoAsset, videoThumbUrl } from '@/lib/media-url';
+import { isMediaFavorite, toggleMediaFavorite } from '@/lib/media-favorites';
 
 type Block = { id: number; title: string; cover_url: string; photos: number; videos: number };
 type Media = { id: number; kind: string; url: string; name: string };
@@ -17,10 +20,11 @@ const GRADS = [
   'linear-gradient(135deg,#43e97b,#38f9d7)', 'linear-gradient(135deg,#fa709a,#fee140)',
   'linear-gradient(135deg,#4facfe,#00f2fe)', 'linear-gradient(135deg,#667eea,#764ba2)',
 ];
-const REACTS: { t: string; e: string; l: string }[] = [
-  { t: 'like', e: '👍', l: 'Thích' }, { t: 'love', e: '❤️', l: 'Yêu' },
-  { t: 'haha', e: '😆', l: 'Haha' }, { t: 'wow', e: '😮', l: 'Wow' },
-  { t: 'sad', e: '😢', l: 'Buồn' }, { t: 'angry', e: '😡', l: 'Phẫn nộ' },
+const REACTS: { t: string; e: ReactNode; l: string }[] = [
+  { t: 'like', e: '👍', l: 'Thích' },
+  { t: 'love', e: <FbCareHeart size={26} />, l: 'Yêu' },
+  { t: 'haha', e: '😆', l: 'Haha' },
+  { t: 'wow', e: '😮', l: 'Wow' },
 ];
 
 export default function AlbumView({ slug }: { slug: string }) {
@@ -100,6 +104,7 @@ export default function AlbumView({ slug }: { slug: string }) {
   const slides = (page.slide_urls && page.slide_urls.length ? page.slide_urls
     : blocks.map((b) => b.cover_url).filter(Boolean));
   const bgIsVideo = isVideoAsset(page.bg_image_url);
+  const bgThumb = bgIsVideo ? videoThumbUrl(page.bg_image_url) : null;
   const bgStyle: CSSProperties = page.bg_image_url && !bgIsVideo
     ? { backgroundImage: `url(${page.bg_image_url})`, backgroundSize: 'cover', backgroundAttachment: 'fixed', backgroundPosition: 'center' }
     : {};
@@ -108,7 +113,9 @@ export default function AlbumView({ slug }: { slug: string }) {
     <div className="alb-root" style={bgStyle}>
       <style>{CSS}</style>
       {bgIsVideo && page.bg_image_url && (
-        <video className="alb-bgvid" src={page.bg_image_url} autoPlay muted loop playsInline aria-hidden />
+        bgThumb
+          ? <div className="alb-bgvid" style={{ backgroundImage: `url(${bgThumb})` }} aria-hidden />
+          : <video className="alb-bgvid" src={page.bg_image_url} autoPlay muted loop playsInline aria-hidden />
       )}
       <div className="alb-bgfx"><div className="alb-aurora" /><div className="alb-aurora b" /></div>
       {['🌸', '🍃', '✨', '🌸', '🌿', '✨', '🌷', '🍃', '✨'].map((p, i) => (
@@ -196,7 +203,7 @@ export default function AlbumView({ slug }: { slug: string }) {
                 <div className="alb-videos">
                   {videos.map((v) => (
                     <div className="alb-vth" key={v.id} onClick={() => setViewer(v)}>
-                      <MediaAsset src={v.url} alt={v.name} />
+                      <MediaAsset src={v.url} alt={v.name} kind={v.kind} />
                       <div className="alb-vplay">▶</div>
                     </div>
                   ))}
@@ -206,7 +213,7 @@ export default function AlbumView({ slug }: { slug: string }) {
               <div className="alb-grid">
                 {photos.map((m) => (
                   <div key={m.id} onClick={() => setViewer(m)}>
-                    <MediaAsset src={m.url} alt={m.name} />
+                    <MediaAsset src={m.url} alt={m.name} kind={m.kind} />
                   </div>
                 ))}
               </div>
@@ -234,11 +241,13 @@ function MediaViewer({ media, onClose }: { media: Media; onClose: () => void }) 
   const [mine, setMine] = useState<string | null>(null);
   const [comments, setComments] = useState<{ id: number; user_name: string; content: string; created_at: string }[]>([]);
   const [text, setText] = useState('');
+  const [fav, setFav] = useState(false);
 
   useEffect(() => {
     fetch(`/api/album/react?mediaId=${media.id}`).then((r) => r.json()).then((d) => { setCounts(d.counts || {}); setMine(d.mine || null); }).catch(() => {});
     fetch(`/api/album/comment?mediaId=${media.id}`).then((r) => r.json()).then((d) => setComments(d.comments || [])).catch(() => {});
-  }, [media.id]);
+    setFav(isMediaFavorite(media.url));
+  }, [media.id, media.url]);
 
   async function react(type: string) {
     const r = await fetch('/api/album/react', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ mediaId: media.id, type }) });
@@ -253,21 +262,36 @@ function MediaViewer({ media, onClose }: { media: Media; onClose: () => void }) 
   }
 
   const isVideo = media.kind === 'video' || isVideoAsset(media.url);
+  const driveId = extractDriveFileId(media.url);
+  const downloadHref = driveId ? driveDownloadUrl(driveId) : media.url;
   return (
     <div className="alb-lb" style={{ zIndex: 60 }} onClick={(e) => e.target === e.currentTarget && onClose()}>
-      <div className="alb-lbbox" style={{ maxWidth: 820 }}>
+      <div className="alb-lbbox" style={{ maxWidth: isVideo ? 1100 : 820 }}>
         <div className="alb-lbhead"><h2>{isVideo ? '🎬 Video' : '🖼️ Ảnh'}</h2><button className="alb-x" onClick={onClose}>×</button></div>
         <div className="alb-lbbody">
           {isVideo
-            ? <video src={media.url} controls style={{ width: '100%', borderRadius: 14, maxHeight: 460, background: '#000' }} />
-            : <img src={media.url} alt={media.name} style={{ width: '100%', borderRadius: 14, maxHeight: 520, objectFit: 'contain', background: '#f3f6f4' }} />}
+            ? <VideoPlayer src={media.url} title={media.name} />
+            : (
+              <>
+                <img src={media.url} alt={media.name} style={{ width: '100%', borderRadius: 14, maxHeight: 520, objectFit: 'contain', background: '#f3f6f4' }} />
+                <div style={{ marginTop: 10 }}>
+                  <button
+                    type="button"
+                    className={`alb-btn soft${fav ? ' on' : ''}`}
+                    onClick={() => setFav(toggleMediaFavorite(media.url))}
+                  >
+                    {fav ? '★' : '☆'} Ảnh yêu thích
+                  </button>
+                </div>
+              </>
+            )}
           <div className="alb-reactbar">
             {REACTS.map((r) => (
               <button key={r.t} className={`alb-react${mine === r.t ? ' on' : ''}`} title={r.l} onClick={() => react(r.t)}>
-                <span>{r.e}</span>{counts[r.t] ? <b>{counts[r.t]}</b> : null}
+                <span className="alb-react-ico">{r.e}</span>{counts[r.t] ? <b>{counts[r.t]}</b> : null}
               </button>
             ))}
-            <a className="alb-btn soft" href={media.url} target="_blank" rel="noreferrer" download>⬇️ Tải về</a>
+            <a className="alb-btn soft" href={downloadHref} target="_blank" rel="noreferrer">⬇️ Tải về</a>
           </div>
           <div className="alb-cmts">
             <div className="alb-cinput">
@@ -291,7 +315,7 @@ function MediaViewer({ media, onClose }: { media: Media; onClose: () => void }) 
 const CSS = `
 .alb-root{position:relative;min-height:100vh;overflow-x:hidden;color:#123;font-family:'Segoe UI',system-ui,Arial,sans-serif;
   background:radial-gradient(1200px 600px at 12% -5%,rgba(255,182,193,.45),transparent 60%),radial-gradient(1000px 620px at 100% 0%,rgba(144,238,144,.5),transparent 55%),radial-gradient(900px 700px at 50% 120%,rgba(173,216,230,.4),transparent 60%),linear-gradient(180deg,#f4fff7,#eafaf0 40%,#f6fff9)}
-.alb-bgvid{position:fixed;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;pointer-events:none}
+.alb-bgvid{position:fixed;inset:0;width:100%;height:100%;object-fit:cover;background-size:cover;background-position:center;z-index:0;pointer-events:none}
 .alb-bgfx{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
 .alb-aurora{position:absolute;inset:-25%;filter:blur(36px);opacity:.85;animation:albaur 11s ease-in-out infinite alternate;
   background:radial-gradient(40% 40% at 20% 30%,rgba(255,120,200,.4),transparent 60%),radial-gradient(45% 45% at 82% 18%,rgba(70,220,160,.45),transparent 60%),radial-gradient(50% 50% at 60% 82%,rgba(120,170,255,.4),transparent 60%),radial-gradient(35% 35% at 8% 80%,rgba(255,214,90,.35),transparent 60%)}
@@ -305,7 +329,7 @@ const CSS = `
 .alb-track{display:flex;width:max-content;animation:albslide 34s linear infinite}
 .alb-slider:hover .alb-track{animation-play-state:paused}
 .alb-tile{height:220px;width:340px;display:flex;align-items:center;justify-content:center;font-size:60px;color:#fff;overflow:hidden}
-.alb-tile img,.alb-tile video{width:100%;height:100%;object-fit:cover}
+.alb-tile img,.alb-tile video,.alb-tile .nl-media-thumb{width:100%;height:100%;object-fit:cover}
 @keyframes albslide{from{transform:translateX(0)}to{transform:translateX(-50%)}}
 .alb-titlewrap{text-align:center;margin:28px 0 6px}
 .alb-neon{font-size:clamp(38px,7vw,74px);font-weight:900;letter-spacing:3px;margin:0;color:#fff;animation:albneon 1.6s infinite alternate}
@@ -324,7 +348,7 @@ const CSS = `
 .alb-card{position:relative;width:min(460px,94%);aspect-ratio:3/2;border-radius:20px;overflow:hidden;cursor:pointer;color:#fff;border:5px solid #fff;transform:rotate(var(--rot,0deg));animation:albfloaty var(--dur,4s) ease-in-out infinite,albneonedge 2s linear infinite;transition:transform .35s cubic-bezier(.2,.9,.3,1.3)}
 .alb-card:hover{animation-play-state:paused;z-index:9;transform:rotate(0) translateY(-12px) scale(1.06)!important;box-shadow:0 34px 66px rgba(0,70,35,.5),0 0 0 4px #fff,0 0 48px 8px rgba(0,230,160,.75)!important}
 .alb-ph{display:flex;align-items:center;justify-content:center;height:100%;font-size:82px;overflow:hidden}
-.alb-ph img,.alb-ph video{width:100%;height:100%;object-fit:cover}
+.alb-ph img,.alb-ph video,.alb-ph .nl-media-thumb{width:100%;height:100%;object-fit:cover}
 .alb-glo{position:absolute;inset:0;pointer-events:none;background:linear-gradient(115deg,transparent 30%,rgba(255,255,255,.6) 48%,transparent 64%);transform:translateX(-130%);transition:transform .8s;z-index:2}
 .alb-card:hover .alb-glo{transform:translateX(130%)}
 .alb-badge{position:absolute;top:12px;right:12px;background:rgba(3,40,22,.72);color:#fff;font-size:13px;font-weight:800;padding:6px 12px;border-radius:30px;z-index:3}
@@ -339,19 +363,23 @@ const CSS = `
 .alb-lbhead h2{margin:0;color:#046b38;font-size:20px}
 .alb-x{border:none;background:#f1f5f2;width:38px;height:38px;border-radius:50%;font-size:20px;cursor:pointer;color:#555}
 .alb-lbbody{padding:18px 20px 24px}
+.alb-lbbody .nl-yt{width:100%;margin:0 0 12px}
 .alb-counter{margin:2px 0 8px;font-weight:800;color:#046b38;font-size:14px;background:#eaf7ef;border:1px dashed #9fd8b8;border-radius:10px;padding:9px 12px;text-align:center}
 .alb-lbl{margin:16px 0 8px;font-weight:800;color:#0c5a34;font-size:15px}
 .alb-videos{display:flex;gap:10px;overflow-x:auto;padding-bottom:6px}
 .alb-vth{position:relative;flex:0 0 auto;width:190px;height:116px;border-radius:12px;overflow:hidden;cursor:pointer;background:linear-gradient(135deg,#5ee7df,#b490ca);display:flex;align-items:center;justify-content:center}
-.alb-vth img,.alb-vth video{width:100%;height:100%;object-fit:cover;position:absolute;inset:0}
+.alb-vth img,.alb-vth video,.alb-vth .nl-media-thumb{width:100%;height:100%;object-fit:cover;position:absolute;inset:0}
+.alb-vth .nl-media-play{display:none}
 .alb-vplay{position:relative;z-index:1;color:#fff;font-size:34px;text-shadow:0 2px 10px rgba(0,0,0,.5)}
 .alb-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:6px}
 .alb-grid img,.alb-grid video{width:100%;aspect-ratio:1/1;object-fit:cover;border-radius:8px;cursor:pointer;transition:.2s;background:#eef}
 .alb-grid img:hover,.alb-grid video:hover{transform:scale(1.06);box-shadow:0 6px 16px rgba(0,0,0,.3)}
 .alb-btn{border:none;border-radius:12px;padding:11px 16px;font-weight:800;font-size:14px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;text-decoration:none}
 .alb-btn.green{background:#00A651;color:#fff}.alb-btn.soft{background:#eef7f1;color:#046b38}
+.alb-btn.soft.on{background:#00A651;color:#fff}
 .alb-reactbar{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0;align-items:center}
 .alb-react{border:1px solid #dce9e1;background:#fff;border-radius:30px;padding:7px 12px;font-size:17px;cursor:pointer;display:flex;align-items:center;gap:5px}
+.alb-react-ico{display:flex;align-items:center;line-height:1}
 .alb-react b{font-size:13px;color:#046b38}
 .alb-react.on{background:#eafaf0;border-color:#00A651;box-shadow:0 0 0 2px rgba(0,166,81,.25)}
 .alb-cmts{margin-top:12px;border-top:1px dashed #cfe6d8;padding-top:12px}

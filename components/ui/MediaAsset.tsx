@@ -1,6 +1,7 @@
 import type { CSSProperties, SyntheticEvent } from 'react';
 import { assetUrl } from '@/lib/slug';
-import { isVideoAsset } from '@/lib/media-url';
+import { isVideoAsset, videoThumbUrl } from '@/lib/media-url';
+import VideoPlayer from '@/components/ui/VideoPlayer';
 
 export type MediaAssetVariant = 'card' | 'hero' | 'gallery';
 
@@ -11,12 +12,14 @@ interface MediaAssetProps {
   className?: string;
   style?: CSSProperties;
   variant?: MediaAssetVariant;
+  /** album_media.kind — Drive không có đuôi file nên URL một mình không đủ nhận video. */
+  kind?: string | null;
   onError?: (e: SyntheticEvent<HTMLImageElement | HTMLVideoElement>) => void;
 }
 
 /**
  * Ảnh hoặc video theo URL (kể cả Google Drive + hash #media=video).
- * Không đánh 'use client' — dùng được ở RSC (listing) lẫn client (homepage).
+ * Gallery = player 16:9. Card/hero = thumbnail (Drive) hoặc video muted cover.
  */
 export default function MediaAsset({
   src,
@@ -25,12 +28,28 @@ export default function MediaAsset({
   className,
   style,
   variant = 'card',
+  kind,
   onError,
 }: MediaAssetProps) {
   const url = assetUrl(src);
   if (!url) return null;
-  if (isVideoAsset(url)) {
-    const auto = variant !== 'gallery';
+  if (kind === 'video' || isVideoAsset(url)) {
+    if (variant === 'gallery') {
+      return <VideoPlayer src={url} title={title} className={className} />;
+    }
+    const thumb = videoThumbUrl(url);
+    if (thumb) {
+      return (
+        <span className={`nl-media-thumb ${className || ''}`.trim()} style={style} title={title}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={thumb} alt={alt} onError={onError} />
+          <span className="nl-media-play" aria-hidden>
+            ▶
+          </span>
+        </span>
+      );
+    }
+    const auto = true;
     return (
       <video
         src={url}
@@ -41,7 +60,7 @@ export default function MediaAsset({
         muted={auto}
         loop={auto}
         playsInline
-        controls={variant === 'gallery'}
+        controls={false}
         preload="metadata"
         onError={onError}
       />
