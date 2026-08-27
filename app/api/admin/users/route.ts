@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { requireAdmin, isAdminPayload } from '@/lib/auth/session';
-import { albumPublicUrl, deleteMemberAlbumPage, type MemberWebsite } from '@/lib/album/album';
+import { albumPublicUrl, deleteMemberAlbumPage, ensureMemberAlbumPage, type MemberWebsite } from '@/lib/album/album';
+import { isTeacherUserKind, specialSchoolKey } from '@/lib/album/school-menu';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -63,6 +64,35 @@ export async function GET(request: NextRequest) {
     ...u,
     websites: byOwner.get(Number(u.id)) || [],
   }));
+
+  // Giáo viên 2 trường đặc biệt đã có website → chuẩn hoá slug trường/lớp + gắn menu cấp 2.
+  await Promise.all(
+    users.map(async (u) => {
+      const sites = u.websites as MemberWebsite[];
+      if (!sites.length || !isTeacherUserKind(u.user_kind) || !specialSchoolKey(u.unit_name)) return;
+      try {
+        const page = await ensureMemberAlbumPage({
+          id: Number(u.id),
+          user_kind: u.user_kind,
+          unit_name: u.unit_name,
+          class_in_charge: u.class_in_charge,
+        });
+        const slug = String(page.slug || sites[0].slug);
+        u.websites = [
+          {
+            id: Number(page.id),
+            slug,
+            title: String(page.title || sites[0].title),
+            url: albumPublicUrl(slug),
+            is_active: true,
+          },
+        ];
+      } catch (e) {
+        console.warn('[users.backfill menu]', e instanceof Error ? e.message : e);
+      }
+    }),
+  );
+
   return NextResponse.json({ ok: true, users });
 }
 
@@ -138,5 +168,30 @@ export async function POST(request: NextRequest) {
     error = retry.error;
   }
   if (error) return NextResponse.json({ ok: false, error: error.message }, { status: 500 });
+
+  const justApproved =
+    patch.request_status === 'approved' ||
+    (typeof patch.role === 'string' && patch.role === 'admin1' && existing.role !== 'admin1');
+  if (justApproved) {
+    const { data: after } = await supabase
+      .from('users')
+      .select('id, role, user_kind, unit_name, class_in_charge')
+      .eq('id', id)
+      .maybeSingle();
+    if (
+      after &&
+      (after.role === 'admin1' || after.role === 'superadmin') &&
+      isTeacherUserKind(after.user_kind) &&
+      specialSchoolKey(after.unit_name)
+    ) {
+      await ensureMemberAlbumPage({
+        id: Number(after.id),
+        user_kind: after.user_kind,
+        unit_name: after.unit_name,
+        class_in_charge: after.class_in_charge,
+      }).catch((e) => console.warn('[users.approve menu]', e instanceof Error ? e.message : e));
+    }
+  }
+
   return NextResponse.json({ ok: true });
 }

@@ -129,8 +129,8 @@ export async function getHomepageData() {
   const childrenByParent = new Map<number, SubNode[]>();
   rows.forEach((s) => {
     const node: SubNode = { id: s.id, label: s.label, link_url: s.link_url, children: [] };
-    if (s.parent_id) {
-      const pid = Number(s.parent_id);
+    const pid = Number(s.parent_id);
+    if (s.parent_id != null && pid !== 0) {
       if (!childrenByParent.has(pid)) childrenByParent.set(pid, []);
       childrenByParent.get(pid)!.push(node);
     } else {

@@ -31,6 +31,35 @@ async function getAlbumTitle(slug: string): Promise<string | null> {
   }
 }
 
+/** Link cũ 1 đoạn (/lop-9a9, /lop1a3) sau khi chuẩn hoá thành /{trường}/{lớp}. */
+async function findMigratedAlbumSlug(oneSeg: string): Promise<string | null> {
+  const safe = oneSeg.replace(/[^a-z0-9-]/gi, '');
+  if (!safe || safe !== oneSeg || safe.includes('/')) return null;
+  const compact = safe.replace(/-/g, '').toLowerCase();
+  try {
+    const supabase = createAdminClient();
+    const { data } = await supabase
+      .from('album_pages')
+      .select('slug, class_slug')
+      .eq('is_active', true)
+      .like('slug', '%/%')
+      .limit(400);
+    const hit = (data ?? []).find((p) => {
+      const last = String(p.slug || '').split('/').pop() || '';
+      const cs = String(p.class_slug || '');
+      return (
+        last === safe ||
+        cs === safe ||
+        last.replace(/-/g, '').toLowerCase() === compact ||
+        cs.replace(/-/g, '').toLowerCase() === compact
+      );
+    });
+    return hit ? String(hit.slug) : null;
+  } catch {
+    return null;
+  }
+}
+
 /**
  * Tìm "Link đích" (link_url) TRỎ RA NGOÀI của bản ghi khớp slug (dự án/sản phẩm/
  * danh mục). Nếu có -> trang chi tiết sẽ redirect thẳng, KHÔNG mở trang nội bộ.
@@ -132,6 +161,8 @@ export default async function SlugPage({ params }: PageProps) {
   if (await getAlbumTitle(decodedSlug)) {
     return <AlbumView slug={decodedSlug} />;
   }
+  const migrated = await findMigratedAlbumSlug(decodedSlug);
+  if (migrated) redirect(`/${migrated}`);
 
   const supabase = await createClient();
 

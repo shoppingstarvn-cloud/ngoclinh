@@ -1,60 +1,33 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { getCurrentUser } from '@/lib/auth/user-session';
-import { slugifyVi } from '@/lib/album/album';
-import { noAccent } from '@/lib/slug';
+import { ensureMemberAlbumPage } from '@/lib/album/album';
 import { createResumableSession, finalizeFile, deleteFile } from '@/lib/storage/googleDrive';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-type Me = { id: number; role: string; unit_name: string; class_in_charge: string };
+type Me = { id: number; role: string; unit_name: string; class_in_charge: string; user_kind: string };
 
 async function getMe(): Promise<Me | null> {
   const u = await getCurrentUser();
   if (!u) return null;
   const supabase = createAdminClient();
-  const { data } = await supabase.from('users').select('role, unit_name, class_in_charge').eq('id', u.id).limit(1);
+  const { data } = await supabase.from('users').select('role, unit_name, class_in_charge, user_kind').eq('id', u.id).limit(1);
   const row = data?.[0];
   if (!row || (row.role !== 'admin1' && row.role !== 'superadmin')) return null;
-  return { id: u.id, role: String(row.role), unit_name: String(row.unit_name || ''), class_in_charge: String(row.class_in_charge || '') };
+  return {
+    id: u.id,
+    role: String(row.role),
+    unit_name: String(row.unit_name || ''),
+    class_in_charge: String(row.class_in_charge || ''),
+    user_kind: String(row.user_kind || ''),
+  };
 }
 
-/** Tự thêm menu cấp 2 (tên lớp) cho 2 trường đặc biệt, dưới menu cấp 1 = tên trường. */
-async function maybeAddSchoolMenu(supabase: ReturnType<typeof createAdminClient>, unit: string, className: string, slug: string) {
-  const key = noAccent(unit).toLowerCase();
-  const isSpecial = key.includes('truong cong dinh') || key.includes('nguyen cong tru');
-  if (!isSpecial) return;
-  const like = key.includes('truong cong dinh') ? '%Trương Công Định%' : '%Nguyễn Công Trứ%';
-  const { data: parents } = await supabase.from('menus').select('id').ilike('label', like).is('parent_id', null).limit(1);
-  let parentId = parents?.[0]?.id as number | undefined;
-  if (!parentId) {
-    const { data: anyP } = await supabase.from('menus').select('id').ilike('label', like).limit(1);
-    parentId = anyP?.[0]?.id as number | undefined;
-  }
-  if (!parentId) return;
-  const url = `/${slug}`;
-  const { data: existed } = await supabase.from('menus').select('id').eq('parent_id', parentId).eq('url', url).limit(1);
-  if (existed?.[0]) return;
-  await supabase.from('menus').insert({ label: className, url, parent_id: parentId, is_active: true, display_order: 0 });
-}
-
-/** Lấy (hoặc tạo) trang con của chính Admin cấp 1 này. */
+/** Lấy (hoặc tạo) trang con của chính Admin cấp 1 này + gắn menu khối trang chủ. */
 async function ensurePage(me: Me) {
-  const supabase = createAdminClient();
-  const { data: mine } = await supabase.from('album_pages').select('*').eq('owner_user_id', me.id).order('id').limit(1);
-  if (mine?.[0]) return mine[0];
-  const school = slugifyVi(me.unit_name) || `truong-${me.id}`;
-  const klass = slugifyVi(me.class_in_charge) || 'lop';
-  const slug = `${school}/${klass}`;
-  const { data, error } = await supabase.from('album_pages').insert({
-    slug, title: me.class_in_charge || 'Lớp của tôi',
-    subtitle: `Nhật ký · Album ${me.unit_name}`,
-    owner_user_id: me.id, school_slug: school, class_slug: klass, is_active: true,
-  }).select('*').single();
-  if (error) throw error;
-  await maybeAddSchoolMenu(supabase, me.unit_name, me.class_in_charge || 'Lớp', slug);
-  return data;
+  return ensureMemberAlbumPage(me);
 }
 
 export async function GET() {
