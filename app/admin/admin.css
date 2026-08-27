@@ -203,6 +203,14 @@
   text-align: left;
 }
 .admin-root .table tbody td { border-top: 1px solid rgba(255, 255, 255, 0.04); padding: 10px 12px; vertical-align: middle; }
+.admin-root a.user-site-link {
+  color: #7ec8ff;
+  word-break: break-all;
+  line-height: 1.35;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.admin-root a.user-site-link:hover { color: #c6e6ff; }
 .admin-root .table tbody tr:hover { background: rgba(255, 255, 255, 0.02); }
 .admin-root .table-responsive { overflow-x: auto; }
 .admin-root .thumb-img { width: 60px; height: 40px; object-fit: cover; border-radius: 6px; border: 1px solid rgba(255, 255, 255, 0.08); }

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { requireAdmin, isAdminPayload } from '@/lib/auth/session';
+import { albumPublicUrl, deleteMemberAlbumPage, type MemberWebsite } from '@/lib/album/album';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -33,7 +34,50 @@ export async function GET(request: NextRequest) {
           .limit(1000)
       : first;
   if (q.error) return NextResponse.json({ ok: false, error: q.error.message }, { status: 500 });
-  return NextResponse.json({ ok: true, users: q.data ?? [] });
+
+  const pagesQ = await supabase
+    .from('album_pages')
+    .select('id, slug, title, is_active, owner_user_id')
+    .not('owner_user_id', 'is', null)
+    .eq('is_active', true)
+    .limit(5000);
+
+  const byOwner = new Map<number, MemberWebsite[]>();
+  if (!pagesQ.error) {
+    for (const p of pagesQ.data ?? []) {
+      const ownerId = Number(p.owner_user_id);
+      if (!ownerId || !p.slug) continue;
+      const list = byOwner.get(ownerId) || [];
+      list.push({
+        id: Number(p.id),
+        slug: String(p.slug),
+        title: String(p.title || ''),
+        url: albumPublicUrl(String(p.slug)),
+        is_active: true,
+      });
+      byOwner.set(ownerId, list);
+    }
+  }
+
+  const users = (q.data ?? []).map((u) => ({
+    ...u,
+    websites: byOwner.get(Number(u.id)) || [],
+  }));
+  return NextResponse.json({ ok: true, users });
+}
+
+/** DELETE /api/admin/users?pageId= → Super Admin xoá website con của thành viên. */
+export async function DELETE(request: NextRequest) {
+  const admin = await requireAdmin(request);
+  if (!isAdminPayload(admin)) return admin;
+  if (admin.role !== 'superadmin') {
+    return NextResponse.json({ ok: false, error: 'Chỉ Super Admin mới được xoá website con' }, { status: 403 });
+  }
+  const pageId = Number(new URL(request.url).searchParams.get('pageId') || 0);
+  if (!pageId) return NextResponse.json({ ok: false, error: 'Thiếu pageId' }, { status: 400 });
+  const result = await deleteMemberAlbumPage(pageId);
+  if (!result.ok) return NextResponse.json({ ok: false, error: result.error }, { status: result.status });
+  return NextResponse.json({ ok: true });
 }
 
 /** POST /api/admin/users → vai trò / khoá / phê duyệt đề nghị.

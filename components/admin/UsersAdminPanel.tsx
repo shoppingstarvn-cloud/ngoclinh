@@ -6,6 +6,13 @@ import Swal from 'sweetalert2';
 const swalDark = { background: '#1a1a2e', color: '#fff' };
 
 interface Props { authHeader: string }
+type MemberWebsite = {
+  id: number;
+  slug: string;
+  title: string;
+  url: string;
+  is_active: boolean;
+};
 type U = {
   id: number;
   username: string | null;
@@ -23,6 +30,7 @@ type U = {
   request_status: string | null;
   request_at: string | null;
   created_at: string;
+  websites?: MemberWebsite[];
 };
 
 const ROLE_LABEL: Record<string, string> = { member: 'Thành viên', admin1: 'Admin cấp 1', superadmin: 'Super Admin' };
@@ -102,11 +110,37 @@ export default function UsersAdminPanel({ authHeader }: Props) {
     if (r.isConfirmed) await patch(u.id, { request_status: 'rejected' });
   }
 
+  async function deleteWebsite(u: U, w: MemberWebsite) {
+    const r = await Swal.fire({
+      icon: 'warning',
+      title: 'Xoá website con?',
+      html: `Xoá <b>${w.title || w.slug}</b> của <b>${u.full_name || u.email}</b>.<br/><br/>Xoá cả khối + ảnh/video trên trang. <b>Tài khoản thành viên giữ nguyên.</b>`,
+      showCancelButton: true,
+      confirmButtonText: 'XOÁ WEBSITE',
+      cancelButtonText: 'Huỷ',
+      confirmButtonColor: '#dc3545',
+      ...swalDark,
+    });
+    if (!r.isConfirmed) return;
+    const res = await fetch(`/api/admin/users?pageId=${w.id}`, {
+      method: 'DELETE',
+      headers: { Authorization: authHeader },
+    });
+    const d = await res.json().catch(() => ({}));
+    if (!d.ok) return Swal.fire({ icon: 'error', title: 'Lỗi', text: d.error || 'Xoá thất bại', ...swalDark });
+    Swal.fire({ icon: 'success', title: 'Đã xoá website con', timer: 1200, showConfirmButton: false, ...swalDark });
+    await load();
+  }
+
   if (loading) return <div className="text-center p-5"><i className="fas fa-spinner fa-spin" style={{ fontSize: 28 }} /></div>;
 
   const kw = q.trim().toLowerCase();
   const rows = kw
-    ? users.filter((u) => [u.full_name, u.email, u.username, u.unit_name, u.class_in_charge, u.zalo_phone, u.ward, u.dob, u.request_type].some((x) => String(x || '').toLowerCase().includes(kw)))
+    ? users.filter((u) => {
+        const sites = (u.websites || []).flatMap((w) => [w.url, w.slug, w.title]);
+        return [u.full_name, u.email, u.username, u.unit_name, u.class_in_charge, u.zalo_phone, u.ward, u.dob, u.request_type, ...sites]
+          .some((x) => String(x || '').toLowerCase().includes(kw));
+      })
     : users;
   const pendingCount = users.filter((u) => inferStatus(u) === 'pending').length;
 
@@ -116,11 +150,12 @@ export default function UsersAdminPanel({ authHeader }: Props) {
       <p className="text-muted" style={{ fontSize: 13.5 }}>
         Hồ sơ khai báo trên form (họ tên, ngày sinh, Zalo, trường, lớp, phường/xã…) đồng bộ vào bảng này.
         Cột <b>Đề nghị mở Website</b> để Super Admin biết, phê duyệt và bổ nhiệm <b>Admin cấp 1</b>.
+        Cột <b>Link website</b> mở trang con đang hoạt động trên website mẹ (tab mới). Cột <b>Xóa website</b> chỉ Super Admin — tài khoản thành viên giữ nguyên.
         Tổng: <b>{users.length}</b> tài khoản{pendingCount ? <> · chờ duyệt: <b className="text-warning">{pendingCount}</b></> : null}.
       </p>
       <input className="form-control mb-2" style={{ maxWidth: 320 }} placeholder="🔎 Tìm tên / email / trường / lớp..." value={q} onChange={(e) => setQ(e.target.value)} />
       <div style={{ overflowX: 'auto' }}>
-        <table className="table table-sm table-hover align-middle" style={{ minWidth: 1280 }}>
+        <table className="table table-sm table-hover align-middle" style={{ minWidth: 1680 }}>
           <thead>
             <tr style={{ fontSize: 12.5 }}>
               <th>Họ tên</th>
@@ -134,6 +169,8 @@ export default function UsersAdminPanel({ authHeader }: Props) {
               <th>SĐT Zalo</th>
               <th>Phường/Xã</th>
               <th style={{ minWidth: 210 }}>Đề nghị mở Website</th>
+              <th style={{ minWidth: 260 }}>Link website</th>
+              <th style={{ minWidth: 120 }}>Xóa website</th>
               <th>Hoạt động</th>
               <th>Ngày tạo</th>
             </tr>
@@ -191,6 +228,41 @@ export default function UsersAdminPanel({ authHeader }: Props) {
                       </div>
                     )}
                   </td>
+                  <td style={{ maxWidth: 360 }}>
+                    {(u.websites || []).length === 0 ? '—' : (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                        {(u.websites || []).map((w) => (
+                          <a
+                            key={w.id}
+                            className="user-site-link"
+                            href={w.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            title={w.title || w.slug}
+                          >
+                            {w.url}
+                          </a>
+                        ))}
+                      </div>
+                    )}
+                  </td>
+                  <td>
+                    {(u.websites || []).length === 0 ? '—' : (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 6, alignItems: 'flex-start' }}>
+                        {(u.websites || []).map((w) => (
+                          <button
+                            key={w.id}
+                            type="button"
+                            className="btn btn-sm btn-outline-danger"
+                            onClick={() => deleteWebsite(u, w)}
+                            title={`Xoá ${w.title || w.slug}`}
+                          >
+                            <i className="fas fa-trash-alt" /> Xóa
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </td>
                   <td>
                     <button className={`btn btn-sm ${u.is_active ? 'btn-success' : 'btn-outline-secondary'}`}
                       onClick={() => patch(u.id, { is_active: !u.is_active })}>
@@ -201,7 +273,7 @@ export default function UsersAdminPanel({ authHeader }: Props) {
                 </tr>
               );
             })}
-            {rows.length === 0 && <tr><td colSpan={13} className="text-center text-muted py-3">Không có tài khoản nào.</td></tr>}
+            {rows.length === 0 && <tr><td colSpan={15} className="text-center text-muted py-3">Không có tài khoản nào.</td></tr>}
           </tbody>
         </table>
       </div>
