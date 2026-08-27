@@ -14,6 +14,9 @@ ALTER TABLE users ADD COLUMN IF NOT EXISTS ward            TEXT;                
 ALTER TABLE users ADD COLUMN IF NOT EXISTS class_in_charge TEXT;                         -- Phụ trách lớp (tên lớp)
 ALTER TABLE users ADD COLUMN IF NOT EXISTS role            TEXT NOT NULL DEFAULT 'member'; -- member | admin1 | superadmin
 ALTER TABLE users ADD COLUMN IF NOT EXISTS request_type    TEXT;                         -- website | admin (nguồn đề nghị)
+ALTER TABLE users ADD COLUMN IF NOT EXISTS request_status  TEXT;                         -- pending | approved | rejected
+ALTER TABLE users ADD COLUMN IF NOT EXISTS request_at      TIMESTAMPTZ;                  -- lúc gửi đề nghị
+ALTER TABLE users ADD COLUMN IF NOT EXISTS request_reviewed_at TIMESTAMPTZ;              -- lúc Super Admin duyệt / từ chối
 ALTER TABLE users ADD COLUMN IF NOT EXISTS created_at      TIMESTAMPTZ NOT NULL DEFAULT now();
 
 -- Username duy nhất (không phân biệt hoa thường), chỉ khi có nhập

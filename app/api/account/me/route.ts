@@ -7,20 +7,44 @@ export async function GET() {
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ user: null });
 
-  // Lấy vai trò hiện tại (member | admin1 | superadmin) để hiện đúng menu quản trị.
+  // Lấy vai trò + hồ sơ khai báo để form đề nghị / dashboard Super Admin đồng bộ.
   let role = 'member';
+  let profile: Record<string, unknown> = {};
   try {
-    const { data } = await createAdminClient().from('users').select('role').eq('id', user.id).limit(1);
-    if (data?.[0]?.role) role = String(data[0].role);
+    const supabase = createAdminClient();
+    const full =
+      'role, username, full_name, email, dob, zalo_phone, user_kind, unit_name, ward, class_in_charge, request_type, request_status';
+    const basic =
+      'role, username, full_name, email, dob, zalo_phone, user_kind, unit_name, ward, class_in_charge, request_type';
+    let { data, error } = await supabase.from('users').select(full).eq('id', user.id).limit(1);
+    if (error && /request_status/i.test(error.message)) {
+      const retry = await supabase.from('users').select(basic).eq('id', user.id).limit(1);
+      data = retry.data;
+      error = retry.error;
+    }
+    if (!error) {
+      const row = data?.[0];
+      if (row?.role) role = String(row.role);
+      if (row) profile = row;
+    }
   } catch { /* giữ mặc định */ }
 
   const res = NextResponse.json({
     user: {
       id: user.id,
-      email: user.email,
-      full_name: user.full_name || '',
+      email: (profile.email as string) || user.email,
+      full_name: (profile.full_name as string) || user.full_name || '',
       avatar_url: user.avatar_url || '',
       role,
+      username: profile.username ?? null,
+      dob: profile.dob ?? null,
+      zalo_phone: profile.zalo_phone ?? null,
+      user_kind: profile.user_kind ?? null,
+      unit_name: profile.unit_name ?? null,
+      ward: profile.ward ?? null,
+      class_in_charge: profile.class_in_charge ?? null,
+      request_type: profile.request_type ?? null,
+      request_status: profile.request_status ?? null,
     },
   });
 
