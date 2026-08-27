@@ -52,7 +52,7 @@ export function SiteHeader({
   const [mobileOpen, setMobileOpen] = useState(false);
   const { roots, children } = buildMenuTree(menus);
   const siteName = settings.site_name || SHARE_SITE_NAME;
-  const logo = assetUrl(settings.logo_url) || '/images/contact/4174logo_bt.png';
+  const logo = assetUrl(settings.logo_url) || '/logo/shopmartai-ai.png';
   const socialLinks = links.filter((l) => l.link_group === 'social');
   const facebookHref = settings.facebook_url || socialLinks.find((l) => /facebook/i.test(l.label + l.url))?.url;
 
@@ -196,10 +196,10 @@ export function SiteFooter({
 }: {
   settings: Record<string, string>;
   links?: CmsLink[];
-  categories?: Array<{ id: number; name: string; slug: string }>;
+  categories?: Array<{ id: number; name: string; slug: string; link_url?: string | null }>;
 }) {
   const siteName = settings.site_name || SHARE_SITE_NAME;
-  const logo = assetUrl(settings.logo_url) || '/images/contact/4174logo_bt.png';
+  const logo = assetUrl(settings.logo_url) || '/logo/shopmartai-ai.png';
   const linkStyle: CSSProperties = {
     color: '#ccc',
     textDecoration: 'none',
@@ -230,7 +230,8 @@ export function SiteFooter({
           .map((c) => ({
             id: c.id,
             label: c.name,
-            url: c.slug?.includes('.html') ? `/${c.slug.replace(/^\//, '')}` : `/${c.slug}.html`,
+            url: (c.link_url || '').trim()
+              || (c.slug?.includes('.html') ? `/${c.slug.replace(/^\//, '')}` : `/${c.slug}.html`),
           }))
       : [
           { id: -11, label: 'Truyền thông', url: '/truyen-thong.html' },

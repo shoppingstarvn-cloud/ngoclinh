@@ -129,7 +129,7 @@ export const ADMIN_TABLES: AdminTableDef[] = [
     label: 'Menu (thanh điều hướng)',
     icon: 'bars',
     pk: 'id',
-    hint: 'Thanh điều hướng header LIVE (ngoclinh.shopmartai.com) — KHÔNG phải 9 khối sandwich. Đổi tên mục trùng trang .html (vd HOẠT ĐỘNG…) ở đây thì sandwich + footer NĂNG LỰC tự khớp chữ. Cây Cửa Âu thay bằng node scripts/replace-header-menus-ngoclinh.js hoặc sql/07_THAY_MENU_HEADER_NGOCLINH.sql trên kho pglbhoitmcflpvoasewr rồi F5 tab này. 9 khối trang chủ nằm tab “Danh mục (MENU trang chủ)”.',
+    hint: 'Thanh điều hướng header LIVE (ngoclinh.shopmartai.com) — KHÔNG phải 9 khối sandwich. Đổi tên ở đây chỉ đổi chữ trên header. 9 khối trang chủ + footer NĂNG LỰC lấy tên từ tab “Danh mục (MENU trang chủ)”. Cây Cửa Âu thay bằng node scripts/replace-header-menus-ngoclinh.js hoặc sql/07_THAY_MENU_HEADER_NGOCLINH.sql trên kho pglbhoitmcflpvoasewr rồi F5 tab này.',
     fields: [
       { key: 'label', label: 'Tên menu', type: 'text', required: true },
       { key: 'url', label: 'URL (VD: /#gioi-thieu, /dao-tao-ai.html, hoặc # nếu chỉ là nhóm)', type: 'text' },
@@ -179,7 +179,7 @@ export const ADMIN_TABLES: AdminTableDef[] = [
     label: 'Danh mục (MENU trang chủ)',
     icon: 'sitemap',
     pk: 'id',
-    hint: 'Đây là các khối MENU sandwich trên trang chủ (thường 9 ô: 6 gốc + 3 hàng 3). Thêm / sửa / xóa / đổi thứ tự / tắt Active ở đây thì trang chủ đổi theo realtime. Tên khối trùng một mục tab Menu (cùng URL .html, hoặc cùng họ HOẠT ĐỘNG…) hiện theo chữ tab Menu. Badge “hàng 3” = slug đuôi -r2 (sửa độc lập, không đụng hàng 1). Nếu bảng mới có 6 dòng: bấm “Bổ sung 3 khối hàng 3”.',
+    hint: 'Đây là các khối MENU sandwich trên trang chủ (thường 9 ô). Tên / ảnh / thứ tự / Active sửa ở đây thì trang chủ hiện ĐÚNG chữ này (không lấy chữ tab Menu header). Badge “hàng 3” = slug đuôi -r2. Nếu bảng mới có 6 dòng: bấm “Bổ sung 3 khối hàng 3”.',
     fields: [
       { key: 'name', label: 'Tên danh mục', type: 'text', required: true },
       { key: 'slug', label: 'Slug (hàng 3 dùng đuôi -r2, VD: truyen-thong-r2)', type: 'text', required: true },

@@ -190,7 +190,15 @@ function homeCategoryRows(
   const isClone = (c: Category) => String(c.slug || '').endsWith('-r2');
   const originals = categories.filter((c) => !isClone(c));
   const dbClones = categories.filter(isClone);
-  if (dbClones.length > 0 || !originals.length || !padMissingRow3) return categories;
+  // Đã có hàng 3 thật (slug *-r2 hoặc đủ 9 khối trong Admin) → không đắp ảo hàng 1.
+  if (
+    dbClones.length > 0 ||
+    originals.length >= 9 ||
+    !originals.length ||
+    !padMissingRow3
+  ) {
+    return categories;
+  }
   const row3 = originals.slice(0, 3).map((c) => ({
     ...c,
     slug: `${c.slug || 'cat'}-r2`,
