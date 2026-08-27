@@ -56,18 +56,16 @@ export default function AuthArea({ compact = false }: { compact?: boolean }) {
           {menuOpen && (
             <div className="autharea-menu">
               <div className="autharea-menu-email">{user.email}</div>
+              <a href="#" onClick={(e) => { e.preventDefault(); setMenuOpen(false); openReq('website'); }}>
+                <i className="fa fa-globe" /> Đề nghị mở Website
+              </a>
+              <a href="#" onClick={(e) => { e.preventDefault(); setMenuOpen(false); openReq('admin'); }}>
+                <i className="fa fa-id-card" /> Đăng ký thông tin
+              </a>
               {(user.role === 'admin1' || user.role === 'superadmin') && (
-                <>
-                  <a href="#" onClick={(e) => { e.preventDefault(); setMenuOpen(false); openReq('website'); }}>
-                    <i className="fa fa-globe" /> Đề nghị mở Website
-                  </a>
-                  <a href="#" onClick={(e) => { e.preventDefault(); setMenuOpen(false); openReq('admin'); }}>
-                    <i className="fa fa-user-shield" /> Quản Trị
-                  </a>
-                  <Link href="/quan-tri-trang-con" onClick={() => setMenuOpen(false)}>
-                    <i className="fa fa-book" /> Trang con / Nhật ký
-                  </Link>
-                </>
+                <Link href="/quan-tri-trang-con" onClick={() => setMenuOpen(false)}>
+                  <i className="fa fa-book" /> Trang con / Nhật ký
+                </Link>
               )}
               <a href="#" onClick={(e) => { e.preventDefault(); logout(); }}>
                 <i className="fa fa-sign-out" /> Đăng xuất
