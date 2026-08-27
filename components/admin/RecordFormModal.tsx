@@ -5,7 +5,7 @@ import Modal from './Modal';
 import ImageUploadField from './ImageUploadField';
 import RichTextEditor from './RichTextEditor';
 import AttachmentField from './AttachmentField';
-import { AdminField, AdminRow, AdminTableDef, categoryAdminLabel, isImageField } from '@/lib/cms/admin-schema';
+import { AdminField, AdminRow, AdminTableDef, categoryAdminLabel, fieldAcceptMode, isImageField } from '@/lib/cms/admin-schema';
 import { slugify } from '@/lib/slug';
 import { createRecordAction, updateRecordAction } from '@/lib/actions/admin-actions';
 
@@ -173,7 +173,11 @@ export default function RecordFormModal({ open, table, item, menus, allData = {}
               {f.required && <span className="text-danger"> *</span>}
             </label>
             {isImg ? (
-              <ImageUploadField value={String(value ?? '')} onChange={(url) => setField(f.key, url)} />
+              <ImageUploadField
+                value={String(value ?? '')}
+                onChange={(url) => setField(f.key, url)}
+                acceptMode={fieldAcceptMode(f)}
+              />
             ) : f.type === 'richtext' ? (
               <RichTextEditor
                 key={`rte-${String(item?.id ?? 'new')}-${f.key}`}

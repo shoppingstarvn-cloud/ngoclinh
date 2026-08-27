@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState, type CSSProperties } from 'react';
 import ImageUploadField from '@/components/admin/ImageUploadField';
+import { isVideoFile, tagIfVideo } from '@/lib/media-url';
 
 type Block = { id: number; title: string; cover_url: string; photos: number; videos: number };
 type Page = { id: number; slug: string; title: string; subtitle: string; bg_image_url: string; slide_urls: string[] };
@@ -58,7 +59,7 @@ export default function MyAlbumPanel() {
     if (!pj.id) throw new Error('Drive không trả id');
     const reg = await post({ action: 'driveRegister', file_id: pj.id, original_name: file.name, file_type: file.type });
     if (!reg.ok) throw new Error(reg.error || 'register lỗi');
-    return { kind: (file.type || '').startsWith('video/') ? 'video' : 'image', url: reg.url, driveFileId: reg.fileId, name: file.name };
+    return { kind: isVideoFile(file) ? 'video' : 'image', url: tagIfVideo(reg.url, file), driveFileId: reg.fileId, name: file.name };
   }
   async function uploadImageUrl(file: File) {
     const item = await uploadOne(file);

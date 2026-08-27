@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { isVideoAsset } from '@/lib/media-url';
 
 export type FieldType =
   | 'text'
@@ -25,6 +26,8 @@ export interface AdminField {
   refLabel?: string;
   /** selfparentselect: lọc menu cấp 1 cùng khối theo cột này (VD 'category_id') */
   scopeKey?: string;
+  /** image = chỉ ảnh (logo/favicon/QR). Mặc định media = ảnh + video. */
+  acceptMode?: 'image' | 'media';
 }
 
 export type AdminRow = Record<string, unknown>;
@@ -61,7 +64,11 @@ export const IMAGE_FIELD_KEYS = new Set([
   'avatar_url',
   'file_path',
   'favicon_url',
+  'embed_url',
 ]);
+
+/** Logo / favicon / avatar / QR — không nhận video. */
+export const IMAGE_ONLY_FIELD_KEYS = new Set(['logo_url', 'favicon_url', 'avatar_url']);
 
 function boolBadge(v: unknown) {
   return v ? (
@@ -72,7 +79,11 @@ function boolBadge(v: unknown) {
 }
 
 function thumb(v: unknown) {
-  return typeof v === 'string' && v ? <img src={v} className="thumb-img" alt="" /> : null;
+  if (typeof v !== 'string' || !v) return null;
+  if (isVideoAsset(v)) {
+    return <video src={v} className="thumb-img" muted playsInline preload="metadata" />;
+  }
+  return <img src={v} className="thumb-img" alt="" />;
 }
 
 function formatVnTime(v: unknown) {
@@ -118,7 +129,7 @@ export const ADMIN_TABLES: AdminTableDef[] = [
     label: 'Menu (thanh điều hướng)',
     icon: 'bars',
     pk: 'id',
-    hint: 'Thanh điều hướng header LIVE (ngoclinh.shopmartai.com) — KHÔNG phải 9 khối sandwich. Cây Cửa Âu (Cống tròn, Chứng nhận tiêu chuẩn, tin-tuc-l2.html…) phải thay bằng sql/07_THAY_MENU_HEADER_NGOCLINH.sql trên kho pglbhoitmcflpvoasewr rồi F5 tab này. 9 khối trang chủ nằm tab “Danh mục (MENU trang chủ)”.',
+    hint: 'Thanh điều hướng header LIVE (ngoclinh.shopmartai.com) — KHÔNG phải 9 khối sandwich. Đổi tên mục trùng trang .html (vd HOẠT ĐỘNG…) ở đây thì sandwich + footer NĂNG LỰC tự khớp chữ. Cây Cửa Âu thay bằng node scripts/replace-header-menus-ngoclinh.js hoặc sql/07_THAY_MENU_HEADER_NGOCLINH.sql trên kho pglbhoitmcflpvoasewr rồi F5 tab này. 9 khối trang chủ nằm tab “Danh mục (MENU trang chủ)”.',
     fields: [
       { key: 'label', label: 'Tên menu', type: 'text', required: true },
       { key: 'url', label: 'URL (VD: /#gioi-thieu, /dao-tao-ai.html, hoặc # nếu chỉ là nhóm)', type: 'text' },
@@ -168,13 +179,13 @@ export const ADMIN_TABLES: AdminTableDef[] = [
     label: 'Danh mục (MENU trang chủ)',
     icon: 'sitemap',
     pk: 'id',
-    hint: 'Đây là các khối MENU sandwich trên trang chủ (thường 9 ô: 6 gốc + 3 hàng 3). Thêm / sửa / xóa / đổi thứ tự / tắt Active ở đây thì trang chủ đổi theo realtime. Badge “hàng 3” = slug đuôi -r2 (sửa độc lập, không đụng hàng 1). Nếu bảng mới có 6 dòng: bấm “Bổ sung 3 khối hàng 3”.',
+    hint: 'Đây là các khối MENU sandwich trên trang chủ (thường 9 ô: 6 gốc + 3 hàng 3). Thêm / sửa / xóa / đổi thứ tự / tắt Active ở đây thì trang chủ đổi theo realtime. Tên khối trùng một mục tab Menu (cùng URL .html, hoặc cùng họ HOẠT ĐỘNG…) hiện theo chữ tab Menu. Badge “hàng 3” = slug đuôi -r2 (sửa độc lập, không đụng hàng 1). Nếu bảng mới có 6 dòng: bấm “Bổ sung 3 khối hàng 3”.',
     fields: [
       { key: 'name', label: 'Tên danh mục', type: 'text', required: true },
       { key: 'slug', label: 'Slug (hàng 3 dùng đuôi -r2, VD: truyen-thong-r2)', type: 'text', required: true },
       { key: 'link_url', label: 'Link đích khi bấm vào (VD: /dao-tao-ai.html). Để trống = tự dùng slug', type: 'text' },
       { key: 'description', label: 'Mô tả', type: 'textarea' },
-      { key: 'thumbnail_url', label: 'Ảnh danh mục', type: 'image' },
+      { key: 'thumbnail_url', label: 'Ảnh / video danh mục', type: 'image' },
       { key: 'type', label: 'Loại', type: 'select', options: ['product', 'post', 'project', 'gallery'] },
       { key: 'parent_id', label: 'Danh mục cha (ID) — 0 / trống = khối gốc trang chủ', type: 'number' },
       { key: 'display_order', label: 'Thứ tự (số nhỏ hiện trước trên trang chủ)', type: 'number' },
@@ -213,8 +224,8 @@ export const ADMIN_TABLES: AdminTableDef[] = [
       { key: 'category_id', label: 'Danh mục (ID)', type: 'number' },
       { key: 'excerpt', label: 'Mô tả ngắn', type: 'textarea' },
       { key: 'content', label: 'Nội dung (soạn thảo + chèn ảnh)', type: 'richtext' },
-      { key: 'attachments', label: 'Ảnh & File đính kèm (tách riêng)', type: 'attachments' },
-      { key: 'thumbnail_url', label: 'Ảnh đại diện', type: 'image' },
+      { key: 'attachments', label: 'Ảnh, video & File đính kèm', type: 'attachments' },
+      { key: 'thumbnail_url', label: 'Ảnh / video đại diện', type: 'image' },
       { key: 'tags', label: 'Tags (phân cách bằng dấu phẩy)', type: 'text' },
       { key: 'status', label: 'Trạng thái', type: 'select', options: ['draft', 'published', 'archived'] },
       { key: 'display_order', label: 'Thứ tự', type: 'number' },
@@ -239,8 +250,8 @@ export const ADMIN_TABLES: AdminTableDef[] = [
       { key: 'link_url', label: 'Link đích khi bấm vào (để trống = tự dùng slug)', type: 'text' },
       { key: 'excerpt', label: 'Mô tả ngắn', type: 'textarea' },
       { key: 'content', label: 'Nội dung (soạn thảo + chèn ảnh)', type: 'richtext' },
-      { key: 'attachments', label: 'Ảnh & File đính kèm (tách riêng)', type: 'attachments' },
-      { key: 'thumbnail_url', label: 'Ảnh đại diện', type: 'image' },
+      { key: 'attachments', label: 'Ảnh, video & File đính kèm', type: 'attachments' },
+      { key: 'thumbnail_url', label: 'Ảnh / video đại diện', type: 'image' },
       { key: 'display_order', label: 'Thứ tự', type: 'number' },
       { key: 'is_active', label: 'Kích hoạt', type: 'checkbox' },
     ],
@@ -264,9 +275,9 @@ export const ADMIN_TABLES: AdminTableDef[] = [
       { key: 'category_id', label: 'Danh mục (ID)', type: 'number' },
       { key: 'description', label: 'Mô tả', type: 'textarea' },
       { key: 'content', label: 'Nội dung chi tiết', type: 'richtext' },
-      { key: 'attachments', label: 'Ảnh & File đính kèm (tách riêng)', type: 'attachments' },
+      { key: 'attachments', label: 'Ảnh, video & File đính kèm', type: 'attachments' },
       { key: 'price', label: 'Giá', type: 'text' },
-      { key: 'thumbnail_url', label: 'Ảnh đại diện', type: 'image' },
+      { key: 'thumbnail_url', label: 'Ảnh / video đại diện', type: 'image' },
       { key: 'display_order', label: 'Thứ tự', type: 'number' },
       { key: 'is_active', label: 'Kích hoạt', type: 'checkbox' },
     ],
@@ -287,7 +298,7 @@ export const ADMIN_TABLES: AdminTableDef[] = [
     fields: [
       { key: 'title', label: 'Tiêu đề', type: 'text' },
       { key: 'subtitle', label: 'Phụ đề', type: 'text' },
-      { key: 'image_url', label: 'Hình ảnh', type: 'image', required: true },
+      { key: 'image_url', label: 'Hình ảnh / video', type: 'image', required: true },
       { key: 'link_url', label: 'Link URL', type: 'text' },
       { key: 'display_order', label: 'Thứ tự', type: 'number' },
       { key: 'is_active', label: 'Kích hoạt', type: 'checkbox' },
@@ -306,7 +317,7 @@ export const ADMIN_TABLES: AdminTableDef[] = [
     icon: 'images',
     pk: 'id',
     fields: [
-      { key: 'file_path', label: 'Ảnh', type: 'image', required: true },
+      { key: 'file_path', label: 'Ảnh / video', type: 'image', required: true },
       { key: 'title', label: 'Tiêu đề', type: 'text' },
       { key: 'description', label: 'Chú thích', type: 'text' },
       { key: 'album_id', label: 'Album ID', type: 'text' },
@@ -327,9 +338,9 @@ export const ADMIN_TABLES: AdminTableDef[] = [
     pk: 'id',
     fields: [
       { key: 'title', label: 'Tiêu đề', type: 'text' },
-      { key: 'youtube_url', label: 'Youtube URL', type: 'text' },
-      { key: 'embed_url', label: 'Embed URL', type: 'text' },
-      { key: 'thumbnail_url', label: 'Thumbnail', type: 'image' },
+      { key: 'youtube_url', label: 'YouTube URL (dán link, tuỳ chọn)', type: 'text' },
+      { key: 'embed_url', label: 'Video tải lên (kéo-thả, không giới hạn)', type: 'image' },
+      { key: 'thumbnail_url', label: 'Ảnh / video thumbnail', type: 'image' },
       { key: 'description', label: 'Mô tả', type: 'textarea' },
       { key: 'display_order', label: 'Thứ tự', type: 'number' },
       { key: 'is_active', label: 'Kích hoạt', type: 'checkbox' },
@@ -348,7 +359,7 @@ export const ADMIN_TABLES: AdminTableDef[] = [
     pk: 'id',
     fields: [
       { key: 'name', label: 'Tên đối tác', type: 'text', required: true },
-      { key: 'logo_url', label: 'Logo', type: 'image' },
+      { key: 'logo_url', label: 'Logo', type: 'image', acceptMode: 'image' },
       { key: 'website_url', label: 'Website', type: 'text' },
       { key: 'display_order', label: 'Thứ tự', type: 'number' },
       { key: 'is_active', label: 'Kích hoạt', type: 'checkbox' },
@@ -372,7 +383,7 @@ export const ADMIN_TABLES: AdminTableDef[] = [
         type: 'text',
         required: true,
       },
-      { key: 'avatar_url', label: 'Ảnh đại diện', type: 'image' },
+      { key: 'avatar_url', label: 'Ảnh đại diện', type: 'image', acceptMode: 'image' },
       { key: 'content', label: 'Nội dung giới thiệu', type: 'textarea', required: true },
       { key: 'rating', label: 'Đánh giá (1-5)', type: 'number' },
       { key: 'display_order', label: 'Thứ tự', type: 'number' },
@@ -400,7 +411,7 @@ export const ADMIN_TABLES: AdminTableDef[] = [
     fields: [
       { key: 'title_top', label: 'Tên dịch vụ (thanh trắng dưới ảnh)', type: 'text', required: true },
       { key: 'link_top', label: 'Link khi bấm khối (để trống = chưa gắn link)', type: 'text' },
-      { key: 'image_url', label: 'Ảnh khối', type: 'image' },
+      { key: 'image_url', label: 'Ảnh / video khối', type: 'image' },
       { key: 'title_bottom', label: 'Mô tả ngắn dưới tên (để trống = ẩn)', type: 'text' },
       { key: 'link_bottom', label: 'Link phụ (nếu không có link khối)', type: 'text' },
       { key: 'display_order', label: 'Thứ tự', type: 'number' },
@@ -430,7 +441,7 @@ export const ADMIN_TABLES: AdminTableDef[] = [
       { key: 'title', label: 'Tiêu đề khối', type: 'text', required: true },
       { key: 'subtitle', label: 'Phụ đề / chữ nút Đăng Ký Ngay (khối form)', type: 'text' },
       { key: 'body', label: 'Nội dung (Cam kết: mỗi dòng 1 ý)', type: 'textarea' },
-      { key: 'image_url', label: 'Ảnh QR / ảnh khối', type: 'image' },
+      { key: 'image_url', label: 'Ảnh QR / ảnh khối', type: 'image', acceptMode: 'image' },
       { key: 'link_url', label: 'Link (Zalo cộng đồng / QR)', type: 'text' },
       { key: 'phone', label: 'Số điện thoại (khối liên hệ)', type: 'text' },
       { key: 'zalo', label: 'Zalo (khối liên hệ)', type: 'text' },
@@ -585,7 +596,7 @@ export const ADMIN_TABLES: AdminTableDef[] = [
     pk: 'id',
     fields: [
       { key: 'title', label: 'Chú thích (không bắt buộc)', type: 'text' },
-      { key: 'image_url', label: 'Hình ảnh', type: 'image', required: true },
+      { key: 'image_url', label: 'Hình ảnh / video', type: 'image', required: true },
       { key: 'display_order', label: 'Thứ tự', type: 'number' },
       { key: 'is_active', label: 'Kích hoạt', type: 'checkbox' },
     ],
@@ -616,4 +627,9 @@ export const SITE_SETTINGS_FIXED_KEYS = [
 
 export function isImageField(field: AdminField): boolean {
   return field.type === 'image' || IMAGE_FIELD_KEYS.has(field.key);
+}
+
+export function fieldAcceptMode(field: AdminField): 'image' | 'media' {
+  if (field.acceptMode) return field.acceptMode;
+  return IMAGE_ONLY_FIELD_KEYS.has(field.key) ? 'image' : 'media';
 }

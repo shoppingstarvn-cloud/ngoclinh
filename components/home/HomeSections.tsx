@@ -1,9 +1,17 @@
 'use client';
 
-import type { MouseEvent as ReactMouseEvent, ReactNode } from 'react';
+import type { MouseEvent as ReactMouseEvent, ReactNode, SyntheticEvent } from 'react';
 import Link from 'next/link';
 import { postHref, itemHref, assetUrl, resolveHref, isTrustedMediaUrl, isValidAssetUrl } from '@/lib/slug';
 import { useOwlCarousel } from '@/lib/hooks/useOwlCarousel';
+import MediaAsset from '@/components/ui/MediaAsset';
+
+function hideBrokenMedia(e: SyntheticEvent<HTMLImageElement | HTMLVideoElement>) {
+  const el = e.currentTarget;
+  if (el.dataset.fallback === '1') return;
+  el.dataset.fallback = '1';
+  el.style.visibility = 'hidden';
+}
 
 interface Slide {
   id: number;
@@ -35,7 +43,7 @@ export function SlideCarousel({ slides }: { slides: Slide[] }) {
         {slides.map((s) => (
           <div key={s.id} className="item">
             <Link href={s.link_url || '#'}>
-              <img src={assetUrl(s.image_url)} alt={s.title || 'Slide'} />
+              <MediaAsset src={s.image_url} alt={s.title || 'Slide'} variant="hero" />
             </Link>
             {s.title && (
               <div>
@@ -110,11 +118,8 @@ function CategoryCard({ cat }: { cat: Category }) {
           {/* effect-v7 = hiệu ứng kim tuyến quét sáng + zoom (giống vùng bài viết) */}
           <figure className="effect-v7">
             <Link href={href} title={cat.name}>
-              <img
-                src={
-                  assetUrl(cat.thumbnail_url || cat.image_url) ||
-                  '/images/placeholder.jpg'
-                }
+              <MediaAsset
+                src={cat.thumbnail_url || cat.image_url || '/images/placeholder.jpg'}
                 alt={cat.name}
               />
             </Link>
@@ -255,8 +260,8 @@ export function ProductSection({ products }: { products: Product[] }) {
           <p>
             <em>
               <strong>
-                Chúng tôi chuyên sản xuất và cung cấp các sản phẩm cống bê tông ly tâm đa
-                dạng về chủng loại và kích thước.
+                Hệ Sinh Thái AI — đào tạo AI, truyền thông, sự kiện, thiết kế website/app
+                và luyện thi cùng chuyên gia Bùi Ngọc Linh.
               </strong>
             </em>
           </p>
@@ -267,17 +272,11 @@ export function ProductSection({ products }: { products: Product[] }) {
               <div key={p.id} className="item">
                 <dl>
                   <dt>
-                    <img
-                      src={assetUrl(p.thumbnail_url)}
+                    <MediaAsset
+                      src={p.thumbnail_url}
                       alt={p.name}
                       title={p.name}
-                      onError={(e) => {
-                        const el = e.currentTarget;
-                        if (el.dataset.fallback === '1') return;
-                        el.dataset.fallback = '1';
-                        // Không có placeholder.jpg trong repo — ẩn ảnh vỡ
-                        el.style.visibility = 'hidden';
-                      }}
+                      onError={hideBrokenMedia}
                     />
                   </dt>
                   <dd>
@@ -347,16 +346,11 @@ export function ActivitySection({ images }: { images: ActivityImage[] }) {
               <div key={a.id} className="item">
                 <dl>
                   <dt>
-                    <img
-                      src={assetUrl(a.image_url)}
+                    <MediaAsset
+                      src={a.image_url}
                       alt={a.title || 'Hình ảnh hoạt động'}
                       title={a.title || ''}
-                      onError={(e) => {
-                        const el = e.currentTarget;
-                        if (el.dataset.fallback === '1') return;
-                        el.dataset.fallback = '1';
-                        el.style.visibility = 'hidden';
-                      }}
+                      onError={hideBrokenMedia}
                     />
                   </dt>
                   <dd>
@@ -407,7 +401,7 @@ export function ProjectSection({ projects }: { projects: Project[] }) {
                     {/* effect-v7 = kim tuyến quét sáng; logo canh giữa, không tràn */}
                     <figure className="effect-v7">
                       <Link href={href} title={p.title} {...extProps}>
-                        {p.thumbnail_url && <img src={assetUrl(p.thumbnail_url)} alt={p.title} />}
+                        {p.thumbnail_url && <MediaAsset src={p.thumbnail_url} alt={p.title} />}
                       </Link>
                     </figure>
                   </dt>
@@ -647,7 +641,6 @@ export function ServiceSection({
                 ? resolveHref(s.link_top)
                 : resolveHref(s.link_bottom);
             const desc = (s.title_bottom || '').trim();
-            const src = s.image_url ? assetUrl(s.image_url) : '';
             const picked = selectedServiceId != null && selectedServiceId === s.id;
             const onPick = (e: ReactMouseEvent) => {
               if (!onSelectService) return;
@@ -661,16 +654,16 @@ export function ServiceSection({
                     <figure className="effect-v7">
                       {pickMode ? (
                         <a href="#form-dang-ky" title={s.title_top} onClick={onPick}>
-                          {src ? (
-                            <img src={src} alt={s.title_top} />
+                          {s.image_url ? (
+                            <MediaAsset src={s.image_url} alt={s.title_top} />
                           ) : (
                             <span className="dichvu-photo-empty" aria-hidden />
                           )}
                         </a>
                       ) : (
                         <ServiceLink href={href} title={s.title_top}>
-                          {src ? (
-                            <img src={src} alt={s.title_top} />
+                          {s.image_url ? (
+                            <MediaAsset src={s.image_url} alt={s.title_top} />
                           ) : (
                             <span className="dichvu-photo-empty" aria-hidden />
                           )}
@@ -749,7 +742,7 @@ export function NewsSection({ posts }: { posts: Post[] }) {
                       <figure className="effect-v7">
                         <Link href={postHref(p.slug)}>
                           {p.thumbnail_url && (
-                            <img src={assetUrl(p.thumbnail_url)} alt={p.title} />
+                            <MediaAsset src={p.thumbnail_url} alt={p.title} />
                           )}
                         </Link>
                       </figure>

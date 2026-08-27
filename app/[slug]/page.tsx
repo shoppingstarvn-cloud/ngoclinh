@@ -11,6 +11,8 @@ import { getLegacyPathForSlug } from '@/lib/detail-map';
 import { extractBodyHtml, extractTitle, readLegacyHtml } from '@/lib/legacy-html';
 import { SHARE_DESCRIPTION, absoluteUrl, shareOpenGraph, shareTwitter } from '@/lib/seo';
 import { resolveHref } from '@/lib/slug';
+import { isImageAttachment, isVideoAttachment } from '@/lib/media-url';
+import MediaAsset from '@/components/ui/MediaAsset';
 
 const RESERVED = new Set(['legacy', 'api', 'admin', 'uploads']);
 
@@ -174,12 +176,12 @@ export default async function SlugPage({ params }: PageProps) {
                 />
                 {detail.attachments && detail.attachments.length > 0 && (
                   <div className="post-attachments" style={{ marginTop: 28 }}>
-                    {detail.attachments.some((a) => a.kind === 'image') && (
+                    {detail.attachments.some((a) => isImageAttachment(a)) && (
                       <>
                         <h3>Ảnh kèm theo</h3>
                         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, marginBottom: 20 }}>
                           {detail.attachments
-                            .filter((a) => a.kind === 'image')
+                            .filter((a) => isImageAttachment(a))
                             .map((a) => (
                               <a key={a.url} href={a.url} target="_blank" rel="noreferrer">
                                 {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -193,12 +195,26 @@ export default async function SlugPage({ params }: PageProps) {
                         </div>
                       </>
                     )}
-                    {detail.attachments.some((a) => a.kind !== 'image') && (
+                    {detail.attachments.some((a) => isVideoAttachment(a)) && (
+                      <>
+                        <h3>Video kèm theo</h3>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, marginBottom: 20 }}>
+                          {detail.attachments
+                            .filter((a) => isVideoAttachment(a))
+                            .map((a) => (
+                              <div key={a.url} style={{ width: 280, borderRadius: 8, overflow: 'hidden', border: '1px solid #eee' }}>
+                                <MediaAsset src={a.url} alt={a.name} variant="gallery" />
+                              </div>
+                            ))}
+                        </div>
+                      </>
+                    )}
+                    {detail.attachments.some((a) => !isImageAttachment(a) && !isVideoAttachment(a)) && (
                       <>
                         <h3>Tài liệu đính kèm</h3>
                         <ul>
                           {detail.attachments
-                            .filter((a) => a.kind !== 'image')
+                            .filter((a) => !isImageAttachment(a) && !isVideoAttachment(a))
                             .map((a) => (
                               <li key={a.url}>
                                 <a href={a.url} target="_blank" rel="noreferrer">

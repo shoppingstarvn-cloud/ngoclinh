@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import 'quill/dist/quill.snow.css';
 import { uploadMediaFile } from '@/lib/client/upload-media';
+import { isImageFile, isVideoAsset, isVideoFile, tagIfVideo } from '@/lib/media-url';
 import {
   listTemplatesAction,
   saveTemplateAction,
@@ -35,7 +36,7 @@ interface RichTextEditorProps {
  * - Định dạng đầy đủ: cỡ chữ, đậm/nghiêng/gạch, MÀU chữ + TÔ NỀN, danh sách,
  *   căn lề, thụt dòng, trích dẫn, xoá định dạng.
  * - Tạo ĐƯỜNG LINK.
- * - CHÈN ẢNH: chọn nhiều ảnh, KÉO-THẢ, DÁN (Ctrl+V) → Google Drive, giữ nguyên gốc.
+ * - CHÈN ẢNH & VIDEO: chọn nhiều, KÉO-THẢ, DÁN (Ctrl+V) → Google Drive, giữ nguyên gốc.
  * - ĐÍNH KÈM FILE mọi định dạng → Drive → chèn link tải vào nội dung.
  * - MẪU (template): lưu nội dung đang soạn thành mẫu, chèn lại mẫu bất cứ lúc nào.
  */
@@ -69,8 +70,12 @@ export default function RichTextEditor({ initialValue, onChange }: RichTextEdito
       const contents = q.getContents(idx, 1);
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const op: any = contents && (contents as any).ops && (contents as any).ops[0];
-      const isImage = op && op.insert && typeof op.insert === 'object' && 'image' in op.insert;
-      if (isImage) {
+      const isMedia =
+        op &&
+        op.insert &&
+        typeof op.insert === 'object' &&
+        ('image' in op.insert || 'nlvideo' in op.insert);
+      if (isMedia) {
         q.deleteText(idx, 1, 'user');
         selectedImgIndexRef.current = null;
         setImgSelected(false);
@@ -78,7 +83,7 @@ export default function RichTextEditor({ initialValue, onChange }: RichTextEdito
         return;
       }
     }
-    window.alert('Bấm chọn ảnh cần xoá trong bài trước (rê chuột vào ảnh sẽ thấy viền), rồi bấm "Xoá ảnh".');
+    window.alert('Bấm chọn ảnh/video cần xoá trong bài trước (rê chuột vào sẽ thấy viền), rồi bấm "Xoá ảnh/video".');
   }
 
   async function reloadTemplates() {
@@ -86,12 +91,17 @@ export default function RichTextEditor({ initialValue, onChange }: RichTextEdito
     if (res.success && res.data) setTemplates(res.data);
   }
 
-  function insertOne(url: string, name: string, isImage: boolean) {
+  function insertOne(url: string, name: string, file?: File) {
     const q = quillRef.current;
     if (!q) return;
     const sel = q.getSelection(true);
     const at = sel ? sel.index : q.getLength();
-    if (isImage) {
+    const asVideo = file ? isVideoFile(file) : isVideoAsset(url);
+    const asImage = file ? isImageFile(file) : !asVideo;
+    if (asVideo) {
+      q.insertEmbed(at, 'nlvideo', tagIfVideo(url, file), 'user');
+      q.setSelection(at + 1, 0);
+    } else if (asImage) {
       q.insertEmbed(at, 'image', url, 'user');
       q.setSelection(at + 1, 0);
     } else {
@@ -111,7 +121,7 @@ export default function RichTextEditor({ initialValue, onChange }: RichTextEdito
       setStatus(`Đang tải ${i + 1}/${list.length}: ${f.name}…`);
       try {
         const url = await uploadMediaFile(f);
-        insertOne(url, f.name, (f.type || '').startsWith('image/'));
+        insertOne(url, f.name, f);
       } catch (e) {
         setStatus(`Lỗi tải "${f.name}": ${e instanceof Error ? e.message : ''}`);
         await new Promise((r) => setTimeout(r, 1800));
@@ -120,7 +130,7 @@ export default function RichTextEditor({ initialValue, onChange }: RichTextEdito
     setStatus('');
   }
 
-  // Tìm mọi ảnh base64 (data:) trong nội dung → tải lên Drive → thay bằng URL nhẹ.
+  // Tìm mọi ảnh/video base64 (data:) trong nội dung → tải lên Drive → thay bằng URL nhẹ.
   // Ngăn lỗi 413 "Content Too Large" của Vercel (request Server Action > 4.5MB).
   async function convertBase64Images() {
     const q = quillRef.current;
@@ -128,8 +138,12 @@ export default function RichTextEditor({ initialValue, onChange }: RichTextEdito
     const imgs = Array.from(q.root.querySelectorAll('img')).filter((img) =>
       (img.getAttribute('src') || '').startsWith('data:'),
     );
-    if (!imgs.length) return;
-    setStatus(`Đang chuyển ${imgs.length} ảnh dán tay lên Drive (giảm dung lượng)…`);
+    const vids = Array.from(q.root.querySelectorAll('video')).filter((el) =>
+      (el.getAttribute('src') || '').startsWith('data:'),
+    );
+    const total = imgs.length + vids.length;
+    if (!total) return;
+    setStatus(`Đang chuyển ${total} ảnh/video dán tay lên Drive (giảm dung lượng)…`);
     for (let i = 0; i < imgs.length; i++) {
       const img = imgs[i];
       const src = img.getAttribute('src') || '';
@@ -137,9 +151,21 @@ export default function RichTextEditor({ initialValue, onChange }: RichTextEdito
       if (!file) continue;
       try {
         const url = await uploadMediaFile(file);
-        img.setAttribute('src', url);
+        img.setAttribute('src', tagIfVideo(url, file));
       } catch {
         /* lỗi thì giữ nguyên ảnh đó */
+      }
+    }
+    for (let i = 0; i < vids.length; i++) {
+      const el = vids[i];
+      const src = el.getAttribute('src') || '';
+      const file = dataUrlToFile(src, `video-dan-${Date.now()}-${i}`);
+      if (!file) continue;
+      try {
+        const url = await uploadMediaFile(file);
+        el.setAttribute('src', tagIfVideo(url, file));
+      } catch {
+        /* lỗi thì giữ nguyên video đó */
       }
     }
     setStatus('');
@@ -234,10 +260,32 @@ export default function RichTextEditor({ initialValue, onChange }: RichTextEdito
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (Quill as any).register(CustomLink, true);
 
+      // blotName 'nlvideo' — không dùng 'video' (Quill đã dùng cho iframe YouTube).
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const BlockEmbed = Quill.import('blots/block/embed') as any;
+      class NlVideoBlot extends BlockEmbed {
+        static blotName = 'nlvideo';
+        static tagName = 'VIDEO';
+        static create(value: string) {
+          const node = super.create(value) as HTMLVideoElement;
+          node.setAttribute('src', String(value || ''));
+          node.setAttribute('controls', 'true');
+          node.setAttribute('playsinline', 'true');
+          node.setAttribute('preload', 'metadata');
+          node.setAttribute('style', 'max-width:100%;height:auto;display:block');
+          return node;
+        }
+        static value(node: HTMLElement) {
+          return node.getAttribute('src') || '';
+        }
+      }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (Quill as any).register(NlVideoBlot, true);
+
       const imageHandler = () => {
         const input = document.createElement('input');
         input.type = 'file';
-        input.accept = 'image/*';
+        input.accept = 'image/*,video/*';
         input.multiple = true;
         input.onchange = () => {
           if (input.files) void uploadAndInsert(input.files);
@@ -247,7 +295,7 @@ export default function RichTextEditor({ initialValue, onChange }: RichTextEdito
 
       const quill = new Quill(containerRef.current, {
         theme: 'snow',
-        placeholder: 'Soạn nội dung — cỡ chữ, in đậm, màu sắc, danh sách, chèn ảnh, đính kèm file…',
+        placeholder: 'Soạn nội dung — cỡ chữ, in đậm, màu sắc, danh sách, chèn ảnh & video, đính kèm file…',
         modules: {
           history: { delay: 800, maxStack: 300, userOnly: false },
           toolbar: {
@@ -307,11 +355,11 @@ export default function RichTextEditor({ initialValue, onChange }: RichTextEdito
         }
       });
 
-      // Bấm vào ẢNH trong bài → chọn ảnh (viền xanh) để có thể bấm "Xoá ảnh" hoặc
-      // nhấn phím Delete/Backspace. Bấm ra ngoài ảnh → bỏ chọn.
+      // Bấm vào ẢNH/VIDEO trong bài → chọn (viền xanh) để có thể bấm "Xoá ảnh/video" hoặc
+      // nhấn phím Delete/Backspace. Bấm ra ngoài → bỏ chọn.
       quill.root.addEventListener('click', (ev: Event) => {
         const target = ev.target as HTMLElement | null;
-        if (target && target.tagName === 'IMG') {
+        if (target && (target.tagName === 'IMG' || target.tagName === 'VIDEO')) {
           try {
             const blot = (Quill as unknown as { find: (n: Node) => unknown }).find(target);
             if (blot) {
@@ -366,8 +414,8 @@ export default function RichTextEditor({ initialValue, onChange }: RichTextEdito
           max-width: 92%;
         }
         .ql-snow .ql-tooltip input[type=text] { width: 280px; max-width: 60vw; }
-        .ql-editor img { cursor: pointer; max-width: 100%; }
-        .ql-editor img:hover { outline: 2px dashed rgba(13,110,253,0.85); outline-offset: 2px; }
+        .ql-editor img, .ql-editor video { cursor: pointer; max-width: 100%; height: auto; display: block; }
+        .ql-editor img:hover, .ql-editor video:hover { outline: 2px dashed rgba(13,110,253,0.85); outline-offset: 2px; }
       `}</style>
       {/* Thanh MẪU (template) */}
       <div
@@ -424,7 +472,7 @@ export default function RichTextEditor({ initialValue, onChange }: RichTextEdito
         </button>
       </div>
 
-      {/* Hoàn tác / Làm lại / Xoá ảnh + đính kèm file + trạng thái */}
+      {/* Hoàn tác / Làm lại / Xoá ảnh/video + đính kèm file + trạng thái */}
       <div style={{ display: 'flex', gap: 8, marginBottom: 8, flexWrap: 'wrap', alignItems: 'center' }}>
         <button type="button" className="btn btn-sm btn-outline-secondary" title="Hoàn tác (Ctrl+Z)" onClick={doUndo}>
           ↶ Hoàn tác
@@ -435,11 +483,11 @@ export default function RichTextEditor({ initialValue, onChange }: RichTextEdito
         <button
           type="button"
           className="btn btn-sm btn-outline-danger"
-          title="Bấm chọn ảnh trong bài (ảnh có viền xanh) rồi bấm đây để xoá"
+          title="Bấm chọn ảnh/video trong bài (có viền xanh) rồi bấm đây để xoá"
           onClick={deleteSelectedImage}
           disabled={!imgSelected}
         >
-          🗑 Xoá ảnh{imgSelected ? ' đang chọn' : ''}
+          🗑 Xoá ảnh/video{imgSelected ? ' đang chọn' : ''}
         </button>
         <span style={{ width: 1, height: 20, background: 'rgba(255,255,255,0.15)' }} />
         <button
@@ -464,9 +512,9 @@ export default function RichTextEditor({ initialValue, onChange }: RichTextEdito
           type="button"
           className="btn btn-sm btn-outline-warning"
           onClick={() => void convertBase64Images()}
-          title="Chuyển mọi ảnh dán tay (base64) trong nội dung lên Google Drive để nội dung nhẹ, lưu được"
+          title="Chuyển mọi ảnh/video dán tay (base64) trong nội dung lên Google Drive để nội dung nhẹ, lưu được"
         >
-          🧹 Nén ảnh dán tay → Drive
+          🧹 Nén ảnh/video dán tay → Drive
         </button>
         {status && (
           <span style={{ fontSize: 13, color: '#0dcaf0' }}>
@@ -481,8 +529,8 @@ export default function RichTextEditor({ initialValue, onChange }: RichTextEdito
       />
 
       <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', marginTop: 6 }}>
-        Mẹo: kéo-thả ảnh/file vào ô soạn thảo, hoặc dán ảnh (Ctrl+V). Chọn nhiều ảnh/file cùng lúc —
-        máy tính &amp; điện thoại đều được. Ảnh &amp; tài liệu giữ nguyên gốc, không nén, lưu trên Google Drive.
+        Mẹo: kéo-thả ảnh/video/file vào ô soạn thảo, hoặc dán (Ctrl+V). Chọn nhiều ảnh/video cùng lúc —
+        máy tính kéo-thả, điện thoại tích chọn nhiều. Ảnh, video &amp; tài liệu giữ nguyên gốc, không nén, lưu trên Google Drive.
       </p>
     </div>
   );

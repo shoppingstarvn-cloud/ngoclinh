@@ -1,5 +1,6 @@
 import Link from 'next/link';
-import { assetUrl, itemHref } from '@/lib/slug';
+import { itemHref } from '@/lib/slug';
+import MediaAsset from '@/components/ui/MediaAsset';
 
 interface Project {
   id: number;
@@ -44,7 +45,7 @@ export function ProjectsListing({
                       <figure>
                         <Link href={href} {...extProps}>
                           {p.thumbnail_url && (
-                            <img src={assetUrl(p.thumbnail_url)} alt={p.title} />
+                            <MediaAsset src={p.thumbnail_url} alt={p.title} />
                           )}
                         </Link>
                       </figure>

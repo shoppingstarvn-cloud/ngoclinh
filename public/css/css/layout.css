@@ -2527,6 +2527,74 @@ a.more:hover {
   }
 }
 
+/* Video kéo-thả: owl/carousel CSS gốc chỉ nhắm img — video phải kế thừa cùng kích thước. */
+.owl-carousel .owl-item video { display: block; width: 100%; }
+.slide-carousel .item a video {
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+  display: block;
+}
+.product .product-carousel .item dl dt video,
+.product .activity-carousel .item dl dt video { width: 100%; }
+.project .list_project .item dl dt .swing figure video { height: 100%; }
+.news .list_news .big_item dl dt figure video { width: 100%; height: unset; }
+.news .list_news .news-carousel .item.big_item dl dt figure video,
+.news .list_news .news-carousel .owl-item video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.subpage .listproduct .item dl dt video {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  -webkit-transform: translate(-50%, -50%);
+  top: 50%;
+  left: 50%;
+  transition: all .2s ease-in;
+}
+.effect-v7>a video {
+  transition: all 0.6s ease-out;
+  -webkit-transition: all 0.6s ease-out;
+}
+.effect-v7>a:hover video {
+  -webkit-transform: scale(1.2);
+  transform: scale(1.2);
+}
+.service_home .item_s.cat-card dl dt a video {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  max-width: none;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+}
+.dichvu_home .item_s.cat-card dl dt a video {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  max-width: none;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+}
+.project .list_project .item.proj-card dl dt .effect-v7 > a video {
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+}
+.detail-content video,
+.detail_product video,
+.content_news_page video,
+.post-attachments video {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
 
 
 

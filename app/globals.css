@@ -24,7 +24,8 @@ body {
   margin: 0;
 }
 
-.detail-content img {
+.detail-content img,
+.detail-content video {
   max-width: 100%;
   height: auto;
 }

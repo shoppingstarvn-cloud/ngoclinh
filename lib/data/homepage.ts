@@ -156,7 +156,7 @@ export async function getHomepageData() {
 
   return {
     slides: slides.data ?? [],
-    // Chỉ sản phẩm có ảnh local/Supabase — bỏ video không ảnh, CDN chết (/https://vacdn…)
+    // Chỉ sản phẩm có ảnh/video local/Supabase/Drive — bỏ CDN chết (/https://vacdn…)
     products: (products.data ?? [])
       .filter((p) => isTrustedMediaUrl(p.thumbnail_url))
       .slice(0, 15),
@@ -174,7 +174,7 @@ export async function getHomepageData() {
     menus: menus.data ?? [],
     categories: applyMenuLabelsToCategories(categoriesWithSubmenus, menus.data ?? []),
     links: links.data ?? [],
-    // Hình ảnh hoạt động — chỉ ảnh hợp lệ (local/Supabase/Drive)
+    // Hình ảnh hoạt động — ảnh/video hợp lệ (local/Supabase/Drive)
     activityImages: (activityImages.data ?? []).filter((a) => isValidAssetUrl(a.image_url)),
     // Bảng register_blocks chưa chạy SQL → data null, form vẫn hiện nội dung mặc định
     registerBlocks: registerBlocks.data ?? [],

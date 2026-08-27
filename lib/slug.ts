@@ -85,21 +85,22 @@ export function assetUrl(u?: string | null): string {
 const UNTRUSTED_MEDIA_HOST =
   /(vacdn\.link|static\.xx\.fbcdn\.net|emoji\.php|uphinhnhanh\.com|rongbaycdn\.com|nhadepkientruc\.com)/i;
 
-/** Ảnh/logo hợp lệ để hiển thị trên site (loại URL HTML / trang web / rỗng / hỏng) */
+/** Ảnh/logo/video hợp lệ để hiển thị trên site (loại URL HTML / trang web / rỗng / hỏng) */
 export function isValidAssetUrl(u?: string | null): boolean {
   const v = assetUrl(u);
   if (!v) return false;
   if (/\.html?($|\?|#)/i.test(v)) return false;
   if (/^https?:\/\/[^/]+\/?$/i.test(v)) return false;
   if (UNTRUSTED_MEDIA_HOST.test(v)) return false;
-  // Ảnh Google Drive (upload qua app) — link không có đuôi file nhưng vẫn là ảnh thật.
+  // Ảnh/video Google Drive (upload qua app) — link không có đuôi file nhưng vẫn là media thật.
   if (/lh3\.googleusercontent\.com\/d\//i.test(v)) return true;
   if (/drive\.google\.com\/(uc|thumbnail)/i.test(v)) return true;
-  // Phải là file ảnh / đường dẫn media — không chấp nhận URL trang web làm “logo”
-  if (/\.(png|jpe?g|webp|gif|svg|avif)($|\?)/i.test(v)) return true;
+  if (/[#&?]media=video(?:&|$|#)/i.test(v)) return true;
+  // File ảnh / video — không chấp nhận URL trang web làm “logo”
+  if (/\.(png|jpe?g|webp|gif|svg|avif|mp4|webm|mov|m4v|avi|mkv|3gp)($|\?|#)/i.test(v)) return true;
   if (v.startsWith('/images/') || v.startsWith('/hpm/') || v.startsWith('/uploads/')) return true;
   if (v.includes('/storage/v1/object/')) return true;
-  if (v.startsWith('data:image/')) return true;
+  if (v.startsWith('data:image/') || v.startsWith('data:video/')) return true;
   return false;
 }
 
@@ -114,7 +115,7 @@ export function isTrustedMediaUrl(u?: string | null): boolean {
   if (v.includes('/storage/v1/object/')) return true;
   if (/lh3\.googleusercontent\.com\/d\//i.test(v)) return true;
   if (/drive\.google\.com\/(uc|thumbnail)/i.test(v)) return true;
-  if (v.startsWith('data:image/')) return true;
+  if (v.startsWith('data:image/') || v.startsWith('data:video/')) return true;
   return false;
 }
 

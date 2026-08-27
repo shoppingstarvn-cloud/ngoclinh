@@ -3,6 +3,8 @@
 
 import { useCallback, useEffect, useState, type CSSProperties } from 'react';
 import AuthModal from '@/components/auth/AuthModal';
+import MediaAsset from '@/components/ui/MediaAsset';
+import { isVideoAsset } from '@/lib/media-url';
 
 type Block = { id: number; title: string; cover_url: string; photos: number; videos: number };
 type Media = { id: number; kind: string; url: string; name: string };
@@ -97,13 +99,17 @@ export default function AlbumView({ slug }: { slug: string }) {
 
   const slides = (page.slide_urls && page.slide_urls.length ? page.slide_urls
     : blocks.map((b) => b.cover_url).filter(Boolean));
-  const bgStyle: CSSProperties = page.bg_image_url
+  const bgIsVideo = isVideoAsset(page.bg_image_url);
+  const bgStyle: CSSProperties = page.bg_image_url && !bgIsVideo
     ? { backgroundImage: `url(${page.bg_image_url})`, backgroundSize: 'cover', backgroundAttachment: 'fixed', backgroundPosition: 'center' }
     : {};
 
   return (
     <div className="alb-root" style={bgStyle}>
       <style>{CSS}</style>
+      {bgIsVideo && page.bg_image_url && (
+        <video className="alb-bgvid" src={page.bg_image_url} autoPlay muted loop playsInline aria-hidden />
+      )}
       <div className="alb-bgfx"><div className="alb-aurora" /><div className="alb-aurora b" /></div>
       {['🌸', '🍃', '✨', '🌸', '🌿', '✨', '🌷', '🍃', '✨'].map((p, i) => (
         <div key={i} className="alb-petal" style={{ left: `${6 + i * 11}%`, animationDuration: `${8 + (i % 5) * 2}s`, fontSize: i % 3 === 1 ? 18 : 24 }}>{p}</div>
@@ -118,7 +124,7 @@ export default function AlbumView({ slug }: { slug: string }) {
           <div className="alb-slider"><div className="alb-track">
             {[...slides, ...slides].map((u, i) => (
               <div className="alb-tile" key={i} style={u ? {} : { background: GRADS[i % GRADS.length] }}>
-                {u ? <img src={u} alt="" /> : '🖼️'}
+                {u ? <MediaAsset src={u} alt="" /> : '🖼️'}
               </div>
             ))}
           </div></div>
@@ -166,7 +172,7 @@ export default function AlbumView({ slug }: { slug: string }) {
                   <div className="alb-glo" />
                   <span className="alb-badge">📸 {b.photos.toLocaleString('vi-VN')} · 🎬 {b.videos}</span>
                   <div className="alb-ph" style={b.cover_url ? {} : { background: GRADS[i % GRADS.length] }}>
-                    {b.cover_url ? <img src={b.cover_url} alt={b.title} /> : '🖼️'}
+                    {b.cover_url ? <MediaAsset src={b.cover_url} alt={b.title} /> : '🖼️'}
                   </div>
                   <div className="alb-cap"><h3>{b.title}</h3><div className="alb-meta">{b.photos.toLocaleString('vi-VN')} ảnh · {b.videos} video</div></div>
                 </div>
@@ -190,6 +196,7 @@ export default function AlbumView({ slug }: { slug: string }) {
                 <div className="alb-videos">
                   {videos.map((v) => (
                     <div className="alb-vth" key={v.id} onClick={() => setViewer(v)}>
+                      <MediaAsset src={v.url} alt={v.name} />
                       <div className="alb-vplay">▶</div>
                     </div>
                   ))}
@@ -198,7 +205,9 @@ export default function AlbumView({ slug }: { slug: string }) {
               <div className="alb-lbl">🖼️ Tất cả ảnh</div>
               <div className="alb-grid">
                 {photos.map((m) => (
-                  <img key={m.id} loading="lazy" src={m.url} alt={m.name} onClick={() => setViewer(m)} />
+                  <div key={m.id} onClick={() => setViewer(m)}>
+                    <MediaAsset src={m.url} alt={m.name} />
+                  </div>
                 ))}
               </div>
               {pOffset < pTotal && (
@@ -243,7 +252,7 @@ function MediaViewer({ media, onClose }: { media: Media; onClose: () => void }) 
     const d = await r.json(); if (d.ok && d.comment) { setComments((p) => [d.comment, ...p]); setText(''); }
   }
 
-  const isVideo = media.kind === 'video';
+  const isVideo = media.kind === 'video' || isVideoAsset(media.url);
   return (
     <div className="alb-lb" style={{ zIndex: 60 }} onClick={(e) => e.target === e.currentTarget && onClose()}>
       <div className="alb-lbbox" style={{ maxWidth: 820 }}>
@@ -282,6 +291,7 @@ function MediaViewer({ media, onClose }: { media: Media; onClose: () => void }) 
 const CSS = `
 .alb-root{position:relative;min-height:100vh;overflow-x:hidden;color:#123;font-family:'Segoe UI',system-ui,Arial,sans-serif;
   background:radial-gradient(1200px 600px at 12% -5%,rgba(255,182,193,.45),transparent 60%),radial-gradient(1000px 620px at 100% 0%,rgba(144,238,144,.5),transparent 55%),radial-gradient(900px 700px at 50% 120%,rgba(173,216,230,.4),transparent 60%),linear-gradient(180deg,#f4fff7,#eafaf0 40%,#f6fff9)}
+.alb-bgvid{position:fixed;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;pointer-events:none}
 .alb-bgfx{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
 .alb-aurora{position:absolute;inset:-25%;filter:blur(36px);opacity:.85;animation:albaur 11s ease-in-out infinite alternate;
   background:radial-gradient(40% 40% at 20% 30%,rgba(255,120,200,.4),transparent 60%),radial-gradient(45% 45% at 82% 18%,rgba(70,220,160,.45),transparent 60%),radial-gradient(50% 50% at 60% 82%,rgba(120,170,255,.4),transparent 60%),radial-gradient(35% 35% at 8% 80%,rgba(255,214,90,.35),transparent 60%)}
@@ -295,7 +305,7 @@ const CSS = `
 .alb-track{display:flex;width:max-content;animation:albslide 34s linear infinite}
 .alb-slider:hover .alb-track{animation-play-state:paused}
 .alb-tile{height:220px;width:340px;display:flex;align-items:center;justify-content:center;font-size:60px;color:#fff;overflow:hidden}
-.alb-tile img{width:100%;height:100%;object-fit:cover}
+.alb-tile img,.alb-tile video{width:100%;height:100%;object-fit:cover}
 @keyframes albslide{from{transform:translateX(0)}to{transform:translateX(-50%)}}
 .alb-titlewrap{text-align:center;margin:28px 0 6px}
 .alb-neon{font-size:clamp(38px,7vw,74px);font-weight:900;letter-spacing:3px;margin:0;color:#fff;animation:albneon 1.6s infinite alternate}
@@ -314,7 +324,7 @@ const CSS = `
 .alb-card{position:relative;width:min(460px,94%);aspect-ratio:3/2;border-radius:20px;overflow:hidden;cursor:pointer;color:#fff;border:5px solid #fff;transform:rotate(var(--rot,0deg));animation:albfloaty var(--dur,4s) ease-in-out infinite,albneonedge 2s linear infinite;transition:transform .35s cubic-bezier(.2,.9,.3,1.3)}
 .alb-card:hover{animation-play-state:paused;z-index:9;transform:rotate(0) translateY(-12px) scale(1.06)!important;box-shadow:0 34px 66px rgba(0,70,35,.5),0 0 0 4px #fff,0 0 48px 8px rgba(0,230,160,.75)!important}
 .alb-ph{display:flex;align-items:center;justify-content:center;height:100%;font-size:82px;overflow:hidden}
-.alb-ph img{width:100%;height:100%;object-fit:cover}
+.alb-ph img,.alb-ph video{width:100%;height:100%;object-fit:cover}
 .alb-glo{position:absolute;inset:0;pointer-events:none;background:linear-gradient(115deg,transparent 30%,rgba(255,255,255,.6) 48%,transparent 64%);transform:translateX(-130%);transition:transform .8s;z-index:2}
 .alb-card:hover .alb-glo{transform:translateX(130%)}
 .alb-badge{position:absolute;top:12px;right:12px;background:rgba(3,40,22,.72);color:#fff;font-size:13px;font-weight:800;padding:6px 12px;border-radius:30px;z-index:3}
@@ -333,10 +343,11 @@ const CSS = `
 .alb-lbl{margin:16px 0 8px;font-weight:800;color:#0c5a34;font-size:15px}
 .alb-videos{display:flex;gap:10px;overflow-x:auto;padding-bottom:6px}
 .alb-vth{position:relative;flex:0 0 auto;width:190px;height:116px;border-radius:12px;overflow:hidden;cursor:pointer;background:linear-gradient(135deg,#5ee7df,#b490ca);display:flex;align-items:center;justify-content:center}
-.alb-vplay{color:#fff;font-size:34px;text-shadow:0 2px 10px rgba(0,0,0,.5)}
+.alb-vth img,.alb-vth video{width:100%;height:100%;object-fit:cover;position:absolute;inset:0}
+.alb-vplay{position:relative;z-index:1;color:#fff;font-size:34px;text-shadow:0 2px 10px rgba(0,0,0,.5)}
 .alb-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:6px}
-.alb-grid img{width:100%;aspect-ratio:1/1;object-fit:cover;border-radius:8px;cursor:pointer;transition:.2s;background:#eef}
-.alb-grid img:hover{transform:scale(1.06);box-shadow:0 6px 16px rgba(0,0,0,.3)}
+.alb-grid img,.alb-grid video{width:100%;aspect-ratio:1/1;object-fit:cover;border-radius:8px;cursor:pointer;transition:.2s;background:#eef}
+.alb-grid img:hover,.alb-grid video:hover{transform:scale(1.06);box-shadow:0 6px 16px rgba(0,0,0,.3)}
 .alb-btn{border:none;border-radius:12px;padding:11px 16px;font-weight:800;font-size:14px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;text-decoration:none}
 .alb-btn.green{background:#00A651;color:#fff}.alb-btn.soft{background:#eef7f1;color:#046b38}
 .alb-reactbar{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0;align-items:center}

@@ -191,6 +191,7 @@
 .admin-root .table tbody tr:hover { background: rgba(255, 255, 255, 0.02); }
 .admin-root .table-responsive { overflow-x: auto; }
 .admin-root .thumb-img { width: 60px; height: 40px; object-fit: cover; border-radius: 6px; border: 1px solid rgba(255, 255, 255, 0.08); }
+.admin-root video.thumb-img { background: #000; }
 .admin-root .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 20px; }
 .admin-root .stat-card {
   background: rgba(255, 255, 255, 0.03);
@@ -234,6 +235,7 @@
 .admin-root .alert-danger { background: rgba(220, 53, 69, 0.15); border: 1px solid rgba(220, 53, 69, 0.4); color: #ff8a8a; }
 .admin-root .upload-zone { border-radius: 10px; }
 .admin-root .ql-editor { min-height: 180px; }
+.admin-root .ql-editor video { max-width: 100%; height: auto; display: block; background: #000; }
 .admin-root .row { display: flex; flex-wrap: wrap; margin: 0 -8px; }
 .admin-root .col-md-6 { width: 50%; padding: 0 8px; box-sizing: border-box; }
 .admin-root .col-md-12 { width: 100%; padding: 0 8px; box-sizing: border-box; }

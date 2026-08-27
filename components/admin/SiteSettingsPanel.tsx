@@ -86,11 +86,11 @@ export default function SiteSettingsPanel({ rows, onSaved }: SiteSettingsPanelPr
 
           <div className="col-md-6 mb-3">
             <label className="form-label fw-bold">{LABELS.logo_url}</label>
-            <ImageUploadField value={values.logo_url || ''} onChange={(url) => set('logo_url', url)} />
+            <ImageUploadField value={values.logo_url || ''} onChange={(url) => set('logo_url', url)} acceptMode="image" />
           </div>
           <div className="col-md-6 mb-3">
             <label className="form-label fw-bold">{LABELS.favicon_url}</label>
-            <ImageUploadField value={values.favicon_url || ''} onChange={(url) => set('favicon_url', url)} />
+            <ImageUploadField value={values.favicon_url || ''} onChange={(url) => set('favicon_url', url)} acceptMode="image" />
           </div>
 
           <div className="col-md-12 mb-3">

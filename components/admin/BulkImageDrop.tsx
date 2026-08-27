@@ -2,8 +2,10 @@
 
 import { CSSProperties, DragEvent, useRef, useState } from 'react';
 import { uploadMediaFile } from '@/lib/client/upload-media';
+import { isAcceptedMediaFile, isVideoAsset, isVideoFile, tagIfVideo } from '@/lib/media-url';
 
 export type BulkImageTheme = 'dark' | 'light';
+export type BulkAcceptMode = 'image' | 'media';
 
 export interface BulkImageItem {
   url: string;
@@ -18,6 +20,8 @@ interface BulkImageDropProps {
   uploadFile?: (file: File) => Promise<string>;
   theme?: BulkImageTheme;
   showLabel?: boolean;
+  /** image = chỉ ảnh (logo/favicon/QR). media = ảnh + video hàng loạt. */
+  acceptMode?: BulkAcceptMode;
 }
 
 function prevent(e: DragEvent) {
@@ -45,8 +49,8 @@ function palette(theme: BulkImageTheme) {
 }
 
 /**
- * Vùng kéo-thả ảnh hàng loạt không giới hạn — cùng UI/hành vi với
- * Super Admin «Ảnh gửi kèm» (AttachmentField).
+ * Vùng kéo-thả ảnh & video hàng loạt không giới hạn — cùng hành vi album khối
+ * (input multiple, PC kéo-thả, điện thoại chọn nhiều).
  */
 export default function BulkImageDrop({
   items,
@@ -54,6 +58,7 @@ export default function BulkImageDrop({
   uploadFile,
   theme = 'dark',
   showLabel = true,
+  acceptMode = 'media',
 }: BulkImageDropProps) {
   const [status, setStatus] = useState('');
   const [dragOver, setDragOver] = useState(false);
@@ -61,11 +66,16 @@ export default function BulkImageDrop({
   const inputRef = useRef<HTMLInputElement>(null);
   const colors = palette(theme);
   const put = uploadFile || uploadMediaFile;
+  const allowVideo = acceptMode === 'media';
 
   async function addFiles(files: FileList | File[]) {
-    const list = Array.from(files).filter((f) => (f.type || '').startsWith('image/') || /\.(jpe?g|png|webp|gif|svg|avif|bmp)$/i.test(f.name || ''));
+    const list = Array.from(files).filter((f) => isAcceptedMediaFile(f, acceptMode));
     if (!list.length) {
-      setStatus('Chỉ nhận file ảnh. Anh chọn JPG/PNG/WEBP/GIF.');
+      setStatus(
+        allowVideo
+          ? 'Chỉ nhận ảnh hoặc video. Anh chọn JPG/PNG/WEBP/GIF hoặc MP4/WEBM/MOV.'
+          : 'Chỉ nhận file ảnh. Anh chọn JPG/PNG/WEBP/GIF.',
+      );
       return;
     }
     setBusy(true);
@@ -74,8 +84,12 @@ export default function BulkImageDrop({
       const f = list[i];
       setStatus(`Đang tải ${i + 1}/${list.length}: ${f.name}…`);
       try {
-        const url = await put(f);
-        added.push({ name: f.name, url, type: f.type || 'image/*' });
+        const url = tagIfVideo(await put(f), f);
+        added.push({
+          name: f.name,
+          url,
+          type: f.type || (isVideoFile(f) ? 'video/*' : 'image/*'),
+        });
       } catch (e) {
         setStatus(`Lỗi tải "${f.name}": ${e instanceof Error ? e.message : ''}`);
         await new Promise((r) => setTimeout(r, 1500));
@@ -100,6 +114,16 @@ export default function BulkImageDrop({
     opacity: busy ? 0.75 : 1,
   });
 
+  const thumbStyle: CSSProperties = {
+    width: 90,
+    height: 90,
+    objectFit: 'cover',
+    borderRadius: 8,
+    border: `2px solid ${colors.thumbBorder}`,
+    background: theme === 'light' ? '#fff' : '#111',
+    display: 'block',
+  };
+
   return (
     <div>
       {status && (
@@ -108,7 +132,9 @@ export default function BulkImageDrop({
         </div>
       )}
       {showLabel && (
-        <div style={{ fontSize: 13, color: colors.label, marginBottom: 6 }}>🖼️ Ảnh gửi kèm</div>
+        <div style={{ fontSize: 13, color: colors.label, marginBottom: 6 }}>
+          {allowVideo ? '🖼️🎬 Ảnh & video gửi kèm' : '🖼️ Ảnh gửi kèm'}
+        </div>
       )}
       <div
         role="button"
@@ -143,14 +169,20 @@ export default function BulkImageDrop({
           if (e.dataTransfer.files?.length) void addFiles(e.dataTransfer.files);
         }}
       >
-        <div style={{ color: colors.text }}>Kéo-thả ảnh vào đây, hoặc bấm để chọn ảnh</div>
+        <div style={{ color: colors.text }}>
+          {allowVideo
+            ? 'Kéo-thả hoặc bấm để tải ảnh & video (không giới hạn)'
+            : 'Kéo-thả hoặc bấm để tải ảnh (không giới hạn)'}
+        </div>
         <div style={{ fontSize: 12, color: colors.muted }}>
-          Chọn NHIỀU ảnh cùng lúc · PC &amp; điện thoại · giữ nguyên gốc
+          {allowVideo
+            ? 'PC/laptop: kéo-thả · Điện thoại: bấm chọn nhiều ảnh/video cùng lúc · giữ nguyên gốc'
+            : 'PC/laptop: kéo-thả · Điện thoại: bấm chọn nhiều ảnh cùng lúc · giữ nguyên gốc'}
         </div>
         <input
           ref={inputRef}
           type="file"
-          accept="image/*"
+          accept={allowVideo ? 'image/*,video/*' : 'image/*'}
           multiple
           style={{ display: 'none' }}
           onChange={(e) => {
@@ -161,43 +193,39 @@ export default function BulkImageDrop({
       </div>
       {items.length > 0 && (
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, marginTop: 10 }}>
-          {items.map((it, idx) => (
-            <div key={`${it.url}-${idx}`} style={{ position: 'relative' }}>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={it.url}
-                alt={it.name}
-                style={{
-                  width: 90,
-                  height: 90,
-                  objectFit: 'cover',
-                  borderRadius: 8,
-                  border: `2px solid ${colors.thumbBorder}`,
-                  background: theme === 'light' ? '#fff' : '#111',
-                }}
-              />
-              <button
-                type="button"
-                onClick={() => removeAt(idx)}
-                title="Gỡ ảnh"
-                style={{
-                  position: 'absolute',
-                  top: -8,
-                  right: -8,
-                  width: 22,
-                  height: 22,
-                  borderRadius: '50%',
-                  border: 'none',
-                  background: '#dc3545',
-                  color: '#fff',
-                  cursor: 'pointer',
-                  lineHeight: '20px',
-                }}
-              >
-                ×
-              </button>
-            </div>
-          ))}
+          {items.map((it, idx) => {
+            const video = isVideoAsset(it.url, it.type);
+            return (
+              <div key={`${it.url}-${idx}`} style={{ position: 'relative' }}>
+                {video ? (
+                  <video src={it.url} muted playsInline preload="metadata" style={thumbStyle} />
+                ) : (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={it.url} alt={it.name} style={thumbStyle} />
+                )}
+                <button
+                  type="button"
+                  onClick={() => removeAt(idx)}
+                  title={video ? 'Gỡ video' : 'Gỡ ảnh'}
+                  style={{
+                    position: 'absolute',
+                    top: -8,
+                    right: -8,
+                    width: 22,
+                    height: 22,
+                    borderRadius: '50%',
+                    border: 'none',
+                    background: '#dc3545',
+                    color: '#fff',
+                    cursor: 'pointer',
+                    lineHeight: '20px',
+                  }}
+                >
+                  ×
+                </button>
+              </div>
+            );
+          })}
         </div>
       )}
     </div>

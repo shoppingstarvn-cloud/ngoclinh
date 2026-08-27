@@ -205,7 +205,8 @@
   justify-content: center;
 }
 
-.register-home .register-qr-frame img {
+.register-home .register-qr-frame img,
+.register-home .register-qr-frame video {
   width: 100%;
   max-width: 260px;
   height: auto;

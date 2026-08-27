@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Swal from 'sweetalert2';
 import ImageUploadField from './ImageUploadField';
+import { isVideoFile, tagIfVideo } from '@/lib/media-url';
 
 const swalDark = { background: '#1a1a2e', color: '#fff' };
 
@@ -97,7 +98,7 @@ export default function AlbumAdminPanel({ authHeader }: Props) {
     if (!pj.id) throw new Error('Drive không trả file id');
     const reg = await fetch('/api/upload/drive-register', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: authHeader }, body: JSON.stringify({ file_id: pj.id, original_name: file.name, file_type: file.type }) }).then((r) => r.json());
     if (!reg.success) throw new Error(reg.error || 'Ghi Drive lỗi');
-    return { kind: (file.type || '').startsWith('video/') ? 'video' : 'image', url: reg.url, driveFileId: reg.fileId, name: file.name };
+    return { kind: isVideoFile(file) ? 'video' : 'image', url: tagIfVideo(reg.url, file), driveFileId: reg.fileId, name: file.name };
   }
 
   async function uploadImageUrl(file: File) {

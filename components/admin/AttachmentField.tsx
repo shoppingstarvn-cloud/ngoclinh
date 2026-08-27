@@ -2,13 +2,14 @@
 
 import { CSSProperties, DragEvent, useRef, useState } from 'react';
 import { uploadMediaFile } from '@/lib/client/upload-media';
+import { attachmentKindFromItem, isVideoAsset } from '@/lib/media-url';
 import BulkImageDrop, { type BulkImageItem } from './BulkImageDrop';
 
 export interface AttachmentItem {
   name: string;
   url: string;
   type: string;
-  kind: 'image' | 'file';
+  kind: 'image' | 'video' | 'file';
 }
 
 interface AttachmentFieldProps {
@@ -34,10 +35,15 @@ function prevent(e: DragEvent) {
   e.stopPropagation();
 }
 
+function isMediaItem(it: AttachmentItem) {
+  if (it.kind === 'file') return false;
+  if (it.kind === 'image' || it.kind === 'video') return true;
+  return isVideoAsset(it.url, it.type) || (it.type || '').startsWith('image/');
+}
+
 /**
- * Khu ĐÍNH KÈM TÁCH BIỆT kiểu Gmail: "Ảnh gửi kèm" + "File đính kèm (mọi định dạng)".
- * Kéo-thả hoặc bấm chọn NHIỀU file cùng lúc (PC & điện thoại) → tải THẲNG lên Google
- * Drive (giữ nguyên gốc, không nén) → lưu dạng mảng [{name,url,type,kind}].
+ * Khu ĐÍNH KÈM TÁCH BIỆT: "Ảnh & video gửi kèm" + "File đính kèm".
+ * Kéo-thả hoặc bấm chọn NHIỀU file (PC kéo-thả · điện thoại chọn hàng loạt).
  */
 export default function AttachmentField({ value, onChange }: AttachmentFieldProps) {
   const items = parseItems(value);
@@ -45,7 +51,7 @@ export default function AttachmentField({ value, onChange }: AttachmentFieldProp
   const [dragFile, setDragFile] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  async function addFiles(files: FileList | File[], forceKind?: 'image' | 'file') {
+  async function addFiles(files: FileList | File[]) {
     const list = Array.from(files);
     if (!list.length) return;
     const added: AttachmentItem[] = [];
@@ -54,8 +60,7 @@ export default function AttachmentField({ value, onChange }: AttachmentFieldProp
       setStatus(`Đang tải ${i + 1}/${list.length}: ${f.name}…`);
       try {
         const url = await uploadMediaFile(f);
-        const isImg = forceKind ? forceKind === 'image' : (f.type || '').startsWith('image/');
-        added.push({ name: f.name, url, type: f.type || '', kind: isImg ? 'image' : 'file' });
+        added.push({ name: f.name, url, type: f.type || '', kind: 'file' });
       } catch (e) {
         setStatus(`Lỗi tải "${f.name}": ${e instanceof Error ? e.message : ''}`);
         await new Promise((r) => setTimeout(r, 1500));
@@ -69,13 +74,18 @@ export default function AttachmentField({ value, onChange }: AttachmentFieldProp
     onChange(items.filter((_, i) => i !== idx));
   }
 
-  const imageItems = items.filter((it) => it.kind === 'image');
-  const files = items.map((it, idx) => ({ it, idx })).filter((x) => x.it.kind !== 'image');
+  const mediaItems = items.filter(isMediaItem);
+  const files = items.map((it, idx) => ({ it, idx })).filter((x) => !isMediaItem(x.it));
 
-  function setImages(next: BulkImageItem[]) {
-    const rest = items.filter((it) => it.kind !== 'image');
+  function setMedia(next: BulkImageItem[]) {
+    const rest = items.filter((it) => !isMediaItem(it));
     onChange([
-      ...next.map((it) => ({ name: it.name, url: it.url, type: it.type, kind: 'image' as const })),
+      ...next.map((it) => ({
+        name: it.name,
+        url: it.url,
+        type: it.type,
+        kind: attachmentKindFromItem(it.url, it.type),
+      })),
       ...rest,
     ]);
   }
@@ -98,10 +108,9 @@ export default function AttachmentField({ value, onChange }: AttachmentFieldProp
       )}
 
       <div style={{ marginBottom: 14 }}>
-        <BulkImageDrop items={imageItems} onChange={setImages} />
+        <BulkImageDrop items={mediaItems} onChange={setMedia} acceptMode="media" />
       </div>
 
-      {/* FILE ĐÍNH KÈM */}
       <div>
         <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.75)', marginBottom: 6 }}>📎 File đính kèm (PDF/Word/Excel/PPT/mọi định dạng)</div>
         <div
@@ -113,17 +122,17 @@ export default function AttachmentField({ value, onChange }: AttachmentFieldProp
           onDragEnter={(e) => { prevent(e); setDragFile(true); }}
           onDragOver={(e) => { prevent(e); e.dataTransfer.dropEffect = 'copy'; setDragFile(true); }}
           onDragLeave={(e) => { prevent(e); setDragFile(false); }}
-          onDrop={(e) => { prevent(e); setDragFile(false); if (e.dataTransfer.files?.length) void addFiles(e.dataTransfer.files, 'file'); }}
+          onDrop={(e) => { prevent(e); setDragFile(false); if (e.dataTransfer.files?.length) void addFiles(e.dataTransfer.files); }}
         >
           <div style={{ color: 'rgba(255,255,255,0.75)' }}>Kéo-thả file vào đây, hoặc bấm để chọn</div>
-          <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.45)' }}>Chọn nhiều file cùng lúc · mọi định dạng · không giới hạn dung lượng</div>
+          <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.45)' }}>PC/laptop: kéo-thả · Điện thoại: bấm chọn nhiều file cùng lúc · không giới hạn dung lượng</div>
           <input
             ref={fileInputRef}
             type="file"
             multiple
             accept="*/*"
             style={{ display: 'none' }}
-            onChange={(e) => { if (e.target.files) void addFiles(e.target.files, 'file'); e.target.value = ''; }}
+            onChange={(e) => { if (e.target.files) void addFiles(e.target.files); e.target.value = ''; }}
           />
         </div>
         {files.length > 0 && (

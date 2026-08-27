@@ -2,6 +2,7 @@
 
 import { FormEvent, useMemo, useState } from 'react';
 import { assetUrl } from '@/lib/slug';
+import MediaAsset from '@/components/ui/MediaAsset';
 import {
   resolveRegisterContent,
   type RegisterBlock,
@@ -108,7 +109,7 @@ function SideCard({ block }: { block: RegisterBlock }) {
       {title ? <p className="register-extra-title">{title}</p> : null}
       {image ? (
         <div className="register-qr-frame" style={{ marginBottom: 10 }}>
-          <img src={assetUrl(image)} alt={title} />
+          <MediaAsset src={image} alt={title} />
         </div>
       ) : null}
       {body ? <p className="register-extra-body">{body}</p> : null}

@@ -11,12 +11,14 @@
 	-o-box-shadow: inset 0 0 10px rgba(44,44,44,.1);
 }
 .left_ppage > p a {display: flex; display: -webkit-flex; align-items: center; justify-content: center;}
-.left_ppage > p a img { max-height: 100%; max-width: 100%;}
+.left_ppage > p a img,
+.left_ppage > p a video { max-height: 100%; max-width: 100%;}
 .left_ppage > p em {font-size: 13px; color: #ccc;}
 .left_ppage ul {align-items: center; justify-content: center; margin-bottom: 15px; display: flex; display: -webkit-flex;}
 .left_ppage ul li {display: inline-block; margin: 0 3px;}
 .left_ppage ul li a {display: flex; display: -webkit-flex; width: 55px; height: 55px; align-items: center; justify-content: center; border: 1px solid #ddd;}
-.left_ppage ul li a img {max-width: 100%; max-height: 100%;}
+.left_ppage ul li a img,
+.left_ppage ul li a video {max-width: 100%; max-height: 100%;}
 
 .right_ppage h1 {
 	color: #111;
@@ -119,7 +121,8 @@
 	.right_box {float: right; width: 49%;}
 	.left_ppage > p span {display: block; width: 260px; margin: 0 auto;}
 	.left_ppage > p a {height: 240px; padding: 0px 0 !important;}
-	.left_ppage > p a img { max-height: 100%; max-width: 100%;}
+	.left_ppage > p a img,
+.left_ppage > p a video { max-height: 100%; max-width: 100%;}
 }
 
 @media screen and (min-width: 48em) {}
