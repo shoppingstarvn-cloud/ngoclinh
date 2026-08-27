@@ -3,45 +3,45 @@ import { createAdminClient } from '@/lib/supabase/admin';
 import { hashPassword } from '@/lib/auth/password';
 import { signMemberToken, MEMBER_COOKIE, memberCookieOptions } from '@/lib/auth/user-jwt';
 import { getCurrentUser } from '@/lib/auth/user-session';
+import {
+  bodyToProfileForm,
+  firstProfileError,
+  normalizedProfile,
+  validateProfileForm,
+} from '@/lib/auth/profile-form';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
-
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 function missingRequestStatus(message: string | undefined) {
   return /request_status|request_at|request_reviewed_at/i.test(message || '');
 }
 
+function badRequest(message: string) {
+  return NextResponse.json({ success: false, error: message }, { status: 400 });
+}
+
 /** Hồ sơ khai báo trên form Đề nghị mở Website / Đăng ký thông tin. */
-function profileFromBody(
-  b: Record<string, string>,
+function profileFromNorm(
+  n: ReturnType<typeof normalizedProfile>,
   requestType: string,
-  userKind: string,
-  forInsert: boolean,
   existingRole?: string | null,
 ) {
   const now = new Date().toISOString();
-  const full_name = String(b.full_name || '').trim();
-  const dob = b.dob ? String(b.dob).slice(0, 10) : '';
-  const zalo_phone = String(b.zalo_phone || '').trim();
-  const unit_name = String(b.unit_name || '').trim();
-  const ward = String(b.ward || '').trim();
-  const class_in_charge = String(b.class_in_charge || '').trim();
   const alreadyAdmin = existingRole === 'admin1' || existingRole === 'superadmin';
   const row: Record<string, unknown> = {
-    user_kind: userKind,
+    full_name: n.full_name,
+    dob: n.dob || null,
+    zalo_phone: n.zalo_phone,
+    user_kind: n.user_kind,
+    unit_name: n.unit_name,
+    ward: n.ward,
+    class_in_charge: n.class_in_charge,
     request_type: requestType,
     request_status: alreadyAdmin ? 'approved' : 'pending',
     request_at: now,
   };
   if (!alreadyAdmin) row.request_reviewed_at = null;
-  if (forInsert || full_name) row.full_name = full_name;
-  if (forInsert || dob) row.dob = dob || null;
-  if (forInsert || zalo_phone) row.zalo_phone = zalo_phone;
-  if (forInsert || unit_name) row.unit_name = unit_name;
-  if (forInsert || ward) row.ward = ward;
-  if (forInsert || class_in_charge) row.class_in_charge = class_in_charge;
   return row;
 }
 
@@ -60,21 +60,24 @@ export async function POST(request: NextRequest) {
   try {
     const b = (await request.json()) as Record<string, string>;
     const request_type0 = b.request_type === 'admin' ? 'admin' : 'website';
-    const user_kind0 = b.user_kind === 'student' ? 'student' : 'teacher';
+    const form = bodyToProfileForm(b);
 
     // ĐÃ ĐĂNG NHẬP -> cập nhật hồ sơ của chính người đó
     const current = await getCurrentUser();
     if (current) {
-      if (!String(b.full_name || '').trim()) return NextResponse.json({ success: false, error: 'Nhập họ và tên' }, { status: 400 });
-      if (!String(b.dob || '').slice(0, 10)) return NextResponse.json({ success: false, error: 'Chọn ngày tháng năm sinh' }, { status: 400 });
+      const errors = validateProfileForm(form, { requireAccount: false });
+      if (Object.keys(errors).length) return badRequest(firstProfileError(errors));
+      const n = normalizedProfile(form);
       const supabase = createAdminClient();
       const { data: meRow } = await supabase.from('users').select('role').eq('id', current.id).maybeSingle();
-      const profile = profileFromBody(b, request_type0, user_kind0, false, meRow?.role);
-      const email = String(b.email || '').trim().toLowerCase();
+      const profile = profileFromNorm(n, request_type0, meRow?.role);
+      const email = n.email;
       const patch: Record<string, unknown> = { ...profile };
-      if (EMAIL_RE.test(email) && email !== String(current.email || '').toLowerCase()) {
+      if (email !== String(current.email || '').toLowerCase()) {
         const { data: dupE } = await supabase.from('users').select('id').eq('email', email).neq('id', current.id).limit(1);
         if (dupE && dupE.length) return NextResponse.json({ success: false, error: 'Email này đã được đăng ký' }, { status: 409 });
+        patch.email = email;
+      } else {
         patch.email = email;
       }
 
@@ -101,18 +104,14 @@ export async function POST(request: NextRequest) {
         },
       });
     }
-    const username = String(b.username || '').trim();
-    const password = String(b.password || '');
-    const email = String(b.email || '').trim().toLowerCase();
-    const full_name = String(b.full_name || '').trim();
-    const user_kind = user_kind0;
+    const errors = validateProfileForm(form, { requireAccount: true });
+    if (Object.keys(errors).length) return badRequest(firstProfileError(errors));
+    const n = normalizedProfile(form);
+    const username = n.username;
+    const password = n.password;
+    const email = n.email;
+    const full_name = n.full_name;
     const request_type = request_type0;
-
-    if (!full_name) return NextResponse.json({ success: false, error: 'Nhập họ và tên' }, { status: 400 });
-    if (!String(b.dob || '').slice(0, 10)) return NextResponse.json({ success: false, error: 'Chọn ngày tháng năm sinh' }, { status: 400 });
-    if (!EMAIL_RE.test(email)) return NextResponse.json({ success: false, error: 'Email không hợp lệ' }, { status: 400 });
-    if (password.length < 6) return NextResponse.json({ success: false, error: 'Mật khẩu phải từ 6 ký tự' }, { status: 400 });
-    if (username.length < 3) return NextResponse.json({ success: false, error: 'Tên đăng nhập từ 3 ký tự' }, { status: 400 });
 
     const supabase = createAdminClient();
     const { data: dupE } = await supabase.from('users').select('id').eq('email', email).limit(1);
@@ -129,7 +128,7 @@ export async function POST(request: NextRequest) {
       is_active: true,
       role: 'member',
       last_login: new Date().toISOString(),
-      ...profileFromBody(b, request_type, user_kind, true),
+      ...profileFromNorm(n, request_type),
       full_name,
     };
 

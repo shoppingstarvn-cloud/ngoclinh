@@ -1,8 +1,16 @@
 'use client';
 
-import { useEffect, useState, type CSSProperties } from 'react';
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import type { AuthUser } from './AuthModal';
 import AuthPortal from './AuthPortal';
+import {
+  EMPTY_PROFILE_FORM,
+  firstProfileError,
+  normalizedProfile,
+  validateProfileForm,
+  type ProfileField,
+  type ProfileForm,
+} from '@/lib/auth/profile-form';
 
 interface Props {
   open: boolean;
@@ -12,19 +20,57 @@ interface Props {
   onAuthed: (user: AuthUser) => void;
 }
 
+function Field({
+  label,
+  error,
+  children,
+}: {
+  label: string;
+  error?: string;
+  children: ReactNode;
+}) {
+  return (
+    <div className={`authm-field${error ? ' is-invalid' : ''}`}>
+      <label>{label}</label>
+      {children}
+      {error ? <p className="authm-field-err" role="alert">{error}</p> : null}
+    </div>
+  );
+}
+
 export default function RequestOpenModal({ open, requestType, loggedIn = false, onClose, onAuthed }: Props) {
-  const [f, setF] = useState({
-    username: '', password: '', full_name: '', dob: '', zalo_phone: '',
-    email: '', user_kind: 'teacher', unit_name: '', ward: '', class_in_charge: '',
-  });
+  const [f, setF] = useState<ProfileForm>(EMPTY_PROFILE_FORM);
   const [showPw, setShowPw] = useState(false);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState('');
+  const [reveal, setReveal] = useState(false);
 
-  function set(k: string, v: string) { setF((p) => ({ ...p, [k]: v })); }
+  function set(k: ProfileField, v: string) {
+    setReveal(true);
+    setF((p) => ({ ...p, [k]: v }));
+  }
+
+  function markReveal() {
+    setReveal(true);
+  }
 
   useEffect(() => {
-    if (!open || !loggedIn) return;
+    if (open) return;
+    setF(EMPTY_PROFILE_FORM);
+    setShowPw(false);
+    setBusy(false);
+    setErr('');
+    setReveal(false);
+  }, [open]);
+
+  useEffect(() => {
+    if (!open) return;
+    setReveal(true);
+    setErr('');
+    if (!loggedIn) {
+      setF(EMPTY_PROFILE_FORM);
+      return;
+    }
     fetch('/api/account/me')
       .then((r) => r.json())
       .then((d) => {
@@ -45,20 +91,26 @@ export default function RequestOpenModal({ open, requestType, loggedIn = false, 
       .catch(() => {});
   }, [open, loggedIn]);
 
+  const errors = useMemo(
+    () => validateProfileForm(f, { requireAccount: !loggedIn }),
+    [f, loggedIn],
+  );
+  const shown = reveal ? errors : {};
+  const canSubmit = Object.keys(errors).length === 0;
+
   async function submit() {
+    setReveal(true);
     setErr('');
-    if (!f.full_name.trim()) { setErr('Nhập họ và tên'); return; }
-    if (!f.dob) { setErr('Chọn ngày tháng năm sinh'); return; }
-    if (!f.zalo_phone.trim()) { setErr('Nhập số điện thoại Zalo'); return; }
-    if (!f.email.trim()) { setErr('Nhập email'); return; }
-    if (!f.unit_name.trim()) { setErr('Nhập đơn vị công tác / học tập'); return; }
-    if (!f.ward.trim()) { setErr('Nhập phường / xã'); return; }
-    if (!f.class_in_charge.trim()) { setErr('Nhập lớp phụ trách'); return; }
+    if (!canSubmit) {
+      setErr(firstProfileError(errors) || 'Anh điền đủ và đúng mọi trường rồi mới gửi.');
+      return;
+    }
     setBusy(true);
     try {
+      const payload = { ...normalizedProfile(f), request_type: requestType };
       const r = await fetch('/api/account/request-open', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...f, request_type: requestType }),
+        body: JSON.stringify(payload),
       });
       const d = await r.json().catch(() => ({}));
       if (!r.ok || !d.success) throw new Error(d.error || 'Gửi thất bại');
@@ -69,54 +121,145 @@ export default function RequestOpenModal({ open, requestType, loggedIn = false, 
 
   if (!open) return null;
   const title = requestType === 'admin' ? 'Đăng ký thông tin' : 'Đề nghị mở Website';
-  const half: CSSProperties = { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 };
+  const radioName = `uk-${requestType}`;
 
   return (
     <AuthPortal>
       <div className="authm-overlay" onClick={(e) => e.target === e.currentTarget && onClose()}>
-        <div className="authm-modal" style={{ maxWidth: 560 }}>
+        <div className="authm-modal authm-request">
           <button className="authm-close" onClick={onClose} aria-label="Đóng">×</button>
           <h2 className="authm-title">📝 {title}</h2>
           {err && <div className="authm-err">{err}</div>}
           <div className="authm-form">
             {!loggedIn && (
-              <div style={half}>
-                <div><label>Tên đăng nhập *</label><input value={f.username} onChange={(e) => set('username', e.target.value)} placeholder="vd superadminAL" /></div>
-                <div><label>Mật khẩu *</label>
-                  <div style={{ position: 'relative' }}>
-                    <input type={showPw ? 'text' : 'password'} value={f.password} onChange={(e) => set('password', e.target.value)} placeholder="Ít nhất 6 ký tự" style={{ paddingRight: 42 }} />
-                    <button type="button" onClick={() => setShowPw((v) => !v)} aria-label="Hiện/ẩn mật khẩu"
-                      style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', border: 'none', background: 'transparent', cursor: 'pointer', fontSize: 18, lineHeight: 1, padding: 2 }}>
+              <div className="authm-grid-2">
+                <Field label="Tên đăng nhập *" error={shown.username}>
+                  <input
+                    className={shown.username ? 'is-invalid' : undefined}
+                    value={f.username}
+                    onChange={(e) => set('username', e.target.value)}
+                    onBlur={markReveal}
+                    placeholder="vd superadminAL"
+                    autoComplete="username"
+                  />
+                </Field>
+                <Field label="Mật khẩu *" error={shown.password}>
+                  <div className="authm-pw">
+                    <input
+                      className={shown.password ? 'is-invalid' : undefined}
+                      type={showPw ? 'text' : 'password'}
+                      value={f.password}
+                      onChange={(e) => set('password', e.target.value)}
+                      onBlur={markReveal}
+                      placeholder="Ít nhất 6 ký tự"
+                      autoComplete="new-password"
+                    />
+                    <button type="button" className="authm-pw-toggle" onClick={() => setShowPw((v) => !v)} aria-label="Hiện/ẩn mật khẩu">
                       {showPw ? '🙈' : '👁️'}
                     </button>
                   </div>
-                </div>
+                </Field>
               </div>
             )}
-            <div style={half}>
-              <div><label>Họ và tên *</label><input value={f.full_name} onChange={(e) => set('full_name', e.target.value)} placeholder="Nguyễn Văn A" /></div>
-              <div><label>Ngày sinh *</label><input type="date" value={f.dob} onChange={(e) => set('dob', e.target.value)} /></div>
+            <div className="authm-grid-2">
+              <Field label="Họ và tên *" error={shown.full_name}>
+                <input
+                  className={shown.full_name ? 'is-invalid' : undefined}
+                  value={f.full_name}
+                  onChange={(e) => set('full_name', e.target.value)}
+                  onBlur={markReveal}
+                  placeholder="Nguyễn Văn A"
+                />
+              </Field>
+              <Field label="Ngày sinh *" error={shown.dob}>
+                <input
+                  className={shown.dob ? 'is-invalid' : undefined}
+                  type="date"
+                  value={f.dob}
+                  onChange={(e) => set('dob', e.target.value)}
+                  onBlur={markReveal}
+                />
+              </Field>
             </div>
-            <div style={half}>
-              <div><label>Số điện thoại Zalo *</label><input value={f.zalo_phone} onChange={(e) => set('zalo_phone', e.target.value)} placeholder="09xxxxxxxx" /></div>
-              <div><label>Email *</label><input type="email" value={f.email} onChange={(e) => set('email', e.target.value)} placeholder="email@gmail.com" /></div>
+            <div className="authm-grid-2">
+              <Field label="Số điện thoại Zalo *" error={shown.zalo_phone}>
+                <input
+                  className={shown.zalo_phone ? 'is-invalid' : undefined}
+                  value={f.zalo_phone}
+                  onChange={(e) => set('zalo_phone', e.target.value)}
+                  onBlur={markReveal}
+                  placeholder="09xxxxxxxx"
+                  inputMode="tel"
+                  autoComplete="tel"
+                />
+              </Field>
+              <Field label="Email *" error={shown.email}>
+                <input
+                  className={shown.email ? 'is-invalid' : undefined}
+                  type="email"
+                  value={f.email}
+                  onChange={(e) => set('email', e.target.value)}
+                  onBlur={markReveal}
+                  placeholder="email@gmail.com"
+                  autoComplete="email"
+                />
+              </Field>
             </div>
-            <label>Bạn là *</label>
-            <div style={{ display: 'flex', gap: 18, margin: '2px 0 6px' }}>
-              <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontWeight: 400 }}>
-                <input type="radio" name="uk" checked={f.user_kind === 'teacher'} onChange={() => set('user_kind', 'teacher')} /> 👩‍🏫 Giáo viên
-              </label>
-              <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontWeight: 400 }}>
-                <input type="radio" name="uk" checked={f.user_kind === 'student'} onChange={() => set('user_kind', 'student')} /> 🎓 Học sinh
-              </label>
+            <Field label="Bạn là *" error={shown.user_kind}>
+              <div className="authm-kind">
+                <label>
+                  <input type="radio" name={radioName} checked={f.user_kind === 'teacher'} onChange={() => set('user_kind', 'teacher')} /> 👩‍🏫 Giáo viên
+                </label>
+                <label>
+                  <input type="radio" name={radioName} checked={f.user_kind === 'student'} onChange={() => set('user_kind', 'student')} /> 🎓 Học sinh
+                </label>
+              </div>
+            </Field>
+            <div className="authm-grid-2">
+              <Field label="Đơn vị công tác / học tập *" error={shown.unit_name}>
+                <input
+                  className={shown.unit_name ? 'is-invalid' : undefined}
+                  value={f.unit_name}
+                  onChange={(e) => set('unit_name', e.target.value)}
+                  onBlur={markReveal}
+                  placeholder="VD: Trường THCS Lê Lợi"
+                />
+              </Field>
+              <Field label="Phường / Xã *" error={shown.ward}>
+                <input
+                  className={shown.ward ? 'is-invalid' : undefined}
+                  value={f.ward}
+                  onChange={(e) => set('ward', e.target.value)}
+                  onBlur={markReveal}
+                  placeholder="VD: Phường Hồng Bàng"
+                />
+              </Field>
             </div>
-            <div style={half}>
-              <div><label>Đơn vị công tác / học tập *</label><input value={f.unit_name} onChange={(e) => set('unit_name', e.target.value)} placeholder="VD: Trường THCS Lê Lợi" /></div>
-              <div><label>Phường / Xã *</label><input value={f.ward} onChange={(e) => set('ward', e.target.value)} placeholder="VD: Phường Hồng Bàng" /></div>
+            <Field label="Phụ trách lớp *" error={shown.class_in_charge}>
+              <input
+                className={shown.class_in_charge ? 'is-invalid' : undefined}
+                value={f.class_in_charge}
+                onChange={(e) => set('class_in_charge', e.target.value)}
+                onBlur={markReveal}
+                placeholder="VD: 1A5"
+              />
+            </Field>
+            {!canSubmit ? (
+              <p className="authm-field-hint">Nút gửi chỉ bật khi anh đã nhập hết mọi trường và đúng quy cách.</p>
+            ) : null}
+            <div
+              className="authm-submit-wrap"
+              onClick={() => { if (!canSubmit) setReveal(true); }}
+            >
+              <button
+                type="button"
+                className="authm-submit"
+                disabled={busy || !canSubmit}
+                onClick={submit}
+              >
+                {busy ? 'Đang gửi...' : `Gửi ${title}`}
+              </button>
             </div>
-            <label>Phụ trách lớp *</label>
-            <input value={f.class_in_charge} onChange={(e) => set('class_in_charge', e.target.value)} placeholder="VD: 1A5" />
-            <button className="authm-submit" disabled={busy} onClick={submit}>{busy ? 'Đang gửi...' : `Gửi ${title}`}</button>
           </div>
         </div>
       </div>

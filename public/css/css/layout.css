@@ -2175,7 +2175,41 @@ a.more:hover {
   padding: 12px 0; font-size: 15px; font-weight: 700; cursor: pointer; transition: background .2s;
 }
 .authm-submit:hover { background: #008a44; }
-.authm-submit:disabled { opacity: .6; cursor: default; }
+.authm-submit:disabled { opacity: .45; cursor: not-allowed; }
+.authm-submit:disabled:hover { background: #00A651; }
+.authm-submit-wrap { width: 100%; }
+.authm-field { min-width: 0; width: 100%; }
+.authm-field.is-invalid input[type="text"],
+.authm-field.is-invalid input[type="email"],
+.authm-field.is-invalid input[type="password"],
+.authm-field.is-invalid input[type="date"],
+.authm-form input.is-invalid {
+  border-color: #dc2626;
+}
+.authm-field.is-invalid input:not([type="radio"]):focus,
+.authm-form input.is-invalid:focus {
+  border-color: #dc2626;
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, .15);
+}
+.authm-field.is-invalid .authm-kind {
+  outline: 1px solid #dc2626;
+  border-radius: 9px;
+  padding: 8px 10px;
+}
+.authm-field-err {
+  color: #dc2626;
+  font-size: 12px;
+  font-weight: 600;
+  margin: 5px 0 0;
+  line-height: 1.35;
+}
+.authm-field-hint {
+  color: #b91c1c;
+  font-size: 12.5px;
+  font-weight: 600;
+  margin: 12px 0 0;
+  line-height: 1.4;
+}
 .authm-err { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; border-radius: 9px; padding: 10px 12px; font-size: 13px; margin-bottom: 12px; }
 .authm-msg { background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0; border-radius: 9px; padding: 10px 12px; font-size: 13px; margin-bottom: 12px; }
 .authm-note { font-size: 13px; color: #6b7280; margin: 2px 0 8px; }
