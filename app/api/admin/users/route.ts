@@ -19,22 +19,21 @@ export async function GET(request: NextRequest) {
   const admin = await requireAdmin(request);
   if (!isAdminPayload(admin)) return admin;
   const supabase = createAdminClient();
-  let { data, error } = await supabase
+  const first = await supabase
     .from('users')
     .select(COLS_FULL)
     .order('created_at', { ascending: false })
     .limit(1000);
-  if (error && missingRequestStatus(error.message)) {
-    const retry = await supabase
-      .from('users')
-      .select(COLS_FALLBACK)
-      .order('created_at', { ascending: false })
-      .limit(1000);
-    data = retry.data;
-    error = retry.error;
-  }
-  if (error) return NextResponse.json({ ok: false, error: error.message }, { status: 500 });
-  return NextResponse.json({ ok: true, users: data ?? [] });
+  const q =
+    first.error && missingRequestStatus(first.error.message)
+      ? await supabase
+          .from('users')
+          .select(COLS_FALLBACK)
+          .order('created_at', { ascending: false })
+          .limit(1000)
+      : first;
+  if (q.error) return NextResponse.json({ ok: false, error: q.error.message }, { status: 500 });
+  return NextResponse.json({ ok: true, users: q.data ?? [] });
 }
 
 /** POST /api/admin/users → vai trò / khoá / phê duyệt đề nghị.

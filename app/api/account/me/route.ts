@@ -16,14 +16,13 @@ export async function GET() {
       'role, username, full_name, email, dob, zalo_phone, user_kind, unit_name, ward, class_in_charge, request_type, request_status';
     const basic =
       'role, username, full_name, email, dob, zalo_phone, user_kind, unit_name, ward, class_in_charge, request_type';
-    let { data, error } = await supabase.from('users').select(full).eq('id', user.id).limit(1);
-    if (error && /request_status/i.test(error.message)) {
-      const retry = await supabase.from('users').select(basic).eq('id', user.id).limit(1);
-      data = retry.data;
-      error = retry.error;
-    }
-    if (!error) {
-      const row = data?.[0];
+    const first = await supabase.from('users').select(full).eq('id', user.id).limit(1);
+    const q =
+      first.error && /request_status/i.test(first.error.message)
+        ? await supabase.from('users').select(basic).eq('id', user.id).limit(1)
+        : first;
+    if (!q.error) {
+      const row = (q.data?.[0] ?? null) as Record<string, unknown> | null;
       if (row?.role) role = String(row.role);
       if (row) profile = row;
     }
