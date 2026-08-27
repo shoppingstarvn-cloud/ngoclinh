@@ -1,5 +1,6 @@
 'use client';
 
+import { Fragment } from 'react';
 import { ADMIN_TABLES } from '@/lib/cms/admin-schema';
 
 interface SidebarProps {
@@ -65,9 +66,8 @@ export default function Sidebar({ activeTab, unreadCount, registerUnreadCount = 
             {section.tables.map((name) => {
               const t = byName.get(name);
               if (!t) return null;
-              return (
+              const link = (
                 <a
-                  key={name}
                   className={`nav-link${activeTab === name ? ' active' : ''}`}
                   role="button"
                   tabIndex={0}
@@ -86,31 +86,39 @@ export default function Sidebar({ activeTab, unreadCount, registerUnreadCount = 
                   </span>
                 </a>
               );
+              if (name === 'registrations') {
+                return (
+                  <Fragment key={name}>
+                    {link}
+                    <div className="nav-section">Trang Con (Album)</div>
+                    <a
+                      className={`nav-link${activeTab === 'album' ? ' active' : ''}`}
+                      role="button"
+                      tabIndex={0}
+                      onClick={() => onSelect('album')}
+                      onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && onSelect('album')}
+                    >
+                      <i className="fas fa-images" />
+                      <span>Trang con / Nhật ký</span>
+                    </a>
+                    <div className="nav-section">Thành Viên</div>
+                    <a
+                      className={`nav-link${activeTab === 'users_mgmt' ? ' active' : ''}`}
+                      role="button"
+                      tabIndex={0}
+                      onClick={() => onSelect('users_mgmt')}
+                      onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && onSelect('users_mgmt')}
+                    >
+                      <i className="fas fa-users-cog" />
+                      <span>Quản lý Users</span>
+                    </a>
+                  </Fragment>
+                );
+              }
+              return <Fragment key={name}>{link}</Fragment>;
             })}
           </div>
         ))}
-        <div className="nav-section">Thành Viên</div>
-        <a
-          className={`nav-link${activeTab === 'users_mgmt' ? ' active' : ''}`}
-          role="button"
-          tabIndex={0}
-          onClick={() => onSelect('users_mgmt')}
-          onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && onSelect('users_mgmt')}
-        >
-          <i className="fas fa-users-cog" />
-          <span>Quản lý Users</span>
-        </a>
-        <div className="nav-section">Trang Con (Album)</div>
-        <a
-          className={`nav-link${activeTab === 'album' ? ' active' : ''}`}
-          role="button"
-          tabIndex={0}
-          onClick={() => onSelect('album')}
-          onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && onSelect('album')}
-        >
-          <i className="fas fa-images" />
-          <span>Trang con / Nhật ký</span>
-        </a>
         <div className="nav-section">Bảo Mật</div>
         <a
           className={`nav-link${activeTab === 'content_gate' ? ' active' : ''}`}
