@@ -2,17 +2,39 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { hashPassword } from '@/lib/auth/password';
 import { signMemberToken, MEMBER_COOKIE, memberCookieOptions } from '@/lib/auth/user-jwt';
+import { getCurrentUser } from '@/lib/auth/user-session';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-/** POST /api/account/request-open — tạo TÀI KHOẢN kèm hồ sơ đầy đủ (form "Đề nghị mở
- *  Website / Quản Trị"). Tạo xong đăng nhập luôn; hiện ngay ở bảng Quản lý Users. */
+/** POST /api/account/request-open — form "Đề nghị mở Website / Quản Trị".
+ *  - Nếu ĐANG đăng nhập: cập nhật hồ sơ + gắn nguồn đề nghị (không tạo tài khoản mới).
+ *  - Nếu CHƯA đăng nhập: tạo tài khoản kèm hồ sơ rồi đăng nhập luôn. */
 export async function POST(request: NextRequest) {
   try {
     const b = (await request.json()) as Record<string, string>;
+    const request_type0 = b.request_type === 'admin' ? 'admin' : 'website';
+    const user_kind0 = b.user_kind === 'student' ? 'student' : 'teacher';
+
+    // ĐÃ ĐĂNG NHẬP -> cập nhật hồ sơ của chính người đó
+    const current = await getCurrentUser();
+    if (current) {
+      const supabase = createAdminClient();
+      const { error } = await supabase.from('users').update({
+        full_name: String(b.full_name || '').trim() || undefined,
+        user_kind: user_kind0,
+        request_type: request_type0,
+        dob: b.dob ? String(b.dob) : null,
+        zalo_phone: String(b.zalo_phone || ''),
+        unit_name: String(b.unit_name || ''),
+        ward: String(b.ward || ''),
+        class_in_charge: String(b.class_in_charge || ''),
+      }).eq('id', current.id);
+      if (error) throw error;
+      return NextResponse.json({ success: true, user: { id: current.id, email: current.email, full_name: current.full_name, role: 'member' } });
+    }
     const username = String(b.username || '').trim();
     const password = String(b.password || '');
     const email = String(b.email || '').trim().toLowerCase();

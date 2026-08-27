@@ -57,9 +57,17 @@ export default function AuthArea({ compact = false }: { compact?: boolean }) {
             <div className="autharea-menu">
               <div className="autharea-menu-email">{user.email}</div>
               {(user.role === 'admin1' || user.role === 'superadmin') && (
-                <Link href="/quan-tri-trang-con" onClick={() => setMenuOpen(false)}>
-                  <i className="fa fa-book" /> Trang con / Nhật ký
-                </Link>
+                <>
+                  <a href="#" onClick={(e) => { e.preventDefault(); setMenuOpen(false); openReq('website'); }}>
+                    <i className="fa fa-globe" /> Đề nghị mở Website
+                  </a>
+                  <a href="#" onClick={(e) => { e.preventDefault(); setMenuOpen(false); openReq('admin'); }}>
+                    <i className="fa fa-user-shield" /> Quản Trị
+                  </a>
+                  <Link href="/quan-tri-trang-con" onClick={() => setMenuOpen(false)}>
+                    <i className="fa fa-book" /> Trang con / Nhật ký
+                  </Link>
+                </>
               )}
               <a href="#" onClick={(e) => { e.preventDefault(); logout(); }}>
                 <i className="fa fa-sign-out" /> Đăng xuất
@@ -72,11 +80,8 @@ export default function AuthArea({ compact = false }: { compact?: boolean }) {
           <button className="autharea-login" onClick={() => openModal('login')}>
             Đăng nhập
           </button>
-          <button className="autharea-register" onClick={() => openReq('website')}>
-            Đề nghị mở Website
-          </button>
-          <button className="autharea-register" onClick={() => openReq('admin')}>
-            Quản Trị
+          <button className="autharea-register" onClick={() => openModal('register')}>
+            Đăng ký
           </button>
         </span>
       )}
@@ -94,6 +99,7 @@ export default function AuthArea({ compact = false }: { compact?: boolean }) {
       <RequestOpenModal
         open={reqOpen}
         requestType={reqType}
+        loggedIn={!!user}
         onClose={() => setReqOpen(false)}
         onAuthed={(u) => {
           setUser(u);

@@ -6,11 +6,12 @@ import type { AuthUser } from './AuthModal';
 interface Props {
   open: boolean;
   requestType: 'website' | 'admin';
+  loggedIn?: boolean;
   onClose: () => void;
   onAuthed: (user: AuthUser) => void;
 }
 
-export default function RequestOpenModal({ open, requestType, onClose, onAuthed }: Props) {
+export default function RequestOpenModal({ open, requestType, loggedIn = false, onClose, onAuthed }: Props) {
   const [f, setF] = useState({
     username: '', password: '', full_name: '', dob: '', zalo_phone: '',
     email: '', user_kind: 'teacher', unit_name: '', ward: '', class_in_charge: '',
@@ -46,18 +47,20 @@ export default function RequestOpenModal({ open, requestType, onClose, onAuthed 
         <h2 className="authm-title">📝 {title}</h2>
         {err && <div className="authm-err">{err}</div>}
         <div className="authm-form">
-          <div style={half}>
-            <div><label>Tên đăng nhập *</label><input value={f.username} onChange={(e) => set('username', e.target.value)} placeholder="vd superadminAL" /></div>
-            <div><label>Mật khẩu *</label>
-              <div style={{ position: 'relative' }}>
-                <input type={showPw ? 'text' : 'password'} value={f.password} onChange={(e) => set('password', e.target.value)} placeholder="Ít nhất 6 ký tự" style={{ paddingRight: 42 }} />
-                <button type="button" onClick={() => setShowPw((v) => !v)} aria-label="Hiện/ẩn mật khẩu"
-                  style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', border: 'none', background: 'transparent', cursor: 'pointer', fontSize: 18, lineHeight: 1, padding: 2 }}>
-                  {showPw ? '🙈' : '👁️'}
-                </button>
+          {!loggedIn && (
+            <div style={half}>
+              <div><label>Tên đăng nhập *</label><input value={f.username} onChange={(e) => set('username', e.target.value)} placeholder="vd superadminAL" /></div>
+              <div><label>Mật khẩu *</label>
+                <div style={{ position: 'relative' }}>
+                  <input type={showPw ? 'text' : 'password'} value={f.password} onChange={(e) => set('password', e.target.value)} placeholder="Ít nhất 6 ký tự" style={{ paddingRight: 42 }} />
+                  <button type="button" onClick={() => setShowPw((v) => !v)} aria-label="Hiện/ẩn mật khẩu"
+                    style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', border: 'none', background: 'transparent', cursor: 'pointer', fontSize: 18, lineHeight: 1, padding: 2 }}>
+                    {showPw ? '🙈' : '👁️'}
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
+          )}
           <div style={half}>
             <div><label>Họ và tên *</label><input value={f.full_name} onChange={(e) => set('full_name', e.target.value)} placeholder="Nguyễn Văn A" /></div>
             <div><label>Ngày sinh *</label><input type="date" value={f.dob} onChange={(e) => set('dob', e.target.value)} /></div>
