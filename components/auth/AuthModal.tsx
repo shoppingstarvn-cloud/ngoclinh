@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { detectInApp, openInExternalBrowser, type InAppInfo } from '@/lib/utils/inapp';
+import AuthPortal from './AuthPortal';
 
 export interface AuthUser {
   id: number;
@@ -130,10 +131,10 @@ export default function AuthModal({ open, initialMode = 'login', onClose, onAuth
   const renderEye = () => (
     <button
       type="button"
+      className="authm-pw-toggle"
       onClick={() => setShowPw((v) => !v)}
       aria-label={showPw ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
       title={showPw ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
-      style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', border: 'none', background: 'transparent', cursor: 'pointer', fontSize: 18, lineHeight: 1, padding: 2 }}
     >
       {showPw ? '🙈' : '👁️'}
     </button>
@@ -241,6 +242,7 @@ export default function AuthModal({ open, initialMode = 'login', onClose, onAuth
     mode === 'login' ? 'Đăng nhập' : mode === 'register' ? 'Đăng ký tài khoản' : 'Quên mật khẩu';
 
   return (
+    <AuthPortal>
     <div className="authm-overlay" onClick={(e) => e.target === e.currentTarget && onClose()}>
       <div className="authm-box" role="dialog" aria-modal="true">
         <button className="authm-close" onClick={onClose} aria-label="Đóng">
@@ -280,8 +282,8 @@ export default function AuthModal({ open, initialMode = 'login', onClose, onAuth
             <label>Email</label>
             <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="email@gmail.com" />
             <label>Mật khẩu</label>
-            <div style={{ position: 'relative' }}>
-              <input type={showPw ? 'text' : 'password'} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Mật khẩu" style={{ paddingRight: 42 }} onKeyDown={(e) => e.key === 'Enter' && submitLogin()} />
+            <div className="authm-pw">
+              <input type={showPw ? 'text' : 'password'} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Mật khẩu" onKeyDown={(e) => e.key === 'Enter' && submitLogin()} />
               {renderEye()}
             </div>
             <div className="authm-row-right">
@@ -303,8 +305,8 @@ export default function AuthModal({ open, initialMode = 'login', onClose, onAuth
             <label>Email</label>
             <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="email@gmail.com" />
             <label>Mật khẩu</label>
-            <div style={{ position: 'relative' }}>
-              <input type={showPw ? 'text' : 'password'} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Ít nhất 6 ký tự" style={{ paddingRight: 42 }} onKeyDown={(e) => e.key === 'Enter' && submitRegister()} />
+            <div className="authm-pw">
+              <input type={showPw ? 'text' : 'password'} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Ít nhất 6 ký tự" onKeyDown={(e) => e.key === 'Enter' && submitRegister()} />
               {renderEye()}
             </div>
             <button className="authm-submit" disabled={busy} onClick={submitRegister}>
@@ -331,8 +333,8 @@ export default function AuthModal({ open, initialMode = 'login', onClose, onAuth
                 <label>Mã xác minh</label>
                 <input type="text" inputMode="numeric" maxLength={6} value={fpCode} onChange={(e) => setFpCode(e.target.value)} placeholder="______" />
                 <label>Mật khẩu mới</label>
-                <div style={{ position: 'relative' }}>
-                  <input type={showPw ? 'text' : 'password'} value={fpNewPw} onChange={(e) => setFpNewPw(e.target.value)} placeholder="Ít nhất 6 ký tự" style={{ paddingRight: 42 }} />
+                <div className="authm-pw">
+                  <input type={showPw ? 'text' : 'password'} value={fpNewPw} onChange={(e) => setFpNewPw(e.target.value)} placeholder="Ít nhất 6 ký tự" />
                   {renderEye()}
                 </div>
                 <button className="authm-submit" disabled={busy} onClick={fpReset}>
@@ -383,5 +385,6 @@ export default function AuthModal({ open, initialMode = 'login', onClose, onAuth
         )}
       </div>
     </div>
+    </AuthPortal>
   );
 }

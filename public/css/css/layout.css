@@ -2088,16 +2088,41 @@ a.more:hover {
 .menu-m-auth { padding: 12px 16px; border-bottom: 1px solid rgba(255,255,255,.12); }
 .autharea-compact .autharea-name { color: #fff; }
 
-/* --- Modal --- */
+/* --- Modal ---
+   Overlay gắn ra <body> (AuthPortal). Nền form PHẢI trắng đặc (#fff),
+   không để banner/header lộ xuyên qua. */
 .authm-overlay {
-  position: fixed; inset: 0; background: rgba(15,23,42,.55); z-index: 9999;
+  position: fixed; inset: 0; background: rgba(15,23,42,.62); z-index: 100000;
   display: flex; align-items: flex-start; justify-content: center; padding: 6vh 16px;
   overflow-y: auto; animation: authmFade .2s ease;
+  text-align: left; isolation: isolate;
 }
 @keyframes authmFade { from { opacity: 0 } to { opacity: 1 } }
-.authm-box {
-  position: relative; width: 100%; max-width: 420px; background: #fff; border-radius: 16px;
+.authm-box,
+.authm-modal,
+.authm-request {
+  position: relative; width: 100%; max-width: 420px;
+  background: #fff !important; background-color: #fff !important;
+  border-radius: 16px;
   box-shadow: 0 24px 60px rgba(0,0,0,.35); padding: 26px 26px 30px; animation: authmUp .25s ease;
+  text-align: left; box-sizing: border-box;
+  opacity: 1;
+}
+.authm-request { max-width: 560px; }
+.authm-grid-2 {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 12px; width: 100%;
+}
+.authm-grid-2 > div { min-width: 0; width: 100%; }
+@media (max-width: 560px) {
+  .authm-grid-2 { grid-template-columns: 1fr; }
+}
+.authm-kind {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 18px;
+  margin: 2px 0 6px; width: 100%;
+}
+.authm-kind label {
+  display: inline-flex !important; align-items: center; gap: 6px;
+  width: auto !important; margin: 0 !important; font-weight: 400 !important;
 }
 @keyframes authmUp { from { transform: translateY(14px); opacity: .6 } to { transform: none; opacity: 1 } }
 .authm-close {
@@ -2112,14 +2137,40 @@ a.more:hover {
   font-size: 14px; font-weight: 700; color: #64748b; transition: all .2s;
 }
 .authm-tabs button.active { background: #fff; color: #00A651; box-shadow: 0 2px 6px rgba(0,0,0,.08); }
-.authm-form { display: flex; flex-direction: column; }
-.authm-form label { font-size: 13px; font-weight: 600; color: #334155; margin: 10px 0 5px; }
-.authm-form input {
+.authm-form {
+  display: flex; flex-direction: column; align-items: stretch; width: 100%;
+  text-align: left;
+}
+.authm-form label {
+  display: block; width: 100%; text-align: left;
+  font-size: 13px; font-weight: 600; color: #334155; margin: 10px 0 5px;
+}
+.authm-form input[type="text"],
+.authm-form input[type="email"],
+.authm-form input[type="password"],
+.authm-form input[type="date"],
+.authm-form input:not([type]) {
+  display: block; width: 100%; max-width: 100%; box-sizing: border-box; float: none;
   border: 1px solid #cbd5e1; border-radius: 9px; padding: 11px 13px; font-size: 15px; outline: none;
   transition: border-color .2s, box-shadow .2s;
 }
-.authm-form input:focus { border-color: #00A651; box-shadow: 0 0 0 3px rgba(0,166,81,.15); }
+.authm-form input[type="text"]:focus,
+.authm-form input[type="email"]:focus,
+.authm-form input[type="password"]:focus,
+.authm-form input[type="date"]:focus,
+.authm-form input:not([type]):focus { border-color: #00A651; box-shadow: 0 0 0 3px rgba(0,166,81,.15); }
+.authm-pw { position: relative; display: block; width: 100%; }
+.authm-pw input { padding-right: 44px !important; }
+.authm-pw-toggle {
+  position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
+  border: none; background: transparent; cursor: pointer; font-size: 18px; line-height: 1; padding: 2px;
+  color: #64748b;
+}
+.authm-pw-toggle:hover { color: #334155; }
+.authm-form input[type="password"]::-ms-reveal,
+.authm-form input[type="password"]::-ms-clear { display: none; }
 .authm-submit {
+  width: 100%; box-sizing: border-box;
   margin-top: 16px; background: #00A651; color: #fff; border: none; border-radius: 10px;
   padding: 12px 0; font-size: 15px; font-weight: 700; cursor: pointer; transition: background .2s;
 }
