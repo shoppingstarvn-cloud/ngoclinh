@@ -13,6 +13,7 @@ import { SHARE_DESCRIPTION, absoluteUrl, shareOpenGraph, shareTwitter } from '@/
 import { resolveHref } from '@/lib/slug';
 import { isImageAttachment, isVideoAttachment } from '@/lib/media-url';
 import MediaAsset from '@/components/ui/MediaAsset';
+import ImageWithReactions from '@/components/ui/ImageWithReactions';
 
 const RESERVED = new Set(['legacy', 'api', 'admin', 'uploads']);
 
@@ -214,14 +215,13 @@ export default async function SlugPage({ params }: PageProps) {
                           {detail.attachments
                             .filter((a) => isImageAttachment(a))
                             .map((a) => (
-                              <a key={a.url} href={a.url} target="_blank" rel="noreferrer">
-                                {/* eslint-disable-next-line @next/next/no-img-element */}
-                                <img
-                                  src={a.url}
-                                  alt={a.name}
-                                  style={{ width: 200, height: 145, objectFit: 'cover', borderRadius: 8, border: '1px solid #eee' }}
-                                />
-                              </a>
+                              <ImageWithReactions
+                                key={a.url}
+                                src={a.url}
+                                alt={a.name}
+                                href={a.url}
+                                style={{ width: 200, height: 145, objectFit: 'cover', borderRadius: 8, border: '1px solid #eee', display: 'block' }}
+                              />
                             ))}
                         </div>
                       </>

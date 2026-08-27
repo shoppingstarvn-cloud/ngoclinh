@@ -19,6 +19,9 @@ const eslintConfig = [
       'public/**',
       'scripts/**',
       'server.js',
+      '**/~$*.tsx',
+      '**/~$*.ts',
+      '**/~$*.js',
     ],
   },
 ];

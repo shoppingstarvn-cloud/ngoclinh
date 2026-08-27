@@ -1,7 +1,7 @@
 import type { CSSProperties, SyntheticEvent } from 'react';
 import { assetUrl } from '@/lib/slug';
 import { isVideoAsset, videoThumbUrl } from '@/lib/media-url';
-import VideoPlayer from '@/components/ui/VideoPlayer';
+import PlayerWithReactions from '@/components/ui/PlayerWithReactions';
 
 export type MediaAssetVariant = 'card' | 'hero' | 'gallery';
 
@@ -35,7 +35,7 @@ export default function MediaAsset({
   if (!url) return null;
   if (kind === 'video' || isVideoAsset(url)) {
     if (variant === 'gallery') {
-      return <VideoPlayer src={url} title={title} className={className} />;
+      return <PlayerWithReactions src={url} title={title} className={className} />;
     }
     const thumb = videoThumbUrl(url);
     if (thumb) {

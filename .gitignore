@@ -21,6 +21,9 @@ migrate.config.json
 /uploads/*
 !/uploads/.gitkeep
 
+# Word lock files (Office tạo ~$ khi mở file)
+**/~$*
+
 # Logs & misc
 *.log
 .DS_Store

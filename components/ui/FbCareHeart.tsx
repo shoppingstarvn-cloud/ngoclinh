@@ -1,4 +1,4 @@
-/** Sticker Facebook Care — mặt vàng ôm trái tim đỏ (nút Yêu). */
+/** Sticker Facebook Care — mặt vàng ôm trái tim đỏ (nút Care, tách khỏi nút Yêu). */
 export default function FbCareHeart({ size = 28 }: { size?: number }) {
   return (
     <svg

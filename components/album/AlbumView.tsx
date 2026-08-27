@@ -1,13 +1,14 @@
 'use client';
 /* eslint-disable @next/next/no-img-element */
 
-import { useCallback, useEffect, useState, type CSSProperties, type ReactNode } from 'react';
+import { useCallback, useEffect, useState, type CSSProperties } from 'react';
 import AuthModal from '@/components/auth/AuthModal';
 import MediaAsset from '@/components/ui/MediaAsset';
 import VideoPlayer from '@/components/ui/VideoPlayer';
-import FbCareHeart from '@/components/ui/FbCareHeart';
+import ReactionBar from '@/components/ui/ReactionBar';
 import { driveDownloadUrl, extractDriveFileId, isVideoAsset, videoThumbUrl } from '@/lib/media-url';
 import { isMediaFavorite, toggleMediaFavorite } from '@/lib/media-favorites';
+import { albumReactionTarget } from '@/lib/reactions';
 
 type Block = { id: number; title: string; cover_url: string; photos: number; videos: number };
 type Media = { id: number; kind: string; url: string; name: string };
@@ -19,12 +20,6 @@ const GRADS = [
   'linear-gradient(135deg,#f093fb,#f5576c)', 'linear-gradient(135deg,#5ee7df,#b490ca)',
   'linear-gradient(135deg,#43e97b,#38f9d7)', 'linear-gradient(135deg,#fa709a,#fee140)',
   'linear-gradient(135deg,#4facfe,#00f2fe)', 'linear-gradient(135deg,#667eea,#764ba2)',
-];
-const REACTS: { t: string; e: ReactNode; l: string }[] = [
-  { t: 'like', e: '👍', l: 'Thích' },
-  { t: 'love', e: <FbCareHeart size={26} />, l: 'Yêu' },
-  { t: 'haha', e: '😆', l: 'Haha' },
-  { t: 'wow', e: '😮', l: 'Wow' },
 ];
 
 export default function AlbumView({ slug }: { slug: string }) {
@@ -237,23 +232,15 @@ export default function AlbumView({ slug }: { slug: string }) {
 
 /* ---------- Viewer chi tiết 1 ảnh/video ---------- */
 function MediaViewer({ media, onClose }: { media: Media; onClose: () => void }) {
-  const [counts, setCounts] = useState<Record<string, number>>({});
-  const [mine, setMine] = useState<string | null>(null);
   const [comments, setComments] = useState<{ id: number; user_name: string; content: string; created_at: string }[]>([]);
   const [text, setText] = useState('');
   const [fav, setFav] = useState(false);
 
   useEffect(() => {
-    fetch(`/api/album/react?mediaId=${media.id}`).then((r) => r.json()).then((d) => { setCounts(d.counts || {}); setMine(d.mine || null); }).catch(() => {});
     fetch(`/api/album/comment?mediaId=${media.id}`).then((r) => r.json()).then((d) => setComments(d.comments || [])).catch(() => {});
     setFav(isMediaFavorite(media.url));
   }, [media.id, media.url]);
 
-  async function react(type: string) {
-    const r = await fetch('/api/album/react', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ mediaId: media.id, type }) });
-    if (r.status === 403) { alert('Bạn cần đăng nhập & mở khoá để thả cảm xúc.'); return; }
-    const d = await r.json(); if (d.ok) { setCounts(d.counts || {}); setMine(d.mine || null); }
-  }
   async function send() {
     const c = text.trim(); if (!c) return;
     const r = await fetch('/api/album/comment', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ mediaId: media.id, content: c }) });
@@ -285,14 +272,10 @@ function MediaViewer({ media, onClose }: { media: Media; onClose: () => void }) 
                 </div>
               </>
             )}
-          <div className="alb-reactbar">
-            {REACTS.map((r) => (
-              <button key={r.t} className={`alb-react${mine === r.t ? ' on' : ''}`} title={r.l} onClick={() => react(r.t)}>
-                <span className="alb-react-ico">{r.e}</span>{counts[r.t] ? <b>{counts[r.t]}</b> : null}
-              </button>
-            ))}
-            <a className="alb-btn soft" href={downloadHref} target="_blank" rel="noreferrer">⬇️ Tải về</a>
-          </div>
+          <ReactionBar
+            target={albumReactionTarget(media.id)}
+            extra={<a className="alb-btn soft" href={downloadHref} target="_blank" rel="noreferrer">⬇️ Tải về</a>}
+          />
           <div className="alb-cmts">
             <div className="alb-cinput">
               <input placeholder="Viết bình luận…" value={text} onChange={(e) => setText(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && send()} />
@@ -377,11 +360,7 @@ const CSS = `
 .alb-btn{border:none;border-radius:12px;padding:11px 16px;font-weight:800;font-size:14px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;text-decoration:none}
 .alb-btn.green{background:#00A651;color:#fff}.alb-btn.soft{background:#eef7f1;color:#046b38}
 .alb-btn.soft.on{background:#00A651;color:#fff}
-.alb-reactbar{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0;align-items:center}
-.alb-react{border:1px solid #dce9e1;background:#fff;border-radius:30px;padding:7px 12px;font-size:17px;cursor:pointer;display:flex;align-items:center;gap:5px}
-.alb-react-ico{display:flex;align-items:center;line-height:1}
-.alb-react b{font-size:13px;color:#046b38}
-.alb-react.on{background:#eafaf0;border-color:#00A651;box-shadow:0 0 0 2px rgba(0,166,81,.25)}
+.alb-lbbody .nl-reactbar{margin:14px 0}
 .alb-cmts{margin-top:12px;border-top:1px dashed #cfe6d8;padding-top:12px}
 .alb-cinput{display:flex;gap:8px;margin-bottom:12px}
 .alb-cinput input{flex:1;border:1px solid #cfe6d8;border-radius:12px;padding:11px 14px;font-size:14px;outline:none}

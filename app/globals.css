@@ -259,3 +259,75 @@ body {
   overflow-x: auto;
   display: block;
 }
+
+.nl-react-media {
+  width: 100%;
+  max-width: 100%;
+}
+.nl-react-media > img,
+.nl-react-media > a img {
+  max-width: 100%;
+  height: auto;
+}
+.nl-reactbar {
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: wrap !important;
+  gap: 8px;
+  margin: 10px 0 14px;
+  align-items: center !important;
+  width: 100%;
+  max-width: 100%;
+}
+.nl-reactbar.compact {
+  gap: 6px;
+  margin: 8px 0 10px;
+}
+.nl-reactbar .nl-react {
+  border: 1px solid #dce9e1;
+  background: #fff;
+  border-radius: 30px;
+  padding: 7px 12px;
+  font-size: 17px;
+  cursor: pointer;
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  line-height: 1.1;
+  color: #123;
+  width: auto !important;
+  max-width: none !important;
+  flex: 0 0 auto !important;
+  min-width: 36px;
+}
+.nl-reactbar.compact .nl-react {
+  padding: 5px 9px;
+  font-size: 15px;
+}
+.nl-react-ico {
+  display: flex;
+  align-items: center;
+  line-height: 1;
+}
+.nl-react-lab {
+  font-size: 11px;
+  font-weight: 700;
+  color: #046b38;
+  white-space: nowrap;
+}
+.nl-reactbar.compact .nl-react-lab {
+  display: none;
+}
+.nl-react b {
+  font-size: 13px;
+  color: #046b38;
+}
+.nl-react.on {
+  background: #eafaf0;
+  border-color: #00a651;
+  box-shadow: 0 0 0 2px rgba(0, 166, 81, 0.25);
+}
+.nl-react:hover {
+  border-color: #00a651;
+}

@@ -376,10 +376,11 @@ export default function RichTextEditor({ initialValue, onChange }: RichTextEdito
       try {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const Delta = Quill.import('delta') as any;
-        quill.clipboard.addMatcher('VIDEO', (node: HTMLElement) => {
+        quill.clipboard.addMatcher('VIDEO', (node: Node) => {
+          const el = node instanceof HTMLElement ? node : null;
           const src =
-            node.getAttribute('src') ||
-            node.querySelector('source')?.getAttribute('src') ||
+            el?.getAttribute('src') ||
+            el?.querySelector('source')?.getAttribute('src') ||
             '';
           return new Delta().insert({ nlvideo: src });
         });

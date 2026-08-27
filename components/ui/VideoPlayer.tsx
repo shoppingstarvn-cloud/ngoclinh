@@ -89,10 +89,10 @@ export default function VideoPlayer({
       setFs(!!(document.fullscreenElement === el || doc.webkitFullscreenElement === el));
     };
     document.addEventListener('fullscreenchange', onFs);
-    document.addEventListener('webkitfullscreenchange', onFs);
+    document.addEventListener('webkitfullscreenchange' as 'fullscreenchange', onFs);
     return () => {
       document.removeEventListener('fullscreenchange', onFs);
-      document.removeEventListener('webkitfullscreenchange', onFs);
+      document.removeEventListener('webkitfullscreenchange' as 'fullscreenchange', onFs);
     };
   }, []);
 
