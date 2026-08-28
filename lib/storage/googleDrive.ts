@@ -3,15 +3,37 @@
 // (Vercel chặn body ~4.5MB/request). Dùng OAuth refresh token của tài khoản Drive.
 // Port sang Next.js/TypeScript từ skill "google-drive-5tb-storage".
 
-const CLIENT_ID = process.env.GOOGLE_DRIVE_CLIENT_ID || '';
-const CLIENT_SECRET = process.env.GOOGLE_DRIVE_CLIENT_SECRET || '';
-const REFRESH_TOKEN = process.env.GOOGLE_DRIVE_REFRESH_TOKEN || '';
+function driveOAuth() {
+  const unquote = (v: string) => {
+    const s = (v || '').trim();
+    if ((s.startsWith('"') && s.endsWith('"')) || (s.startsWith("'") && s.endsWith("'"))) {
+      return s.slice(1, -1);
+    }
+    return s;
+  };
+  return {
+    clientId: unquote(process.env.GOOGLE_DRIVE_CLIENT_ID || ''),
+    clientSecret: unquote(process.env.GOOGLE_DRIVE_CLIENT_SECRET || ''),
+    refreshToken: unquote(process.env.GOOGLE_DRIVE_REFRESH_TOKEN || ''),
+  };
+}
 
 // Tên thư mục trên Drive chứa toàn bộ media của web ngoclinh
 const DRIVE_FOLDER_NAME = process.env.GOOGLE_DRIVE_FOLDER_NAME || 'ngoclinh - Media Website';
 
+function looksLikeOAuthValue(v: string): boolean {
+  const s = v.trim().replace(/^['"]|['"]$/g, '');
+  if (s.length < 20) return false;
+  if (/sensitive|placeholder|changeme|your_/i.test(s)) return false;
+  return true;
+}
+
 export function isConfigured(): boolean {
-  return !!(CLIENT_ID && CLIENT_SECRET && REFRESH_TOKEN);
+  const { clientId, clientSecret, refreshToken } = driveOAuth();
+  if (!looksLikeOAuthValue(clientId) || !looksLikeOAuthValue(clientSecret) || !looksLikeOAuthValue(refreshToken)) {
+    return false;
+  }
+  return clientId.includes('.apps.googleusercontent.com') || clientId.length > 40;
 }
 
 let _token: string | null = null;
@@ -19,16 +41,17 @@ let _exp = 0;
 
 async function getAccessToken(): Promise<string> {
   if (_token && Date.now() < _exp - 60_000) return _token;
-  if (!isConfigured()) {
+  const { clientId, clientSecret, refreshToken } = driveOAuth();
+  if (!clientId || !clientSecret || !refreshToken) {
     throw new Error('Google Drive chưa cấu hình (thiếu CLIENT_ID/SECRET/REFRESH_TOKEN)');
   }
   const r = await fetch('https://oauth2.googleapis.com/token', {
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
     body: new URLSearchParams({
-      client_id: CLIENT_ID,
-      client_secret: CLIENT_SECRET,
-      refresh_token: REFRESH_TOKEN,
+      client_id: clientId,
+      client_secret: clientSecret,
+      refresh_token: refreshToken,
       grant_type: 'refresh_token',
     }),
   });
@@ -46,6 +69,132 @@ async function getAccessToken(): Promise<string> {
   _token = data.access_token;
   _exp = Date.now() + (Number(data.expires_in) || 3600) * 1000;
   return _token;
+}
+
+/** Gọi Drive API kèm Bearer; 401 thì làm mới token rồi thử lại 1 lần. */
+async function driveApi(url: string, init: RequestInit = {}, retried = false): Promise<Response> {
+  const token = await getAccessToken();
+  const headers = new Headers(init.headers);
+  headers.set('Authorization', 'Bearer ' + token);
+  const r = await fetch(url, { ...init, headers });
+  if (r.status === 401 && !retried) {
+    _token = null;
+    _exp = 0;
+    return driveApi(url, init, true);
+  }
+  return r;
+}
+
+export function isDriveFileId(id: string): boolean {
+  return /^[a-zA-Z0-9_-]{10,128}$/.test(id);
+}
+
+export type DriveFileMeta = {
+  size: number;
+  mimeType: string;
+  name: string;
+};
+
+const VIDEO_FILE_NAME = /\.(mp4|m4v|mov|webm|mkv|avi|3gp)$/i;
+
+/** Chỉ video. Ảnh Drive hay bị `application/octet-stream` — không được nhầm thành stream. */
+export function isStreamableVideoMime(mime: string, name?: string): boolean {
+  const m = (mime || '').toLowerCase();
+  if (m.startsWith('image/')) return false;
+  if (m.startsWith('video/')) return true;
+  if (m === 'application/mp4') return true;
+  if (m === 'application/octet-stream' || !m) {
+    return VIDEO_FILE_NAME.test(name || '');
+  }
+  return false;
+}
+
+const metaCache = new Map<string, { at: number; data: DriveFileMeta }>();
+const META_TTL_MS = 10 * 60_000;
+
+export async function getDriveFileMeta(fileId: string): Promise<DriveFileMeta> {
+  const hit = metaCache.get(fileId);
+  if (hit && Date.now() - hit.at < META_TTL_MS) return hit.data;
+  const r = await driveApi(
+    `https://www.googleapis.com/drive/v3/files/${encodeURIComponent(fileId)}?fields=size,mimeType,name&supportsAllDrives=true`,
+  );
+  if (!r.ok) {
+    const t = await r.text().catch(() => '');
+    throw new Error(`Drive meta HTTP ${r.status} ${t.slice(0, 180)}`);
+  }
+  const d = (await r.json()) as { size?: string; mimeType?: string; name?: string };
+  const data: DriveFileMeta = {
+    size: Number(d.size) || 0,
+    mimeType: d.mimeType || '',
+    name: d.name || '',
+  };
+  metaCache.set(fileId, { at: Date.now(), data });
+  return data;
+}
+
+/**
+ * URL media gốc trên Google (trình duyệt Range thẳng CDN, không qua Vercel 4.5MB).
+ * Token nằm ở Location ~1h — file video vốn đã public "anyone". Không log URL này.
+ */
+export async function getDriveMediaRedirectUrl(fileId: string): Promise<string> {
+  const meta = await getDriveFileMeta(fileId);
+  if (!isStreamableVideoMime(meta.mimeType, meta.name)) {
+    throw new Error('Not a video');
+  }
+  const token = await getAccessToken();
+  const q = new URLSearchParams({
+    alt: 'media',
+    supportsAllDrives: 'true',
+    acknowledgeAbuse: 'true',
+    access_token: token,
+  });
+  return `https://www.googleapis.com/drive/v3/files/${encodeURIComponent(fileId)}?${q.toString()}`;
+}
+
+/** Liệt kê video gần đây (chỉ dùng local debug — không gọi từ production). */
+export async function listRecentVideoFiles(limit = 8): Promise<Array<DriveFileMeta & { id: string }>> {
+  const n = Math.min(Math.max(limit, 1), 20);
+  const fields = 'files(id,name,mimeType,size)';
+  const videoQ = `(mimeType contains 'video/' or mimeType = 'application/mp4')`;
+  const urlFor = (q: string) =>
+    `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(q)}&orderBy=modifiedTime desc&pageSize=${n}&fields=${fields}&supportsAllDrives=true&includeItemsFromAllDrives=true`;
+
+  const folderId = await getFolderId();
+  const inFolder = `'${folderId}' in parents and trashed=false and ${videoQ}`;
+  let r = await driveApi(urlFor(inFolder));
+  let d = (await r.json().catch(() => ({}))) as {
+    files?: Array<{ id?: string; name?: string; mimeType?: string; size?: string }>;
+  };
+  if (!d.files?.length) {
+    r = await driveApi(urlFor(`trashed=false and ${videoQ}`));
+    d = (await r.json().catch(() => ({}))) as {
+      files?: Array<{ id?: string; name?: string; mimeType?: string; size?: string }>;
+    };
+  }
+  return (d.files || [])
+    .filter((f) => f.id && isStreamableVideoMime(f.mimeType || '', f.name))
+    .map((f) => ({
+      id: f.id as string,
+      name: f.name || '',
+      mimeType: f.mimeType || '',
+      size: Number(f.size) || 0,
+    }));
+}
+
+/** Tải byte gốc (không transcode). Drive tôn trọng header Range → phát HTML5 mượt. */
+export async function fetchDriveMedia(
+  fileId: string,
+  range: string,
+  signal?: AbortSignal,
+): Promise<Response> {
+  return driveApi(
+    `https://www.googleapis.com/drive/v3/files/${encodeURIComponent(fileId)}?alt=media&supportsAllDrives=true&acknowledgeAbuse=true`,
+    {
+      headers: { Range: range },
+      signal,
+      redirect: 'follow',
+    },
+  );
 }
 
 // Cache id thư mục trong bộ nhớ tiến trình. Nếu chưa có, tìm theo tên rồi tạo mới.

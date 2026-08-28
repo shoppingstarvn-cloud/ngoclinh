@@ -110,7 +110,7 @@ export default function AlbumView({ slug }: { slug: string }) {
       {bgIsVideo && page.bg_image_url && (
         bgThumb
           ? <div className="alb-bgvid" style={{ backgroundImage: `url(${bgThumb})` }} aria-hidden />
-          : <video className="alb-bgvid" src={page.bg_image_url} autoPlay muted loop playsInline aria-hidden />
+          : <div className="alb-bgvid" aria-hidden />
       )}
       <div className="alb-bgfx"><div className="alb-aurora" /><div className="alb-aurora b" /></div>
       {['🌸', '🍃', '✨', '🌸', '🌿', '✨', '🌷', '🍃', '✨'].map((p, i) => (

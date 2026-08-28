@@ -13,7 +13,6 @@
  * cần rebuild hay redeploy.
  */
 
-import path from 'path';
 import { revalidatePath } from 'next/cache';
 import { createAdminClient, BUCKET_NAME } from '@/lib/supabase/admin';
 import { stripSystemFields } from '@/lib/cms/crud';
@@ -258,7 +257,8 @@ export async function uploadFileAction(formData: FormData): Promise<UploadResult
     if (!file) throw new Error('Không có file!');
 
     const buffer = Buffer.from(await file.arrayBuffer());
-    const ext = path.extname(file.name) || '.jpg';
+    const dot = file.name.lastIndexOf('.');
+    const ext = dot >= 0 ? file.name.slice(dot) : '.jpg';
     const fileName = `${Date.now()}-${Math.random().toString(36).substring(2, 8)}${ext}`;
 
     const supabase = createAdminClient();

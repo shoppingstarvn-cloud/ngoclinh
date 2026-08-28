@@ -72,6 +72,7 @@ export function extractDriveFileId(url?: string | null): string | null {
   if (!u) return null;
   const patterns = [
     /\/file\/d\/([a-zA-Z0-9_-]+)/,
+    /\/api\/video\/drive\/([a-zA-Z0-9_-]+)/,
     /lh3\.googleusercontent\.com\/d\/([a-zA-Z0-9_-]+)/,
     /[?&]id=([a-zA-Z0-9_-]+)/,
     /drive\.google\.com\/open\?id=([a-zA-Z0-9_-]+)/,
@@ -95,6 +96,19 @@ export function driveDownloadUrl(fileId: string): string {
   return `https://drive.google.com/uc?export=download&id=${fileId}&confirm=t`;
 }
 
+/** Cùng origin — HTTP Range 206, khúc ≤4MB (dưới trần function Vercel). `v=` phá cache 404 cũ trên CDN. */
+export function driveStreamApiUrl(fileId: string): string {
+  return `/api/video/drive/${encodeURIComponent(fileId)}?v=3`;
+}
+
+export function driveStreamProxyApiUrl(fileId: string): string {
+  return driveStreamApiUrl(fileId);
+}
+
+export function driveUsercontentDownloadUrl(fileId: string): string {
+  return `https://drive.usercontent.google.com/download?id=${encodeURIComponent(fileId)}&export=download&confirm=t`;
+}
+
 /** Ảnh poster khi Drive video không có frame (thẻ <video> download URL không load được). */
 export function videoThumbUrl(url?: string | null): string | null {
   const id = extractDriveFileId(url);
@@ -102,14 +116,15 @@ export function videoThumbUrl(url?: string | null): string | null {
 }
 
 /**
- * File phát được bằng HTML5 <video> (blob/data, mp4/webm/m4v cùng origin).
- * Link Drive `uc?export=download` KHÔNG stream được — phải dùng iframe preview
- * (Google transcode MOV/MKV/AVI).
+ * File phát được bằng HTML5 <video>.
+ * Drive gốc (`uc?export=download`) không stream — dùng `/api/video/drive/:id`.
+ * MOV/MKV lỗi codec thì VideoPlayer mới fallback iframe preview.
  */
 export function isDirectPlayableVideoUrl(url?: string | null): boolean {
   const v = String(url || '').trim();
   if (!v) return false;
   if (/^(blob:|data:)/i.test(v)) return true;
+  if (/\/api\/video\/drive\//i.test(v)) return true;
   if (extractDriveFileId(v) && /(?:drive\.google|googleusercontent\.com)/i.test(v)) return false;
   const path = v.split(/[?#]/)[0] || '';
   if (/supabase\.(co|in)\/storage/i.test(v)) {
@@ -120,7 +135,7 @@ export function isDirectPlayableVideoUrl(url?: string | null): boolean {
 
 export function videoPlaybackMode(url?: string | null): 'html5' | 'drive-iframe' {
   const v = String(url || '');
+  if (extractDriveFileId(v)) return 'html5';
   if (isDirectPlayableVideoUrl(v)) return 'html5';
-  if (extractDriveFileId(v)) return 'drive-iframe';
   return 'html5';
 }

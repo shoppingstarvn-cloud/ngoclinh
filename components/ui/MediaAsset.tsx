@@ -38,32 +38,16 @@ export default function MediaAsset({
       return <PlayerWithReactions src={url} title={title} className={className} />;
     }
     const thumb = videoThumbUrl(url);
-    if (thumb) {
-      return (
-        <span className={`nl-media-thumb ${className || ''}`.trim()} style={style} title={title}>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={thumb} alt={alt} onError={onError} />
-          <span className="nl-media-play" aria-hidden>
-            ▶
-          </span>
-        </span>
-      );
-    }
-    const auto = true;
     return (
-      <video
-        src={url}
-        className={className}
-        style={style}
-        title={title}
-        autoPlay={auto}
-        muted={auto}
-        loop={auto}
-        playsInline
-        controls={false}
-        preload="metadata"
-        onError={onError}
-      />
+      <span className={`nl-media-thumb ${className || ''}`.trim()} style={style} title={title}>
+        {thumb ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={thumb} alt={alt} onError={onError} />
+        ) : null}
+        <span className="nl-media-play" aria-hidden>
+          ▶
+        </span>
+      </span>
     );
   }
   return (

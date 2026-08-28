@@ -89,13 +89,13 @@ async function uploadBackend(): Promise<'drive' | 'supabase'> {
 }
 
 /**
- * Tải 1 file THẲNG lên Google Drive — GIỮ NGUYÊN 100% FILE GỐC: KHÔNG nén,
- * KHÔNG đổi định dạng / chất lượng / tên, KHÔNG giới hạn dung lượng, nhận MỌI
- * loại file (ảnh, video, PDF, Word/Excel/PowerPoint, .zip/.rar, ...).
+ * Tải 1 file THẲNG lên Google Drive — không nén, không giảm chất lượng.
+ * Video MP4/MOV dưới 80MB được đưa box moov lên đầu (faststart) để HTML5 phát liền mạch.
  */
 async function driveUpload(file: File): Promise<string> {
   if (!file || file.size <= 0) throw new Error('File rỗng hoặc không hợp lệ.');
-  const prepared = file; // nguyên bản 100% — tuyệt đối không đụng vào byte nào
+  const { remuxMp4Faststart } = await import('@/lib/client/mp4-faststart');
+  const prepared = await remuxMp4Faststart(file);
 
   // 1) Xin phiên upload resumable từ máy chủ
   const sessRes = await fetch('/api/upload/drive-session', {

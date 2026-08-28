@@ -91,14 +91,19 @@ export default function AlbumAdminPanel({ authHeader }: Props) {
 
   // ---- Upload thẳng lên Drive rồi ghi vào khối ----
   async function uploadOne(file: File): Promise<{ kind: string; url: string; driveFileId: string; name: string }> {
-    const ses = await fetch('/api/upload/drive-session', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: authHeader }, body: JSON.stringify({ filename: file.name, mimeType: file.type }) }).then((r) => r.json());
+    let prepared = file;
+    if (isVideoFile(file)) {
+      const { remuxMp4Faststart } = await import('@/lib/client/mp4-faststart');
+      prepared = await remuxMp4Faststart(file);
+    }
+    const ses = await fetch('/api/upload/drive-session', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: authHeader }, body: JSON.stringify({ filename: prepared.name, mimeType: prepared.type }) }).then((r) => r.json());
     if (!ses.success) throw new Error(ses.error || 'Không tạo được phiên upload');
-    const put = await fetch(ses.uploadUrl, { method: 'PUT', headers: { 'Content-Type': file.type || 'application/octet-stream' }, body: file });
+    const put = await fetch(ses.uploadUrl, { method: 'PUT', headers: { 'Content-Type': prepared.type || 'application/octet-stream' }, body: prepared });
     const pj = (await put.json().catch(() => ({}))) as { id?: string };
     if (!pj.id) throw new Error('Drive không trả file id');
-    const reg = await fetch('/api/upload/drive-register', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: authHeader }, body: JSON.stringify({ file_id: pj.id, original_name: file.name, file_type: file.type }) }).then((r) => r.json());
+    const reg = await fetch('/api/upload/drive-register', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: authHeader }, body: JSON.stringify({ file_id: pj.id, original_name: prepared.name, file_type: prepared.type }) }).then((r) => r.json());
     if (!reg.success) throw new Error(reg.error || 'Ghi Drive lỗi');
-    return { kind: isVideoFile(file) ? 'video' : 'image', url: tagIfVideo(reg.url, file), driveFileId: reg.fileId, name: file.name };
+    return { kind: isVideoFile(prepared) ? 'video' : 'image', url: tagIfVideo(reg.url, prepared), driveFileId: reg.fileId, name: prepared.name };
   }
 
   async function uploadImageUrl(file: File) {

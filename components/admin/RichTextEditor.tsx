@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import 'quill/dist/quill.snow.css';
 import { uploadMediaFile } from '@/lib/client/upload-media';
-import { isImageFile, isVideoAsset, isVideoFile, tagIfVideo, extractDriveFileId, drivePreviewUrl } from '@/lib/media-url';
+import { isImageFile, isVideoAsset, isVideoFile, tagIfVideo, extractDriveFileId, driveStreamApiUrl, videoThumbUrl } from '@/lib/media-url';
 import {
   listTemplatesAction,
   saveTemplateAction,
@@ -26,7 +26,7 @@ function dataUrlToFile(dataUrl: string, baseName: string): File | null {
   return new File([u8], `${baseName}.${ext}`, { type: mime });
 }
 
-/** Khối video 16:9 — Drive dùng iframe preview (transcode MOV/MKV), còn lại HTML5. */
+/** Khối video 16:9 — Drive phát qua /api/video/drive (Range), không iframe preview. */
 function fillVideoEmbedNode(node: HTMLElement, src: string) {
   const url = String(src || '');
   node.classList.add('nl-video-embed');
@@ -34,22 +34,14 @@ function fillVideoEmbedNode(node: HTMLElement, src: string) {
   node.setAttribute('contenteditable', 'false');
   node.innerHTML = '';
   const id = extractDriveFileId(url);
-  if (id) {
-    const iframe = document.createElement('iframe');
-    iframe.src = drivePreviewUrl(id);
-    iframe.setAttribute('allow', 'autoplay; fullscreen; encrypted-media; picture-in-picture');
-    iframe.setAttribute('allowfullscreen', 'true');
-    iframe.setAttribute('referrerpolicy', 'no-referrer-when-downgrade');
-    iframe.setAttribute('title', 'Video');
-    node.appendChild(iframe);
-  } else {
-    const v = document.createElement('video');
-    v.setAttribute('src', url);
-    v.setAttribute('controls', 'true');
-    v.setAttribute('playsinline', 'true');
-    v.setAttribute('preload', 'metadata');
-    node.appendChild(v);
-  }
+  const v = document.createElement('video');
+  v.setAttribute('src', id ? driveStreamApiUrl(id) : url);
+  v.setAttribute('controls', 'true');
+  v.setAttribute('playsinline', 'true');
+  v.setAttribute('preload', 'metadata');
+  const poster = videoThumbUrl(url);
+  if (poster) v.setAttribute('poster', poster);
+  node.appendChild(v);
   return node;
 }
 

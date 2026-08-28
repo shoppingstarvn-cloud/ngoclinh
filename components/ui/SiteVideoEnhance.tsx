@@ -7,6 +7,7 @@ import ReactionBar from '@/components/ui/ReactionBar';
 import { reactionTargetFromUrl } from '@/lib/reactions';
 
 const VIDEO_SELECT = [
+  '.nl-video-embed',
   '.detail-content video',
   '.content_news_page video',
   '.detail_product video',
@@ -19,6 +20,12 @@ const VIDEO_SELECT = [
   '.desc_product .nl-video-embed',
   '.post-attachments .nl-video-embed',
   '#dynamic-intro .nl-video-embed',
+  '.detail-content iframe[src*="drive.google.com"]',
+  '.content_news_page iframe[src*="drive.google.com"]',
+  '.detail_product iframe[src*="drive.google.com"]',
+  '.desc_product iframe[src*="drive.google.com"]',
+  '.post-attachments iframe[src*="drive.google.com"]',
+  '#dynamic-intro iframe[src*="drive.google.com"]',
 ].join(', ');
 
 /** Chỉ ảnh nội dung bài/sản phẩm — không logo, slider, hộp hỗ trợ. */
@@ -36,6 +43,9 @@ const IMG_SELECT = [
 function srcOf(el: Element): string {
   if (el instanceof HTMLVideoElement) {
     return el.getAttribute('data-src') || el.currentSrc || el.getAttribute('src') || el.querySelector('source')?.getAttribute('src') || '';
+  }
+  if (el instanceof HTMLIFrameElement) {
+    return el.getAttribute('src') || '';
   }
   return el.getAttribute('data-src') || el.querySelector('iframe,video')?.getAttribute('src') || '';
 }
@@ -132,6 +142,8 @@ export default function SiteVideoEnhance() {
       document.querySelectorAll(VIDEO_SELECT).forEach((el) => {
         if (!(el instanceof HTMLElement)) return;
         if (skipHost(el)) return;
+        if ((el instanceof HTMLIFrameElement || el instanceof HTMLVideoElement) && el.closest('.nl-video-embed')) return;
+        if (el.querySelector('[data-nl-yt], .nl-yt')) return;
         if (el.classList.contains('alb-bgvid') || el.classList.contains('thumb-img')) return;
         const src = srcOf(el);
         if (!src) return;
