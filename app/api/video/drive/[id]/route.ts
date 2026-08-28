@@ -18,8 +18,8 @@ const NO_STORE = 'private, no-store, no-cache, must-revalidate';
 /** Trình duyệt giữ khúc đã nạp; Vary Range để không lẫn khúc. */
 const CACHE_VIDEO = 'public, max-age=86400, stale-while-revalidate=604800';
 
-/** Local-only: Range-serve H.264 nhỏ để kiểm HTML5+blob khi OAuth Drive chưa có. */
-export const LOCAL_SAMPLE_ID = 'localsample00';
+/** Local-only: Range-serve H.264 nhỏ để kiểm HTML5+blob khi OAuth Drive chưa có. Không export — Next.js route chỉ cho phép HTTP handlers + config. */
+const LOCAL_SAMPLE_ID = 'localsample00';
 const SAMPLE_MP4 = 'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4';
 let sampleCache: { buf: Buffer; size: number } | null = null;
 
@@ -63,7 +63,7 @@ async function handleLocalSample(req: NextRequest, method: 'GET' | 'HEAD') {
   const h = sampleHeaders(slice.length, {
     'Content-Range': `bytes ${resolved.start}-${resolved.end}/${size}`,
   });
-  return new NextResponse(slice, { status: 206, headers: h });
+  return new NextResponse(Uint8Array.from(slice), { status: 206, headers: h });
 }
 
 function videoContentType(upstream: string | null, fallback: string): string {
