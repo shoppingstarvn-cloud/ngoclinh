@@ -46,11 +46,33 @@ export function shareImage() {
   };
 }
 
+function ogImageFromUrl(imageUrl: string, alt?: string) {
+  const url = imageUrl.includes('?') ? imageUrl : `${imageUrl}?${SHARE_IMAGE_CACHE}`;
+  return {
+    url,
+    secureUrl: url,
+    width: SHARE_IMAGE_WIDTH,
+    height: SHARE_IMAGE_HEIGHT,
+    alt: alt ?? SHARE_IMAGE_ALT,
+    type: SHARE_IMAGE_TYPE,
+  };
+}
+
 export function shareOpenGraph(opts?: {
   title?: string;
   description?: string;
   url?: string;
+  imageUrl?: string;
+  imageAlt?: string;
+  /** Album: không fallback banner trang chủ khi thiếu ảnh riêng. */
+  skipDefaultOg?: boolean;
 }): NonNullable<Metadata['openGraph']> {
+  const customImg = String(opts?.imageUrl || '').trim();
+  const images = customImg
+    ? [ogImageFromUrl(customImg, opts?.imageAlt)]
+    : opts?.skipDefaultOg
+      ? []
+      : [shareImage()];
   return {
     type: 'website',
     locale: 'vi_VN',
@@ -58,19 +80,28 @@ export function shareOpenGraph(opts?: {
     siteName: SHARE_SITE_NAME,
     title: opts?.title ?? SHARE_TITLE,
     description: opts?.description ?? SHARE_DESCRIPTION,
-    images: [shareImage()],
+    ...(images.length ? { images } : {}),
   };
 }
 
 export function shareTwitter(opts?: {
   title?: string;
   description?: string;
+  imageUrl?: string;
+  skipDefaultOg?: boolean;
 }): NonNullable<Metadata['twitter']> {
+  const customImg = String(opts?.imageUrl || '').trim();
+  const card = customImg || !opts?.skipDefaultOg ? 'summary_large_image' : 'summary';
+  const images = customImg
+    ? [ogImageFromUrl(customImg).url]
+    : opts?.skipDefaultOg
+      ? undefined
+      : [shareImageUrl()];
   return {
-    card: 'summary_large_image',
+    card,
     title: opts?.title ?? SHARE_TITLE,
     description: opts?.description ?? SHARE_DESCRIPTION,
-    images: [shareImageUrl()],
+    ...(images ? { images } : {}),
   };
 }
 
@@ -138,21 +169,45 @@ function escapeHtml(s: string): string {
 export function shareCrawlerHtml(opts?: {
   pageUrl?: string;
   bounceToHome?: boolean;
+  title?: string;
+  titleFull?: string;
+  description?: string;
+  imageUrl?: string;
+  imageAlt?: string;
+  /** Album: không fallback banner trang chủ khi thiếu ảnh riêng. */
+  skipDefaultOg?: boolean;
 }): string {
-  const title = escapeHtml(SHARE_TITLE);
-  const titleFull = escapeHtml(SHARE_TITLE_FULL);
-  const description = escapeHtml(SHARE_DESCRIPTION);
+  const rawTitle = opts?.title ?? SHARE_TITLE;
+  const title = escapeHtml(rawTitle);
+  const titleFull = escapeHtml(opts?.titleFull ?? opts?.title ?? SHARE_TITLE_FULL);
+  const description = escapeHtml(opts?.description ?? SHARE_DESCRIPTION);
   const siteName = escapeHtml(SHARE_SITE_NAME);
-  const image = escapeHtml(shareImageUrl());
+  const customImg = String(opts?.imageUrl || '').trim();
+  const imgRaw = customImg || (opts?.skipDefaultOg ? '' : shareImageUrl());
+  const hasImage = !!imgRaw;
+  const image = hasImage ? escapeHtml(imgRaw) : '';
   const home = escapeHtml(`${SITE_URL}/`);
   const url = escapeHtml(opts?.pageUrl ?? `${SITE_URL}/`);
-  const alt = escapeHtml(SHARE_IMAGE_ALT);
+  const alt = escapeHtml(opts?.imageAlt ?? SHARE_IMAGE_ALT);
   const robots = opts?.bounceToHome
     ? '<meta name="robots" content="noindex, nofollow">\n'
     : '';
   const bounce = opts?.bounceToHome
     ? `<script>location.replace(${JSON.stringify(`${SITE_URL}/`)});</script>
 <p><a href="${home}">Mở website Hệ Sinh Thái AI</a></p>`
+    : '';
+  const ogImageTags = hasImage
+    ? `<meta property="og:image" content="${image}">
+<meta property="og:image:secure_url" content="${image}">
+<meta property="og:image:type" content="${SHARE_IMAGE_TYPE}">
+<meta property="og:image:width" content="${SHARE_IMAGE_WIDTH}">
+<meta property="og:image:height" content="${SHARE_IMAGE_HEIGHT}">
+<meta property="og:image:alt" content="${alt}">`
+    : '';
+  const twitterCard = hasImage ? 'summary_large_image' : 'summary';
+  const twitterImageTag = hasImage ? `<meta name="twitter:image" content="${image}">` : '';
+  const bodyImage = hasImage
+    ? `<img src="${image}" width="${SHARE_IMAGE_WIDTH}" height="${SHARE_IMAGE_HEIGHT}" alt="${alt}">`
     : '';
 
   return `<!DOCTYPE html>
@@ -169,21 +224,16 @@ ${robots}<meta name="description" content="${description}">
 <meta property="og:site_name" content="${siteName}">
 <meta property="og:locale" content="vi_VN">
 <meta property="og:type" content="website">
-<meta property="og:image" content="${image}">
-<meta property="og:image:secure_url" content="${image}">
-<meta property="og:image:type" content="${SHARE_IMAGE_TYPE}">
-<meta property="og:image:width" content="${SHARE_IMAGE_WIDTH}">
-<meta property="og:image:height" content="${SHARE_IMAGE_HEIGHT}">
-<meta property="og:image:alt" content="${alt}">
-<meta name="twitter:card" content="summary_large_image">
+${ogImageTags}
+<meta name="twitter:card" content="${twitterCard}">
 <meta name="twitter:title" content="${title}">
 <meta name="twitter:description" content="${description}">
-<meta name="twitter:image" content="${image}">
+${twitterImageTag}
 </head>
 <body>
 <h1>${title}</h1>
 <p>${description}</p>
-<img src="${image}" width="${SHARE_IMAGE_WIDTH}" height="${SHARE_IMAGE_HEIGHT}" alt="${alt}">
+${bodyImage}
 <p><a href="${home}?view=site">Mở website Hệ Sinh Thái AI</a></p>
 ${bounce}
 </body>

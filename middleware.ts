@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { SITE_URL, shareCrawlerHtml, shouldServeShareCard } from '@/lib/seo';
+import { resolveAlbumShareMeta, shouldServeAlbumShareCard } from '@/lib/album/share-meta';
+import { SEARCH_ENGINE_UA, SITE_URL, shareCrawlerHtml, shouldServeShareCard } from '@/lib/seo';
 
 const STATIC_PREFIXES = [
   '/css',
@@ -20,9 +21,13 @@ const PASSTHROUGH_HTML = new Set(['/admin.html', '/superadmin.html']);
 /** Link cũ dán Zalo — không giữ /hsai (chữ "sai"). */
 const OLD_SHARE_PATHS = new Set(['/hsai', '/ai', '/share-card', '/hsai.html']);
 
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const path = pathname.replace(/\/+$/, '') || '/';
+  const userAgent = request.headers.get('user-agent') || '';
+  const isRsc = !!(request.headers.get('rsc') || request.headers.get('next-router-prefetch'));
+  const isPrefetch = request.headers.get('purpose') === 'prefetch';
+  const isSearchEngine = SEARCH_ENGINE_UA.test(userAgent);
 
   if (OLD_SHARE_PATHS.has(path) || pathname === '/hsai.html') {
     const url = request.nextUrl.clone();
@@ -73,6 +78,42 @@ export function middleware(request: NextRequest) {
         },
       },
     );
+  }
+
+  if (
+    shouldServeAlbumShareCard({
+      method: request.method,
+      pathname,
+      userAgent,
+      isRsc,
+      isPrefetch,
+      isSearchEngine,
+    })
+  ) {
+    const meta = await resolveAlbumShareMeta(pathname);
+    if (meta) {
+      return new NextResponse(
+        shareCrawlerHtml({
+          pageUrl: meta.pageUrl,
+          title: meta.title,
+          titleFull: meta.title,
+          description: meta.description,
+          imageUrl: meta.imageUrl,
+          imageAlt: meta.imageAlt,
+          bounceToHome: false,
+          skipDefaultOg: true,
+        }),
+        {
+          status: 200,
+          headers: {
+            'Content-Type': 'text/html; charset=utf-8',
+            'Cache-Control': 'no-store, no-cache, must-revalidate, max-age=0',
+            Pragma: 'no-cache',
+            Expires: '0',
+          },
+        },
+      );
+    }
   }
 
   if (STATIC_PREFIXES.some((p) => pathname.startsWith(p))) {

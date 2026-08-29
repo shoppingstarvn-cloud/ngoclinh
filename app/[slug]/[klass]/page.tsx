@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { createAdminClient } from '@/lib/supabase/admin';
 import AlbumView from '@/components/album/AlbumView';
-import { absoluteUrl, shareOpenGraph, shareTwitter } from '@/lib/seo';
+import { metadataFromAlbumShare, resolveAlbumShareMeta } from '@/lib/album/share-meta';
 
 export const dynamic = 'force-dynamic';
 
@@ -20,10 +20,9 @@ async function findAlbum(albumSlug: string): Promise<{ title: string } | null> {
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug, klass } = await params;
   const albumSlug = `${decodeURIComponent(slug)}/${decodeURIComponent(klass)}`;
-  const a = await findAlbum(albumSlug);
-  if (!a) return { title: 'Trang con' };
-  const url = absoluteUrl(`/${albumSlug}`);
-  return { title: a.title, alternates: { canonical: `/${albumSlug}` }, openGraph: shareOpenGraph({ title: a.title, url }), twitter: shareTwitter({ title: a.title }) };
+  const albumMeta = await resolveAlbumShareMeta(`/${albumSlug}`);
+  if (albumMeta) return metadataFromAlbumShare(albumMeta, `/${albumSlug}`);
+  return { title: 'Trang con' };
 }
 
 /** Trang con 2 tầng: /{trường}/{lớp} (vd /tranvanon/1a5). Giữ nguyên slug DB `truong/lop`. */

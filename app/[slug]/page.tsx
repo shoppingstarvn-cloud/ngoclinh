@@ -9,6 +9,7 @@ import { createAdminClient } from '@/lib/supabase/admin';
 import AlbumView from '@/components/album/AlbumView';
 import { getLegacyPathForSlug } from '@/lib/detail-map';
 import { extractBodyHtml, extractTitle, readLegacyHtml } from '@/lib/legacy-html';
+import { metadataFromAlbumShare, resolveAlbumShareMeta } from '@/lib/album/share-meta';
 import { SHARE_DESCRIPTION, absoluteUrl, shareOpenGraph, shareTwitter } from '@/lib/seo';
 import { resolveHref } from '@/lib/slug';
 import { isImageAttachment, isVideoAttachment } from '@/lib/media-url';
@@ -99,15 +100,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const canonical = `/${decodedSlug}.html`;
   const url = absoluteUrl(canonical);
 
-  const albumTitle = await getAlbumTitle(decodedSlug);
-  if (albumTitle) {
-    const cleanUrl = absoluteUrl(`/${decodedSlug}`);
-    return {
-      title: albumTitle,
-      alternates: { canonical: `/${decodedSlug}` },
-      openGraph: shareOpenGraph({ title: albumTitle, url: cleanUrl }),
-      twitter: shareTwitter({ title: albumTitle }),
-    };
+  const albumMeta = await resolveAlbumShareMeta(`/${decodedSlug}`);
+  if (albumMeta) {
+    return metadataFromAlbumShare(albumMeta, `/${decodedSlug}`);
   }
 
   if (PROJECT_LISTING_SLUGS.has(decodedSlug)) {

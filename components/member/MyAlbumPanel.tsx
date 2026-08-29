@@ -2,10 +2,19 @@
 
 import { useCallback, useEffect, useRef, useState, type CSSProperties } from 'react';
 import ImageUploadField from '@/components/admin/ImageUploadField';
-import { isVideoFile, tagIfVideo } from '@/lib/media-url';
+import { isVideoAsset, isVideoFile, tagIfVideo } from '@/lib/media-url';
 
 type Block = { id: number; title: string; cover_url: string; photos: number; videos: number };
-type Page = { id: number; slug: string; title: string; subtitle: string; bg_image_url: string; slide_urls: string[] };
+type Page = {
+  id: number;
+  slug: string;
+  title: string;
+  subtitle: string;
+  bg_image_url: string;
+  slide_urls: string[];
+  share_image_url: string;
+  share_description: string;
+};
 
 async function post(body: Record<string, unknown>) {
   const r = await fetch('/api/member/album', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
@@ -20,6 +29,8 @@ export default function MyAlbumPanel() {
   const [bg, setBg] = useState('');
   const [sub, setSub] = useState('');
   const [slides, setSlides] = useState<string[]>([]);
+  const [shareImage, setShareImage] = useState('');
+  const [shareDesc, setShareDesc] = useState('');
   const [bTitle, setBTitle] = useState('');
   const [bCover, setBCover] = useState('');
   const [progress, setProgress] = useState('');
@@ -31,14 +42,25 @@ export default function MyAlbumPanel() {
     const d = await r.json();
     if (d.ok) {
       setPage(d.page); setBlocks(d.blocks || []);
-      setBg(d.page.bg_image_url || ''); setSub(d.page.subtitle || ''); setSlides(d.page.slide_urls || []);
+      setBg(d.page.bg_image_url || '');
+      setSub(d.page.subtitle || '');
+      setSlides(d.page.slide_urls || []);
+      setShareImage(d.page.share_image_url || '');
+      setShareDesc(d.page.share_description || '');
     }
     setLoading(false);
   }, []);
   useEffect(() => { load(); }, [load]);
 
   async function savePage() {
-    await post({ action: 'savePage', subtitle: sub, bg_image_url: bg, slide_urls: slides.filter(Boolean) });
+    await post({
+      action: 'savePage',
+      subtitle: sub,
+      bg_image_url: bg,
+      slide_urls: slides.filter(Boolean),
+      share_image_url: shareImage.trim(),
+      share_description: shareDesc.trim(),
+    });
     alert('Đã lưu trang.'); load();
   }
   async function addBlock() {
@@ -120,6 +142,39 @@ export default function MyAlbumPanel() {
         <button style={btn} onClick={savePage}>💾 Lưu trang</button>
       </div>
 
+      <div style={{ background: '#f0f7ff', border: '1px solid #c5daf0', borderRadius: 12, padding: 16, margin: '12px 0' }}>
+        <b>Chia sẻ link (Zalo / Facebook)</b>
+        <p style={{ fontSize: 13, color: '#556', margin: '6px 0 10px' }}>
+          Ảnh và mô tả hiển thị khi gửi link album trên Zalo, Facebook… Không dùng banner trang chủ.
+        </p>
+        <div style={{ marginBottom: 10 }}>
+          <ImageUploadField
+            theme="light"
+            value={shareImage}
+            onChange={setShareImage}
+            uploadFile={uploadImageUrl}
+            acceptMode="image"
+            label="Ảnh hiển thị khi chia sẻ link"
+            fieldHint="Nên vuông hoặc ngang, tối thiểu 600×315 px. Kéo-thả hoặc bấm để tải ảnh lên."
+          />
+        </div>
+        <SlideSharePicker slides={slides} selected={shareImage} onSelect={setShareImage} />
+        <div style={{ marginTop: 10 }}>
+          <label style={{ display: 'block', fontWeight: 700, fontSize: 14, marginBottom: 4 }}>Giới thiệu về Album</label>
+          <div style={{ fontSize: 13, color: '#64748b', marginBottom: 6 }}>
+            Dòng chữ hiển thị dưới ảnh trong bản xem trước link. Để trống sẽ dùng phụ đề hoặc tên album.
+          </div>
+          <textarea
+            style={{ ...inp, minHeight: 88, resize: 'vertical' }}
+            value={shareDesc}
+            onChange={(e) => setShareDesc(e.target.value)}
+            placeholder="Ví dụ: Album kỷ niệm lớp 1A3 năm học 2025–2026…"
+            maxLength={500}
+          />
+        </div>
+        <button style={btn} onClick={savePage}>💾 Lưu cài đặt chia sẻ</button>
+      </div>
+
       <b>Thêm khối sự kiện</b>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8, margin: '8px 0', maxWidth: 560 }}>
         <input style={inp} placeholder="Tên khối (vd Khai giảng)" value={bTitle} onChange={(e) => setBTitle(e.target.value)} />
@@ -147,6 +202,60 @@ export default function MyAlbumPanel() {
 
 const inp: CSSProperties = { width: '100%', boxSizing: 'border-box', border: '1px solid #cbd5e1', borderRadius: 8, padding: '9px 12px', fontSize: 14 };
 const btn: CSSProperties = { marginTop: 8, background: '#00A651', color: '#fff', border: 'none', borderRadius: 8, padding: '9px 16px', fontWeight: 700, cursor: 'pointer' };
+
+/** Trên mobile: chọn nhanh ảnh từ slide đã có (ẩn trên desktop). */
+function SlideSharePicker({
+  slides,
+  selected,
+  onSelect,
+}: {
+  slides: string[];
+  selected: string;
+  onSelect: (url: string) => void;
+}) {
+  const imageSlides = slides.filter((u) => u && !isVideoAsset(u));
+  if (!imageSlides.length) return null;
+  return (
+    <div className="nl-slide-share-picker" style={{ marginTop: 8 }}>
+      <div style={{ fontSize: 13, fontWeight: 700, color: '#334155', marginBottom: 6 }}>
+        Hoặc chọn từ ảnh slide (tiện trên điện thoại)
+      </div>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+        {imageSlides.map((url) => {
+          const active = selected === url;
+          return (
+            <button
+              key={url}
+              type="button"
+              onClick={() => onSelect(url)}
+              style={{
+                padding: 0,
+                border: active ? '3px solid #00A651' : '2px solid #cbd5e1',
+                borderRadius: 8,
+                overflow: 'hidden',
+                cursor: 'pointer',
+                background: '#fff',
+                width: 72,
+                height: 72,
+              }}
+              title="Dùng ảnh này khi chia sẻ link"
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+            </button>
+          );
+        })}
+      </div>
+      <style jsx>{`
+        @media (min-width: 768px) {
+          .nl-slide-share-picker {
+            display: none;
+          }
+        }
+      `}</style>
+    </div>
+  );
+}
 
 function BlockCard({ block, onDrop, onDelete }: { block: Block; onDrop: (f: FileList | File[]) => void; onDelete: () => void }) {
   const ref = useRef<HTMLInputElement>(null);

@@ -46,7 +46,16 @@ export async function GET() {
   }
   return NextResponse.json({
     ok: true,
-    page: { id: page.id, slug: page.slug, title: page.title, subtitle: page.subtitle || '', bg_image_url: page.bg_image_url || '', slide_urls: page.slide_urls || [] },
+    page: {
+      id: page.id,
+      slug: page.slug,
+      title: page.title,
+      subtitle: page.subtitle || '',
+      bg_image_url: page.bg_image_url || '',
+      slide_urls: page.slide_urls || [],
+      share_image_url: page.share_image_url || '',
+      share_description: page.share_description || '',
+    },
     blocks: (blocks ?? []).map((b) => ({ ...b, ...(counts[b.id] || { photos: 0, videos: 0 }) })),
   });
 }
@@ -67,8 +76,12 @@ export async function POST(request: NextRequest) {
   try {
     if (action === 'savePage') {
       await supabase.from('album_pages').update({
-        subtitle: String(b.subtitle || ''), bg_image_url: String(b.bg_image_url || ''),
-        slide_urls: Array.isArray(b.slide_urls) ? b.slide_urls : [], updated_at: new Date().toISOString(),
+        subtitle: String(b.subtitle || ''),
+        bg_image_url: String(b.bg_image_url || ''),
+        slide_urls: Array.isArray(b.slide_urls) ? b.slide_urls : [],
+        share_image_url: String(b.share_image_url || '').trim(),
+        share_description: String(b.share_description || '').trim(),
+        updated_at: new Date().toISOString(),
       }).eq('id', page.id);
       return NextResponse.json({ ok: true });
     }
