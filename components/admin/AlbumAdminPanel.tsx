@@ -149,18 +149,31 @@ export default function AlbumAdminPanel({ authHeader }: Props) {
       </div>
 
       {cur && (
-        <div className="border rounded p-3 mb-3" style={{ background: '#fafffb' }}>
+        <div className="border rounded p-3 mb-3 nl-album-settings" style={{ background: '#fafffb' }}>
           <div className="row g-2">
             <div className="col-md-4"><label className="form-label fw-bold">Tên trang</label><input className="form-control" value={pTitle} onChange={(e) => setPTitle(e.target.value)} /></div>
             <div className="col-md-4"><label className="form-label fw-bold">Đường dẫn (slug)</label><input className="form-control" value={pSlug} onChange={(e) => setPSlug(e.target.value)} placeholder="lop1a3" /></div>
             <div className="col-md-4"><label className="form-label fw-bold">Phụ đề</label><input className="form-control" value={pSub} onChange={(e) => setPSub(e.target.value)} /></div>
             <div className="col-12">
-              <label className="form-label fw-bold">Ảnh nền website con</label>
-              <ImageUploadField theme="light" value={pBg} onChange={setPBg} uploadFile={uploadImageUrl} />
+              <ImageUploadField
+                theme="light"
+                value={pBg}
+                onChange={setPBg}
+                uploadFile={uploadImageUrl}
+                label="Up ảnh nền của website con"
+                fieldHint="Ảnh (hoặc 1 video) phủ nền toàn trang con. Nên 1 file — file mới sẽ thay ảnh nền cũ."
+              />
             </div>
             <div className="col-12">
-              <label className="form-label fw-bold">Ảnh slide đại diện (kéo-thả nhiều ảnh, không giới hạn)</label>
-              <ImageUploadField theme="light" mode="many" values={pSlides} onChangeUrls={setPSlides} uploadFile={uploadImageUrl} />
+              <ImageUploadField
+                theme="light"
+                mode="many"
+                values={pSlides}
+                onChangeUrls={setPSlides}
+                uploadFile={uploadImageUrl}
+                label="Up bộ ảnh Slide chạy của website con"
+                fieldHint="Nhiều ảnh chạy slideshow đầu trang website con. Kéo-thả không giới hạn số ảnh."
+              />
             </div>
           </div>
           <button className="btn btn-success btn-sm mt-2" onClick={() => savePage(cur.id)}><i className="fas fa-save" /> Lưu trang</button>
@@ -173,8 +186,14 @@ export default function AlbumAdminPanel({ authHeader }: Props) {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10, maxWidth: 560 }}>
             <input className="form-control" placeholder="Tên khối (vd Khai giảng)" value={bTitle} onChange={(e) => setBTitle(e.target.value)} />
             <div>
-              <label className="form-label fw-bold mb-1">Ảnh bìa (tuỳ chọn)</label>
-              <ImageUploadField theme="light" value={bCover} onChange={setBCover} uploadFile={uploadImageUrl} />
+              <ImageUploadField
+                theme="light"
+                value={bCover}
+                onChange={setBCover}
+                uploadFile={uploadImageUrl}
+                heading="Up ảnh bìa khối sự kiện (tuỳ chọn)"
+                hint="Ảnh đại diện của khối mới. Có thể bỏ trống."
+              />
             </div>
             <div>
               <button className="btn btn-success btn-sm" onClick={addBlock}><i className="fas fa-plus" /> Thêm khối</button>
@@ -213,7 +232,8 @@ function BlockCard({ block, onDrop, onDelete }: { block: Block; onDrop: (files: 
         style={{ border: `2px dashed ${over ? '#00A651' : '#bcd'}`, background: over ? '#eafaf0' : '#f7fbf9', borderRadius: 10, padding: '18px 10px', textAlign: 'center', cursor: 'pointer', color: '#468' }}
       >
         <div style={{ fontSize: 26 }}>⬆️</div>
-        <div style={{ fontSize: 12.5, fontWeight: 700 }}>Kéo-thả hoặc bấm để tải<br />ảnh &amp; video (không giới hạn)</div>
+        <div style={{ fontSize: 13, fontWeight: 800, color: '#046b38', textTransform: 'uppercase', marginBottom: 4 }}>Up ảnh &amp; video vào khối này</div>
+        <div style={{ fontSize: 12.5, fontWeight: 700 }}>Kéo-thả hoặc bấm để tải<br />ảnh &amp; video nhật ký (không giới hạn)</div>
       </div>
       <input ref={inputRef} type="file" multiple accept="image/*,video/*" style={{ display: 'none' }} onChange={(e) => { if (e.target.files?.length) onDrop(e.target.files); e.currentTarget.value = ''; }} />
     </div>

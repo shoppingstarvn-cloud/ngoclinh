@@ -15,6 +15,12 @@ interface ImageUploadFieldProps {
   theme?: BulkImageTheme;
   showLabel?: boolean;
   acceptMode?: BulkAcceptMode;
+  heading?: string;
+  hint?: string;
+  /** Tiêu đề ngoài ô kéo-thả (form-label) — dễ thấy hơn heading trong ô. */
+  label?: string;
+  /** Chú thích ngắn ngay dưới label, ngoài ô kéo-thả. */
+  fieldHint?: string;
 }
 
 function toItems(urls: string[]): BulkImageItem[] {
@@ -39,30 +45,54 @@ export default function ImageUploadField({
   theme = 'dark',
   showLabel = false,
   acceptMode = 'media',
+  heading,
+  hint,
+  label,
+  fieldHint,
 }: ImageUploadFieldProps) {
-  if (mode === 'many') {
-    const urls = values || [];
-    return (
-      <BulkImageDrop
-        items={toItems(urls)}
-        onChange={(items) => onChangeUrls?.(items.map((it) => it.url))}
-        uploadFile={uploadFile}
-        theme={theme}
-        showLabel={showLabel}
-        acceptMode={acceptMode}
-      />
-    );
-  }
+  /** Hiển thị cả ngoài ô (label) lẫn trong ô (heading) để admin luôn thấy mục đích upload. */
+  const dropHeading = heading ?? label;
+  const dropHint = hint ?? fieldHint;
 
-  const current = (value || '').trim();
-  return (
+  const drop = mode === 'many' ? (
     <BulkImageDrop
-      items={current ? toItems([current]) : []}
+      items={toItems(values || [])}
+      onChange={(items) => onChangeUrls?.(items.map((it) => it.url))}
+      uploadFile={uploadFile}
+      theme={theme}
+      showLabel={showLabel}
+      acceptMode={acceptMode}
+      heading={dropHeading}
+      hint={dropHint}
+    />
+  ) : (
+    <BulkImageDrop
+      items={(value || '').trim() ? toItems([(value || '').trim()]) : []}
       onChange={(items) => onChange?.(items[items.length - 1]?.url || '')}
       uploadFile={uploadFile}
       theme={theme}
       showLabel={showLabel}
       acceptMode={acceptMode}
+      heading={dropHeading}
+      hint={dropHint}
     />
+  );
+
+  if (!label && !fieldHint) return drop;
+
+  return (
+    <div className="nl-upload-field">
+      {label && (
+        <label className="nl-upload-field-label form-label fw-bold mb-1" style={{ display: 'block', fontWeight: 700, fontSize: 14, color: '#0f172a', marginBottom: 4 }}>
+          {label}
+        </label>
+      )}
+      {fieldHint && (
+        <div className="nl-upload-field-hint text-muted small mb-2" style={{ fontSize: 13, color: '#64748b', lineHeight: 1.45, marginBottom: 8 }}>
+          {fieldHint}
+        </div>
+      )}
+      {drop}
+    </div>
   );
 }

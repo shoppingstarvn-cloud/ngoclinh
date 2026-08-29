@@ -96,12 +96,27 @@ export default function MyAlbumPanel() {
         <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 10, marginTop: 8 }}>
           <div><label>Phụ đề</label><input style={inp} value={sub} onChange={(e) => setSub(e.target.value)} /></div>
           <div>
-            <label>Ảnh nền</label>
-            <ImageUploadField theme="light" value={bg} onChange={setBg} uploadFile={uploadImageUrl} />
+            <ImageUploadField
+              theme="light"
+              value={bg}
+              onChange={setBg}
+              uploadFile={uploadImageUrl}
+              label="Up ảnh nền của website con"
+              fieldHint="Ảnh (hoặc 1 video) phủ nền toàn trang con. Nên 1 file — file mới sẽ thay ảnh nền cũ."
+            />
           </div>
         </div>
-        <label>Ảnh slide (kéo-thả nhiều ảnh, không giới hạn)</label>
-        <ImageUploadField theme="light" mode="many" values={slides} onChangeUrls={setSlides} uploadFile={uploadImageUrl} />
+        <div style={{ marginTop: 10 }}>
+          <ImageUploadField
+            theme="light"
+            mode="many"
+            values={slides}
+            onChangeUrls={setSlides}
+            uploadFile={uploadImageUrl}
+            label="Up bộ ảnh Slide chạy của website con"
+            fieldHint="Nhiều ảnh chạy slideshow đầu trang website con. Kéo-thả không giới hạn số ảnh."
+          />
+        </div>
         <button style={btn} onClick={savePage}>💾 Lưu trang</button>
       </div>
 
@@ -109,8 +124,14 @@ export default function MyAlbumPanel() {
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8, margin: '8px 0', maxWidth: 560 }}>
         <input style={inp} placeholder="Tên khối (vd Khai giảng)" value={bTitle} onChange={(e) => setBTitle(e.target.value)} />
         <div>
-          <label>Ảnh bìa (tuỳ chọn)</label>
-          <ImageUploadField theme="light" value={bCover} onChange={setBCover} uploadFile={uploadImageUrl} />
+          <ImageUploadField
+            theme="light"
+            value={bCover}
+            onChange={setBCover}
+            uploadFile={uploadImageUrl}
+            heading="Up ảnh bìa khối sự kiện (tuỳ chọn)"
+            hint="Ảnh đại diện của khối mới. Có thể bỏ trống."
+          />
         </div>
         <button style={btn} onClick={addBlock}>➕ Thêm khối</button>
       </div>
@@ -141,7 +162,8 @@ function BlockCard({ block, onDrop, onDelete }: { block: Block; onDrop: (f: File
         onDrop={(e) => { e.preventDefault(); setOver(false); if (e.dataTransfer.files?.length) onDrop(e.dataTransfer.files); }}
         style={{ border: `2px dashed ${over ? '#00A651' : '#bcd'}`, background: over ? '#eafaf0' : '#f7fbf9', borderRadius: 10, padding: '16px 8px', textAlign: 'center', cursor: 'pointer', color: '#468' }}>
         <div style={{ fontSize: 24 }}>⬆️</div>
-        <div style={{ fontSize: 12.5, fontWeight: 700 }}>Kéo-thả hoặc bấm để tải ảnh &amp; video</div>
+        <div style={{ fontSize: 13, fontWeight: 800, color: '#046b38', textTransform: 'uppercase', marginBottom: 4 }}>Up ảnh &amp; video vào khối này</div>
+        <div style={{ fontSize: 12.5, fontWeight: 700 }}>Kéo-thả hoặc bấm để tải ảnh &amp; video nhật ký</div>
       </div>
       <input ref={ref} type="file" multiple accept="image/*,video/*" style={{ display: 'none' }}
         onChange={(e) => { if (e.target.files?.length) onDrop(e.target.files); e.currentTarget.value = ''; }} />

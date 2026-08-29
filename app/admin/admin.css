@@ -271,6 +271,43 @@
 .admin-root .text-info { color: #0dcaf0; }
 .admin-root .text-primary { color: #0d6efd; }
 .admin-root .text-muted { color: rgba(255, 255, 255, 0.4); }
+/* Ô cài đặt trang con: nền sáng — chữ form-label trắng của admin-root bị mất. */
+.admin-root .nl-album-settings {
+  color: #0f172a;
+}
+.admin-root .nl-album-settings .form-label,
+.admin-root .nl-album-settings label {
+  color: #0f172a;
+}
+.admin-root .nl-album-settings .text-muted {
+  color: #64748b !important;
+}
+.admin-root .nl-album-settings .form-control,
+.admin-root .nl-album-settings .form-select {
+  background: #fff;
+  border: 1px solid #cbd5e1;
+  color: #0f172a;
+}
+.admin-root .nl-album-settings .form-control:focus,
+.admin-root .nl-album-settings .form-select:focus {
+  background: #fff;
+  color: #0f172a;
+}
+.admin-root .nl-album-settings .nl-upload-field-label,
+.admin-root .nl-upload-field-label {
+  display: block;
+  font-weight: 700;
+  font-size: 14px;
+  color: #0f172a;
+  margin-bottom: 4px;
+}
+.admin-root .nl-album-settings .nl-upload-field-hint,
+.admin-root .nl-upload-field-hint {
+  font-size: 13px;
+  color: #64748b !important;
+  line-height: 1.45;
+  margin-bottom: 8px;
+}
 .admin-root .alert { padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; font-size: 13px; }
 .admin-root .alert-danger { background: rgba(220, 53, 69, 0.15); border: 1px solid rgba(220, 53, 69, 0.4); color: #ff8a8a; }
 .admin-root .upload-zone { border-radius: 10px; }

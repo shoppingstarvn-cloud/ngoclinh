@@ -372,3 +372,21 @@ body {
 .nl-react:hover {
   border-color: #00a651;
 }
+
+/* Nhãn mục đích upload (trang con: ảnh nền / slide) — dùng cả /admin và /quan-tri-trang-con */
+.nl-upload-field {
+  margin-bottom: 0.75rem;
+}
+.nl-upload-field-label {
+  display: block;
+  font-weight: 700;
+  font-size: 14px;
+  color: #0f172a;
+  margin-bottom: 4px;
+}
+.nl-upload-field-hint {
+  font-size: 13px;
+  color: #64748b;
+  line-height: 1.45;
+  margin-bottom: 8px;
+}

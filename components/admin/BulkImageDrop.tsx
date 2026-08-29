@@ -22,6 +22,10 @@ interface BulkImageDropProps {
   showLabel?: boolean;
   /** image = chỉ ảnh (logo/favicon/QR). media = ảnh + video hàng loạt. */
   acceptMode?: BulkAcceptMode;
+  /** Tiêu đề in đậm trong ô kéo-thả — bắt buộc khi hai ô giống nhau (ảnh nền vs slide). */
+  heading?: string;
+  /** Một câu giải thích tác dụng, hiện ngay dưới tiêu đề trong ô. */
+  hint?: string;
 }
 
 function prevent(e: DragEvent) {
@@ -59,6 +63,8 @@ export default function BulkImageDrop({
   theme = 'dark',
   showLabel = true,
   acceptMode = 'media',
+  heading,
+  hint,
 }: BulkImageDropProps) {
   const [status, setStatus] = useState('');
   const [dragOver, setDragOver] = useState(false);
@@ -139,6 +145,7 @@ export default function BulkImageDrop({
       <div
         role="button"
         tabIndex={0}
+        aria-label={heading || (allowVideo ? 'Tải ảnh và video' : 'Tải ảnh')}
         style={zoneStyle(dragOver)}
         onClick={() => {
           if (!busy) inputRef.current?.click();
@@ -169,7 +176,26 @@ export default function BulkImageDrop({
           if (e.dataTransfer.files?.length) void addFiles(e.dataTransfer.files);
         }}
       >
-        <div style={{ color: colors.text }}>
+        {heading && (
+          <div
+            style={{
+              fontSize: 15,
+              fontWeight: 800,
+              color: theme === 'light' ? '#046b38' : '#86efac',
+              letterSpacing: 0.2,
+              marginBottom: 4,
+              textTransform: 'uppercase',
+            }}
+          >
+            {heading}
+          </div>
+        )}
+        {hint && (
+          <div style={{ fontSize: 13, fontWeight: 600, color: colors.text, marginBottom: 6, lineHeight: 1.45 }}>
+            {hint}
+          </div>
+        )}
+        <div style={{ color: colors.text, fontWeight: heading ? 500 : 600 }}>
           {allowVideo
             ? 'Kéo-thả hoặc bấm để tải ảnh & video (không giới hạn)'
             : 'Kéo-thả hoặc bấm để tải ảnh (không giới hạn)'}
