@@ -164,7 +164,7 @@ export default function Sidebar({
           onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && onSelect('content_gate')}
         >
           <i className="fas fa-lock" />
-          <span>Mật khẩu nội dung</span>
+          <span>Cổng đăng nhập menu</span>
         </a>
         <a
           className="nav-link"

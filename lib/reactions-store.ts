@@ -24,12 +24,12 @@ export type ReactionAuth =
 export async function authForReactionTarget(parsed: ParsedReactionTarget): Promise<ReactionAuth> {
   if (parsed.kind === 'album') {
     const access = await getAlbumAccess();
-    if (!access.loggedIn || !access.unlocked || !access.userId) {
+    if (!access.loggedIn || !access.userId) {
       return {
         ok: false,
         status: 403,
         locked: true,
-        error: 'Bạn cần đăng nhập và mở khoá nội dung để thả cảm xúc.',
+        error: 'Bạn cần đăng nhập để thả cảm xúc.',
       };
     }
     return { ok: true, userId: access.userId };

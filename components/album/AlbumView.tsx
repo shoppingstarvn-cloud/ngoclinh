@@ -35,10 +35,6 @@ export default function AlbumView({ slug }: { slug: string }) {
   const [locked, setLocked] = useState(false);
   const [loggedIn, setLoggedIn] = useState(false);
   const [authOpen, setAuthOpen] = useState(false);
-  const [pw, setPw] = useState('');
-  const [pwErr, setPwErr] = useState('');
-  const [pwBusy, setPwBusy] = useState(false);
-  const [showPw, setShowPw] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -52,20 +48,6 @@ export default function AlbumView({ slug }: { slug: string }) {
     setLoading(false);
   }, [slug]);
   useEffect(() => { load(); }, [load]);
-
-  async function submitPw() {
-    setPwErr(''); setPwBusy(true);
-    try {
-      const r = await fetch('/api/gate/verify', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ password: pw }),
-      });
-      const d = await r.json().catch(() => ({}));
-      if (!r.ok || d.success === false) throw new Error(d.error || 'Mật khẩu không đúng');
-      await load();
-    } catch (e) { setPwErr(e instanceof Error ? e.message : 'Có lỗi'); }
-    finally { setPwBusy(false); }
-  }
 
   // ---- Lightbox khối ----
   const [lbBlock, setLbBlock] = useState<Block | null>(null);
@@ -129,7 +111,7 @@ export default function AlbumView({ slug }: { slug: string }) {
 
       <div className="alb-wrap">
         {loggedIn && !locked && (
-          <div className="alb-lock">🔓 Đã đăng nhập &amp; mở khoá — bạn được bình luận, thả cảm xúc &amp; tải về</div>
+          <div className="alb-lock">🔓 Đã đăng nhập — bạn được bình luận, thả cảm xúc &amp; tải về</div>
         )}
 
         {slides.length > 0 && (
@@ -155,30 +137,9 @@ export default function AlbumView({ slug }: { slug: string }) {
 
         {locked ? (
           <div className="alb-gate">
-            {!loggedIn ? (
-              <>
-                <h3>🔒 Trang riêng — cần đăng nhập</h3>
-                <p>Vui lòng đăng nhập tài khoản để xem nội dung trang này.</p>
-                <button className="alb-btn green" onClick={() => setAuthOpen(true)}>Đăng nhập / Đăng ký</button>
-              </>
-            ) : (
-              <>
-                <h3>🔒 Vui lòng nhập Password để xem</h3>
-                <div style={{ position: 'relative' }}>
-                  <input className="alb-input" type={showPw ? 'text' : 'password'} value={pw} placeholder="Nhập mật khẩu"
-                    style={{ paddingRight: 44 }}
-                    onChange={(e) => setPw(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && submitPw()} />
-                  <button type="button" onClick={() => setShowPw((v) => !v)}
-                    aria-label={showPw ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'} title={showPw ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
-                    style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', border: 'none', background: 'transparent', cursor: 'pointer', fontSize: 18, lineHeight: 1, padding: 2 }}>
-                    {showPw ? '🙈' : '👁️'}
-                  </button>
-                </div>
-                {pwErr && <div className="alb-err">{pwErr}</div>}
-                <div className="alb-note">Đăng nhập tài khoản + nhập đúng password một lần đầu duy nhất — các lần sau xem thoải mái, không phải nhập lại.</div>
-                <button className="alb-btn green" disabled={pwBusy} onClick={submitPw}>{pwBusy ? 'Đang kiểm tra…' : 'Xem nội dung'}</button>
-              </>
-            )}
+            <h3>🔒 Trang riêng — cần đăng nhập</h3>
+            <p>Vui lòng đăng nhập tài khoản để xem nội dung trang này.</p>
+            <button className="alb-btn green" onClick={() => setAuthOpen(true)}>Đăng nhập / Đăng ký</button>
           </div>
         ) : blocks.length === 0 ? (
           <div className="alb-empty">Chưa có sự kiện nào. Hãy thêm khối &amp; ảnh trong Dashboard Admin.</div>
@@ -265,7 +226,15 @@ export default function AlbumView({ slug }: { slug: string }) {
       {/* Viewer 1 ảnh/video + bình luận + cảm xúc */}
       {viewer && <MediaViewer media={viewer} onClose={() => setViewer(null)} />}
 
-      <AuthModal open={authOpen} onClose={() => setAuthOpen(false)} onAuthed={() => { setAuthOpen(false); load(); }} />
+      <AuthModal
+        open={authOpen}
+        onClose={() => setAuthOpen(false)}
+        onAuthed={() => {
+          setAuthOpen(false);
+          setLoggedIn(true);
+          load();
+        }}
+      />
     </div>
   );
 }
@@ -284,7 +253,7 @@ function MediaViewer({ media, onClose }: { media: Media; onClose: () => void }) 
   async function send() {
     const c = text.trim(); if (!c) return;
     const r = await fetch('/api/album/comment', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ mediaId: media.id, content: c }) });
-    if (r.status === 403) { alert('Bạn cần đăng nhập & mở khoá để bình luận.'); return; }
+    if (r.status === 403) { alert('Bạn cần đăng nhập để bình luận.'); return; }
     const d = await r.json(); if (d.ok && d.comment) { setComments((p) => [d.comment, ...p]); setText(''); }
   }
 

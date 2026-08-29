@@ -6,7 +6,7 @@ export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 /** GET /api/album/lookup?slug=...  (slug có thể 2 tầng: 'tranvanon/1a5').
- *  Trả page + blocks; chưa mở khoá -> locked. */
+ *  Trả page + blocks; chưa đăng nhập -> locked. */
 export async function GET(req: NextRequest) {
   const slug = String(new URL(req.url).searchParams.get('slug') || '');
   if (!slug) return NextResponse.json({ ok: false }, { status: 400 });
@@ -25,7 +25,7 @@ export async function GET(req: NextRequest) {
       slide_urls: Array.isArray(page.slide_urls) ? page.slide_urls : [],
     },
   };
-  if (!access.loggedIn || !access.unlocked) return NextResponse.json({ ...base, locked: true, blocks: [] });
+  if (!access.loggedIn) return NextResponse.json({ ...base, locked: true, blocks: [] });
 
   const { data: blocks } = await supabase
     .from('album_blocks').select('id, title, cover_url, display_order')

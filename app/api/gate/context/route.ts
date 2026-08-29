@@ -7,8 +7,8 @@ import { isGatedCategoryName } from '@/lib/gate/gate';
 /**
  * Trả về:
  *  - targets: danh sách href (link đích) của các menu con thuộc khối
- *    "Hoạt động phong trào" — những link cần chặn mật khẩu.
- *  - unlocked: đã mở khoá chưa (cookie đã ký HOẶC thành viên đã mở 1 lần).
+ *    "Hoạt động phong trào" — những link cần đăng nhập trước khi vào.
+ *  - unlocked: đã đăng nhập tài khoản thành viên (mới được xem trang con).
  */
 export async function GET(request: NextRequest) {
   try {
@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
 
     const set = new Set<string>();
     // (1) Link CHUNG của khối "Hoạt động phong trào" — nơi menu con trỏ về khi
-    //     chưa điền Link đích riêng. Chặn cả link này để mọi menu con đều bị hỏi mật khẩu.
+    //     chưa điền Link đích riêng. Chặn cả link này để mọi menu con đều yêu cầu đăng nhập.
     for (const c of gatedCats) {
       const h = itemHref({ slug: c.slug, link_url: c.link_url });
       if (h && h !== '#') set.add(h);
@@ -81,18 +81,8 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    // MỞ KHOÁ chỉ khi: đang đăng nhập tài khoản VÀ tài khoản đó đã nhập mật khẩu 1 lần.
-    // Khách chưa đăng nhập -> luôn phải nhập mật khẩu (không nhớ bằng cookie).
-    let unlocked = false;
     const user = await getCurrentUser();
-    if (user) {
-      const { data: rows } = await supabase
-        .from('users')
-        .select('content_unlocked')
-        .eq('id', user.id)
-        .limit(1);
-      if (rows?.[0]?.content_unlocked) unlocked = true;
-    }
+    const unlocked = !!user;
 
     return NextResponse.json({ unlocked, targets, patterns });
   } catch {

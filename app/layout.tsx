@@ -95,7 +95,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body>
         {children}
-        {/* Cổng mật khẩu xem nội dung (chỉ khối "Hoạt động phong trào") — chặn click toàn cục */}
+        {/* Cổng đăng nhập menu con (chỉ khối "Hoạt động phong trào") — chặn click toàn cục */}
         <ContentGate />
         <PresenceHeartbeat />
         <SiteVideoEnhance />

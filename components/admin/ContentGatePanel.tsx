@@ -1,93 +1,25 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import Swal from 'sweetalert2';
-
-const swalDark = { background: '#1a1a2e', color: '#fff' };
-
-interface ContentGatePanelProps {
-  authHeader: string;
-}
-
-/**
- * Tab "Mật khẩu nội dung" NGAY TRONG dashboard Super Admin.
- * Đọc/ghi mật khẩu khối "Hoạt động trọng tâm" qua /api/admin/content-gate
- * (gửi Authorization: Bearer <token> — requireAdmin chấp nhận cả Bearer).
- */
-export default function ContentGatePanel({ authHeader }: ContentGatePanelProps) {
-  const [pw, setPw] = useState('');
-  const [note, setNote] = useState('');
-  const [loaded, setLoaded] = useState(false);
-  const [saving, setSaving] = useState(false);
-
-  useEffect(() => {
-    fetch('/api/admin/content-gate', { headers: { Authorization: authHeader } })
-      .then(async (r) => {
-        if (!r.ok) return;
-        const d = await r.json();
-        setPw(d.password || '');
-        setNote(d.note || '');
-      })
-      .catch(() => {})
-      .finally(() => setLoaded(true));
-  }, [authHeader]);
-
-  async function save() {
-    setSaving(true);
-    try {
-      const r = await fetch('/api/admin/content-gate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: authHeader },
-        body: JSON.stringify({ password: pw }),
-      });
-      if (!r.ok) throw new Error('Lưu thất bại');
-      Swal.fire({ icon: 'success', title: 'Đã lưu mật khẩu!', timer: 1200, showConfirmButton: false, ...swalDark });
-    } catch (e) {
-      Swal.fire({ icon: 'error', title: 'Lỗi', text: e instanceof Error ? e.message : 'Lưu thất bại', ...swalDark });
-    } finally {
-      setSaving(false);
-    }
-  }
-
-  if (!loaded) {
-    return (
-      <div className="text-center p-5">
-        <i className="fas fa-spinner fa-spin" style={{ fontSize: 28 }} />
-      </div>
-    );
-  }
-
+export default function ContentGatePanel() {
   return (
-    <div className="card" style={{ maxWidth: 640 }}>
+    <div className="card shadow-sm">
       <div className="card-body">
-        <h5 className="mb-2">
-          <i className="fas fa-lock text-success" /> Mật khẩu xem nội dung
+        <h5 className="card-title mb-3">
+          <i className="fas fa-user-lock text-primary me-2" />
+          Cổng đăng nhập menu con
         </h5>
-        <p className="text-muted" style={{ fontSize: 14, marginBottom: 6 }}>
-          Áp dụng cho các menu con của khối <b>“Hoạt động trọng tâm”</b>. Người xem bấm vào menu con
-          sẽ phải nhập đúng mật khẩu này mới xem được.
+        <p className="text-muted mb-3">
+          Các liên kết thuộc danh mục có tên chứa <strong>Hoạt động</strong> (không phân biệt dấu) yêu cầu
+          khách <strong>đăng nhập hoặc đăng ký</strong> trước khi xem trang con.
         </p>
-        {note ? (
-          <p className="text-muted" style={{ fontSize: 12.5 }}>
-            {note}
-          </p>
-        ) : null}
-
-        <label className="form-label fw-bold mt-2">Mật khẩu</label>
-        <input
-          className="form-control"
-          type="text"
-          value={pw}
-          onChange={(e) => setPw(e.target.value)}
-          placeholder="Nhập mật khẩu mới"
-          style={{ maxWidth: 320 }}
-        />
-
-        <div className="mt-3">
-          <button className="btn btn-success" disabled={saving} onClick={save}>
-            <i className="fas fa-save" /> {saving ? 'Đang lưu...' : 'Lưu mật khẩu'}
-          </button>
-        </div>
+        <ul className="mb-0">
+          <li>Khách chưa đăng nhập bấm menu con → hiện cửa sổ đăng nhập / đăng ký.</li>
+          <li>Sau khi đăng nhập thành công → tự chuyển tới trang đích.</li>
+          <li>Album / nhật ký và bình luận cũng chỉ mở khi đã đăng nhập.</li>
+        </ul>
+        <p className="text-muted small mt-3 mb-0">
+          Không còn mật khẩu xem nội dung riêng. Quản lý tài khoản tại tab <strong>Quản lý Users</strong>.
+        </p>
       </div>
     </div>
   );

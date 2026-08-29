@@ -16,10 +16,7 @@ export interface AlbumAccess {
   userName: string;
 }
 
-/**
- * Quyền vào trang con: phải ĐĂNG NHẬP tài khoản VÀ đã mở khoá (nhập mật khẩu 1 lần
- * -> users.content_unlocked = true). Dùng chung cơ chế với cổng mật khẩu khối Hoạt động.
- */
+/** Quyền xem trang con / album: chỉ cần đăng nhập tài khoản thành viên. */
 export async function getAlbumAccess(): Promise<AlbumAccess> {
   const store = await cookies();
   const cmsToken = store.get(ADMIN_COOKIE)?.value;
@@ -41,14 +38,13 @@ export async function getAlbumAccess(): Promise<AlbumAccess> {
   const supabase = createAdminClient();
   const { data } = await supabase
     .from('users')
-    .select('content_unlocked, full_name, email, role')
+    .select('full_name, email, role')
     .eq('id', user.id)
     .limit(1);
   const row = data?.[0];
-  const isSuperAdmin = String(row?.role || '') === 'superadmin';
   return {
     loggedIn: true,
-    unlocked: isSuperAdmin || !!row?.content_unlocked,
+    unlocked: true,
     userId: user.id,
     userName: String(row?.full_name || row?.email || user.email || 'Thành viên'),
   };

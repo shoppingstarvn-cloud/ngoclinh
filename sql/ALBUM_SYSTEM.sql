@@ -2,7 +2,7 @@
 --  HỆ THỐNG TRANG CON "ALBUM / NHẬT KÝ" (vd ngoclinh.shopmartai.com/lop1a3)
 --  Mỗi menu cấp 2 -> 1 trang con: nhiều KHỐI sự kiện, mỗi khối chứa
 --  hàng trăm nghìn ẢNH/VIDEO lưu trên Google Drive. Thành viên đã đăng nhập
---  + mở khoá được BÌNH LUẬN, THẢ CẢM XÚC, TẢI VỀ.
+--  được xem nội dung, BÌNH LUẬN, THẢ CẢM XÚC, TẢI VỀ.
 --  Chạy 1 lần trong Supabase SQL Editor của dự án ngoclinh.
 -- ============================================================
 

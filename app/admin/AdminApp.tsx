@@ -266,7 +266,7 @@ export default function AdminApp() {
             {activeTab === 'dashboard'
               ? 'Dashboard'
               : activeTab === 'content_gate'
-                ? 'Mật khẩu nội dung'
+                ? 'Cổng đăng nhập menu con'
                 : activeTab === 'album'
                   ? 'Trang con / Nhật ký'
                   : activeTab === 'users_mgmt'
@@ -304,7 +304,7 @@ export default function AdminApp() {
           />
         )}
 
-        {activeTab === 'content_gate' && <ContentGatePanel authHeader={authHeader} />}
+        {activeTab === 'content_gate' && <ContentGatePanel />}
 
         {activeTab === 'album' && <AlbumAdminPanel authHeader={authHeader} />}
 

@@ -6,10 +6,10 @@ export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 /** GET /api/album/media?blockId=&kind=image|video&offset=&limit=
- *  Trả media của 1 khối theo lô (kéo tới đâu tải tới đó). Yêu cầu đã mở khoá. */
+ *  Trả media của 1 khối theo lô (kéo tới đâu tải tới đó). Yêu cầu đăng nhập. */
 export async function GET(req: NextRequest) {
   const access = await getAlbumAccess();
-  if (!access.loggedIn || !access.unlocked) {
+  if (!access.loggedIn) {
     return NextResponse.json({ ok: false, locked: true }, { status: 403 });
   }
   const url = new URL(req.url);

@@ -1,5 +1,11 @@
 -- =============================================================================
--- CỔNG MẬT KHẨU XEM NỘI DUNG — CHỈ cho menu con của khối "HOẠT ĐỘNG PHONG TRÀO"
+-- [LEGACY — KHÔNG CÒN DÙNG TRONG CODE MỚI]
+-- Trước đây: mật khẩu xem nội dung + cột users.content_unlocked.
+-- Hiện tại (2026-08): menu con khối "Hoạt động phong trào" + album chỉ cần
+-- ĐĂNG NHẬP thành viên (AuthModal). API /api/gate/verify đã gỡ.
+-- Giữ file này để tham chiếu DB cũ; KHÔNG cần chạy lại nếu đã migrate trước đó.
+-- =============================================================================
+-- CỔNG MẬT KHẨU XEM NỘI DUNG (phiên bản cũ)
 -- Chạy 1 lần: Supabase → SQL Editor → Run. An toàn (IF NOT EXISTS).
 -- =============================================================================
 

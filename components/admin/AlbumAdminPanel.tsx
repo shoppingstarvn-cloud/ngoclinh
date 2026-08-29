@@ -138,7 +138,7 @@ export default function AlbumAdminPanel({ authHeader }: Props) {
   return (
     <div className="card"><div className="card-body">
       <h5 className="mb-2"><i className="fas fa-images text-success" /> Trang con (Album / Nhật ký)</h5>
-      <p className="text-muted" style={{ fontSize: 13.5 }}>Mỗi trang con có đường dẫn đẹp: <b>ngoclinh.shopmartai.com/{cur?.slug || 'lop1a3'}</b>. Thêm khối, kéo-thả upload ảnh/video (lưu Google Drive), thành viên đăng nhập + mở khoá sẽ bình luận/thả cảm xúc/tải về.</p>
+      <p className="text-muted" style={{ fontSize: 13.5 }}>Mỗi trang con có đường dẫn đẹp: <b>ngoclinh.shopmartai.com/{cur?.slug || 'lop1a3'}</b>. Thêm khối, kéo-thả upload ảnh/video (lưu Google Drive), thành viên đăng nhập sẽ bình luận/thả cảm xúc/tải về.</p>
 
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center', margin: '10px 0' }}>
         <select className="form-select" style={{ maxWidth: 280 }} value={sel ?? ''} onChange={(e) => setSel(Number(e.target.value))}>

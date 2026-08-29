@@ -6,7 +6,7 @@ export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 /** GET /api/album/:slug → thông tin trang con + danh sách khối (kèm số ảnh/video).
- *  Nếu chưa đăng nhập / chưa mở khoá: trả locked=true (chỉ kèm tiêu đề để hiện cổng). */
+ *  Nếu chưa đăng nhập: trả locked=true (chỉ kèm tiêu đề để hiện cổng). */
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const supabase = createAdminClient();
@@ -34,7 +34,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ slu
     },
   };
 
-  if (!access.loggedIn || !access.unlocked) {
+  if (!access.loggedIn) {
     return NextResponse.json({ ...base, locked: true, blocks: [] });
   }
 

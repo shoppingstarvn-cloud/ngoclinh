@@ -19,11 +19,11 @@ export async function GET(req: NextRequest) {
   return NextResponse.json({ ok: true, comments: data ?? [] });
 }
 
-/** POST /api/album/comment {mediaId, content} — chỉ thành viên đã mở khoá. */
+/** POST /api/album/comment {mediaId, content} — chỉ thành viên đã đăng nhập. */
 export async function POST(req: NextRequest) {
   const access = await getAlbumAccess();
-  if (!access.loggedIn || !access.unlocked) {
-    return NextResponse.json({ ok: false, locked: true, error: 'Cần đăng nhập & mở khoá' }, { status: 403 });
+  if (!access.loggedIn) {
+    return NextResponse.json({ ok: false, locked: true, error: 'Cần đăng nhập' }, { status: 403 });
   }
   const body = (await req.json().catch(() => ({}))) as { mediaId?: number; content?: string };
   const mediaId = Number(body.mediaId || 0);
