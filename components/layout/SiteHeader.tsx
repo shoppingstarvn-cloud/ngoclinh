@@ -381,18 +381,6 @@ export function SiteFooter({
             </div>
             <div className="col-12 col-md-3 text-center text-md-right">
               <a
-                href="http://online.gov.vn/HomePage/CustomWebsiteDisplay.aspx?DocId=57677"
-                target="_blank"
-                rel="noreferrer"
-                style={{ display: 'inline-block', cursor: 'pointer' }}
-              >
-                <img
-                  src="/images/contact/2171da-thong-bao-bct.png"
-                  alt="Bộ Công Thương"
-                  style={{ height: 40, marginRight: 15, display: 'inline-block' }}
-                />
-              </a>
-              <a
                 href="#top"
                 className="go-top"
                 style={{

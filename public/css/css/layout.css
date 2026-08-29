@@ -1598,14 +1598,6 @@ a.more:hover {
     padding: 5px;
     border-radius: 40px;
     margin-top: 0px;}
-.bottom_page .item2>.bct img {height: 40px;border-radius: 3px;}
-.bottom_page .item2>.bct {background: unset;
-	float: right;
-    font-size: 15px;
-    padding: 0;
-    border-radius: 0;
-    margin: -5px 20px 0 0;
-}
 
 /*15/05*/
 .footer_item>div ul li {margin-left: 15px;list-style-type: disc;}
