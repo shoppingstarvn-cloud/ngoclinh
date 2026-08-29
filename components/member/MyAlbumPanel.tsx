@@ -139,6 +139,9 @@ export default function MyAlbumPanel() {
             fieldHint="Nhiều ảnh chạy slideshow đầu trang website con. Kéo-thả không giới hạn số ảnh."
           />
         </div>
+        <p style={{ fontSize: 13, color: '#64748b', margin: '8px 0 0' }}>
+          Sau khi thay hoặc xóa ảnh nền / slide, bấm <b>Lưu trang</b> để áp dụng lên website.
+        </p>
         <button style={btn} onClick={savePage}>💾 Lưu trang</button>
       </div>
 
@@ -192,8 +195,21 @@ export default function MyAlbumPanel() {
       </div>
       {progress && <div style={{ background: '#eef6ff', padding: '8px 12px', borderRadius: 8, fontSize: 13 }}>⏳ {progress}</div>}
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(240px,1fr))', gap: 12, marginTop: 12 }}>
-        {blocks.map((b) => <BlockCard key={b.id} block={b} onDrop={(f) => handleFiles(b.id, f)} onDelete={() => delBlock(b.id)} />)}
+      <h3 style={{ margin: '20px 0 8px', color: '#046b38', fontSize: 17 }}>Quản lý các khối đã có</h3>
+      <p style={{ fontSize: 13, color: '#64748b', margin: '0 0 10px' }}>
+        Sửa tên khối, thay hoặc xóa ảnh bìa, xem và xóa từng ảnh/video trong khối. Thêm media mới bằng kéo-thả bên dưới.
+      </p>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(280px,1fr))', gap: 12, marginTop: 4 }}>
+        {blocks.map((b) => (
+          <BlockCard
+            key={b.id}
+            block={b}
+            uploadImageUrl={uploadImageUrl}
+            onDrop={(f) => handleFiles(b.id, f)}
+            onDelete={() => delBlock(b.id)}
+            onSaved={load}
+          />
+        ))}
       </div>
       {blocks.length === 0 && <p style={{ color: '#889' }}>Chưa có khối nào. Thêm khối rồi kéo-thả ảnh/video vào.</p>}
     </div>
@@ -257,25 +273,145 @@ function SlideSharePicker({
   );
 }
 
-function BlockCard({ block, onDrop, onDelete }: { block: Block; onDrop: (f: FileList | File[]) => void; onDelete: () => void }) {
+type MediaItem = { id: number; kind: string; url: string; name: string | null };
+
+function BlockCard({
+  block,
+  uploadImageUrl,
+  onDrop,
+  onDelete,
+  onSaved,
+}: {
+  block: Block;
+  uploadImageUrl: (file: File) => Promise<string>;
+  onDrop: (f: FileList | File[]) => void | Promise<void>;
+  onDelete: () => void;
+  onSaved: () => void;
+}) {
   const ref = useRef<HTMLInputElement>(null);
   const [over, setOver] = useState(false);
+  const [title, setTitle] = useState(block.title);
+  const [cover, setCover] = useState(block.cover_url || '');
+  const [saving, setSaving] = useState(false);
+  const [mediaOpen, setMediaOpen] = useState(false);
+  const [media, setMedia] = useState<MediaItem[]>([]);
+  const [mediaLoading, setMediaLoading] = useState(false);
+  const [counts, setCounts] = useState({ photos: block.photos, videos: block.videos });
+
+  useEffect(() => {
+    setTitle(block.title);
+    setCover(block.cover_url || '');
+    setCounts({ photos: block.photos, videos: block.videos });
+  }, [block.id, block.title, block.cover_url, block.photos, block.videos]);
+
+  async function loadMedia() {
+    setMediaLoading(true);
+    const d = await post({ action: 'getBlockMedia', blockId: block.id });
+    if (d.ok) setMedia(d.media || []);
+    setMediaLoading(false);
+  }
+
+  async function toggleMedia() {
+    const next = !mediaOpen;
+    setMediaOpen(next);
+    if (next && !media.length) await loadMedia();
+  }
+
+  async function saveBlock() {
+    const t = title.trim();
+    if (!t) { alert('Vui lòng nhập tên khối.'); return; }
+    setSaving(true);
+    const d = await post({ action: 'updateBlock', id: block.id, title: t, cover_url: cover });
+    setSaving(false);
+    if (!d.ok) { alert(d.error || 'Không lưu được khối.'); return; }
+    onSaved();
+  }
+
+  async function removeMedia(id: number) {
+    if (!confirm('Xóa ảnh/video này khỏi khối?')) return;
+    const d = await post({ action: 'delMedia', id });
+    if (!d.ok) { alert('Không xóa được.'); return; }
+    setMedia((prev) => prev.filter((m) => m.id !== id));
+    setCounts((c) => {
+      const item = media.find((m) => m.id === id);
+      if (!item) return c;
+      return item.kind === 'video' ? { ...c, videos: Math.max(0, c.videos - 1) } : { ...c, photos: Math.max(0, c.photos - 1) };
+    });
+    onSaved();
+  }
+
+  const dirty = title.trim() !== block.title || (cover || '') !== (block.cover_url || '');
+
   return (
-    <div style={{ border: '1px solid #dde', borderRadius: 10, padding: 10, background: '#fff' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <b style={{ fontSize: 14 }}>{block.title}</b>
-        <button onClick={onDelete} style={{ border: 'none', background: '#fee', color: '#b00', borderRadius: 6, cursor: 'pointer', padding: '4px 8px' }}>🗑</button>
+    <div style={{ border: '1px solid #dde', borderRadius: 10, padding: 12, background: '#fff' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8 }}>
+        <div style={{ flex: 1 }}>
+          <label style={{ fontSize: 12, color: '#64748b' }}>Tên khối</label>
+          <input style={{ ...inp, marginTop: 4 }} value={title} onChange={(e) => setTitle(e.target.value)} />
+        </div>
+        <button type="button" onClick={onDelete} title="Xóa cả khối" style={{ border: 'none', background: '#fee', color: '#b00', borderRadius: 6, cursor: 'pointer', padding: '6px 10px', marginTop: 18 }}>🗑</button>
       </div>
-      <div style={{ fontSize: 12, color: '#678', margin: '4px 0 8px' }}>📸 {block.photos.toLocaleString('vi-VN')} · 🎬 {block.videos}</div>
+      <div style={{ marginTop: 8 }}>
+        <ImageUploadField
+          theme="light"
+          mode="single"
+          value={cover}
+          onChange={setCover}
+          uploadFile={uploadImageUrl}
+          heading="Ảnh bìa khối"
+          hint="Thay hoặc xóa ảnh bìa, rồi bấm Lưu khối."
+        />
+      </div>
+      <button type="button" style={{ ...btn, marginTop: 8, opacity: saving ? 0.7 : 1, width: '100%' }} disabled={saving || !dirty} onClick={saveBlock}>
+        {saving ? 'Đang lưu…' : '💾 Lưu khối'}
+      </button>
+      <div style={{ fontSize: 12, color: '#678', margin: '8px 0' }}>📸 {counts.photos.toLocaleString('vi-VN')} · 🎬 {counts.videos}</div>
+      <button type="button" onClick={toggleMedia} style={{ ...btn, background: '#eef6ff', color: '#046b38', width: '100%', marginTop: 0 }}>
+        {mediaOpen ? '▲ Ẩn ảnh & video trong khối' : '▼ Xem / xóa ảnh & video trong khối'}
+      </button>
+      {mediaOpen && (
+        <div style={{ marginTop: 8 }}>
+          {mediaLoading && <div style={{ fontSize: 12, color: '#678' }}>Đang tải danh sách…</div>}
+          {!mediaLoading && media.length === 0 && <div style={{ fontSize: 12, color: '#889' }}>Chưa có ảnh/video.</div>}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(72px,1fr))', gap: 6, marginTop: 6 }}>
+            {media.map((m) => (
+              <div key={m.id} style={{ position: 'relative', borderRadius: 6, overflow: 'hidden', border: '1px solid #dde', aspectRatio: '1' }}>
+                {m.kind === 'video' ? (
+                  <video src={m.url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} muted playsInline />
+                ) : (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={m.url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                )}
+                <button type="button" onClick={() => removeMedia(m.id)} style={{ position: 'absolute', top: 2, right: 2, border: 'none', background: 'rgba(220,38,38,0.9)', color: '#fff', borderRadius: 4, cursor: 'pointer', fontSize: 11, padding: '2px 5px' }}>✕</button>
+              </div>
+            ))}
+          </div>
+          {!mediaLoading && media.length > 0 && (
+            <button type="button" onClick={loadMedia} style={{ marginTop: 6, fontSize: 12, border: 'none', background: 'transparent', color: '#046b38', cursor: 'pointer', textDecoration: 'underline' }}>Tải lại danh sách</button>
+          )}
+        </div>
+      )}
       <div onClick={() => ref.current?.click()} onDragOver={(e) => { e.preventDefault(); setOver(true); }} onDragLeave={() => setOver(false)}
-        onDrop={(e) => { e.preventDefault(); setOver(false); if (e.dataTransfer.files?.length) onDrop(e.dataTransfer.files); }}
-        style={{ border: `2px dashed ${over ? '#00A651' : '#bcd'}`, background: over ? '#eafaf0' : '#f7fbf9', borderRadius: 10, padding: '16px 8px', textAlign: 'center', cursor: 'pointer', color: '#468' }}>
-        <div style={{ fontSize: 24 }}>⬆️</div>
-        <div style={{ fontSize: 13, fontWeight: 800, color: '#046b38', textTransform: 'uppercase', marginBottom: 4 }}>Up ảnh &amp; video vào khối này</div>
-        <div style={{ fontSize: 12.5, fontWeight: 700 }}>Kéo-thả hoặc bấm để tải ảnh &amp; video nhật ký</div>
+        onDrop={async (e) => {
+          e.preventDefault();
+          setOver(false);
+          if (!e.dataTransfer.files?.length) return;
+          await onDrop(e.dataTransfer.files);
+          if (mediaOpen) await loadMedia();
+        }}
+        style={{ border: `2px dashed ${over ? '#00A651' : '#bcd'}`, background: over ? '#eafaf0' : '#f7fbf9', borderRadius: 10, padding: '14px 8px', textAlign: 'center', cursor: 'pointer', color: '#468', marginTop: 10 }}>
+        <div style={{ fontSize: 22 }}>⬆️</div>
+        <div style={{ fontSize: 12, fontWeight: 800, color: '#046b38', textTransform: 'uppercase', marginBottom: 4 }}>Thêm ảnh &amp; video</div>
+        <div style={{ fontSize: 12 }}>Kéo-thả hoặc bấm để tải lên</div>
       </div>
       <input ref={ref} type="file" multiple accept="image/*,video/*" style={{ display: 'none' }}
-        onChange={(e) => { if (e.target.files?.length) onDrop(e.target.files); e.currentTarget.value = ''; }} />
+        onChange={async (e) => {
+          if (e.target.files?.length) {
+            await onDrop(e.target.files);
+            if (mediaOpen) await loadMedia();
+          }
+          e.currentTarget.value = '';
+        }} />
     </div>
   );
 }

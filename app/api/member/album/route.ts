@@ -91,6 +91,34 @@ export async function POST(request: NextRequest) {
       await supabase.from('album_blocks').insert({ page_id: page.id, title, cover_url: String(b.cover_url || ''), is_active: true });
       return NextResponse.json({ ok: true });
     }
+    if (action === 'updateBlock') {
+      const id = Number(b.id || 0);
+      if (!(await ownsBlock(id))) return NextResponse.json({ ok: false }, { status: 403 });
+      const patch: Record<string, unknown> = { updated_at: new Date().toISOString() };
+      if ('title' in b) {
+        const title = String(b.title || '').trim();
+        if (!title) return NextResponse.json({ ok: false, error: 'Thiếu tên khối' }, { status: 400 });
+        patch.title = title;
+      }
+      if ('cover_url' in b) patch.cover_url = String(b.cover_url || '');
+      if (Object.keys(patch).length === 1) return NextResponse.json({ ok: false, error: 'Không có gì để cập nhật' }, { status: 400 });
+      await supabase.from('album_blocks').update(patch).eq('id', id);
+      return NextResponse.json({ ok: true });
+    }
+    if (action === 'getBlockMedia') {
+      const blockId = Number(b.blockId || 0);
+      if (!(await ownsBlock(blockId))) return NextResponse.json({ ok: false }, { status: 403 });
+      const offset = Math.max(0, Number(b.offset || 0));
+      const limit = Math.min(120, Math.max(1, Number(b.limit || 60)));
+      const { data, count } = await supabase
+        .from('album_media')
+        .select('id, kind, url, name, display_order', { count: 'exact' })
+        .eq('block_id', blockId)
+        .order('display_order', { ascending: true })
+        .order('id', { ascending: true })
+        .range(offset, offset + limit - 1);
+      return NextResponse.json({ ok: true, media: data ?? [], total: count ?? 0 });
+    }
     if (action === 'delBlock') {
       const id = Number(b.id || 0);
       if (!(await ownsBlock(id))) return NextResponse.json({ ok: false }, { status: 403 });
