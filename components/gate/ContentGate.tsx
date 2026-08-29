@@ -2,14 +2,17 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import AuthModal from '@/components/auth/AuthModal';
+import { hrefMatchesAlbum } from '@/lib/album/href-keys';
 
 /**
  * Cổng đăng nhập TOÀN CỤC — chặn link menu con của khối "Hoạt động phong trào".
- * Khách bấm link → mở AuthModal; sau khi đăng nhập mới được vào trang con.
+ * Trang album: cho vào URL → AlbumView hiện thẻ "cần đăng nhập" (như ảnh mẫu).
+ * Link legacy (.html): mở AuthModal trước khi điều hướng.
  */
 export default function ContentGate() {
   const [targets, setTargets] = useState<string[]>([]);
   const [patterns, setPatterns] = useState<string[]>([]);
+  const albumKeysRef = useRef<Set<string>>(new Set());
   const unlockedRef = useRef(false);
   const pendingRef = useRef<{ href: string; external: boolean } | null>(null);
 
@@ -22,6 +25,12 @@ export default function ContentGate() {
         unlockedRef.current = !!d.unlocked;
         setTargets(Array.isArray(d.targets) ? d.targets : []);
         setPatterns(Array.isArray(d.patterns) ? d.patterns : []);
+        const keys = d.albumMatchKeys ?? d.albumSlugs;
+        if (Array.isArray(keys)) {
+          albumKeysRef.current = new Set(
+            keys.map((s: string) => String(s).toLowerCase()),
+          );
+        }
       })
       .catch(() => {});
   }, []);
@@ -46,6 +55,7 @@ export default function ContentGate() {
       const rawLc = raw.toLowerCase();
       const hit = targets.includes(raw) || patterns.some((p) => p && rawLc.includes(p));
       if (!hit) return;
+      if (hrefMatchesAlbum(raw, albumKeysRef.current)) return;
       e.preventDefault();
       e.stopPropagation();
       pendingRef.current = { href: raw, external: /^https?:\/\//i.test(raw) };

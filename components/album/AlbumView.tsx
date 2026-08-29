@@ -137,9 +137,10 @@ export default function AlbumView({ slug }: { slug: string }) {
 
         {locked ? (
           <div className="alb-gate">
-            <h3>🔒 Trang riêng — cần đăng nhập</h3>
+            <div className="alb-gate-icon" aria-hidden>🔒</div>
+            <h3>Trang riêng — cần đăng nhập</h3>
             <p>Vui lòng đăng nhập tài khoản để xem nội dung trang này.</p>
-            <button className="alb-btn green" onClick={() => setAuthOpen(true)}>Đăng nhập / Đăng ký</button>
+            <button type="button" className="alb-btn green" onClick={() => setAuthOpen(true)}>Đăng nhập / Đăng ký</button>
           </div>
         ) : blocks.length === 0 ? (
           <div className="alb-empty">Chưa có sự kiện nào. Hãy thêm khối &amp; ảnh trong Dashboard Admin.</div>
@@ -170,7 +171,9 @@ export default function AlbumView({ slug }: { slug: string }) {
           </div>
         )}
 
-        <footer className="alb-footer"><span>🌸 Nhật ký · Album nghệ thuật — lưu giữ mãi mãi, vô hạn &amp; chia sẻ 🌸</span></footer>
+        {!locked && (
+          <footer className="alb-footer"><span>🌸 Nhật ký · Album nghệ thuật — lưu giữ mãi mãi, vô hạn &amp; chia sẻ 🌸</span></footer>
+        )}
       </div>
 
       {/* Lightbox 1 khối */}
@@ -338,7 +341,9 @@ const CSS = `
 @keyframes albneon{0%{text-shadow:0 0 6px #fff,0 0 16px #ff2fd0,0 0 30px #ff2fd0,0 0 48px #ff2fd0}25%{text-shadow:0 0 6px #fff,0 0 16px #00e6ff,0 0 30px #00e6ff,0 0 48px #00e6ff}50%{text-shadow:0 0 6px #fff,0 0 16px #7CFC00,0 0 30px #39FF14,0 0 48px #39FF14}75%{text-shadow:0 0 6px #fff,0 0 16px #ffd400,0 0 30px #ff9500,0 0 48px #ff9500}100%{text-shadow:0 0 6px #fff,0 0 16px #b14cff,0 0 30px #b14cff,0 0 48px #b14cff}}
 .alb-subtitle{text-align:center;color:#0c5a34;font-size:16px;max-width:660px;margin:6px auto 4px;font-weight:600}
 .alb-gate{max-width:420px;margin:30px auto;background:#fff;border-top:5px solid #00A651;border-radius:16px;box-shadow:0 24px 60px rgba(0,0,0,.25);padding:26px;text-align:center}
-.alb-gate h3{color:#004000;margin:0 0 10px}
+.alb-gate-icon{font-size:52px;line-height:1;margin:0 0 12px;filter:drop-shadow(0 2px 4px rgba(0,0,0,.15))}
+.alb-gate h3{color:#004000;margin:0 0 10px;font-size:1.15rem;font-weight:700}
+.alb-gate p{color:#334155;margin:0 0 18px;font-size:15px;line-height:1.5}
 .alb-input{width:100%;box-sizing:border-box;border:1px solid #cbd5e1;border-radius:10px;padding:12px 14px;font-size:16px;outline:none}
 .alb-note{font-size:12.5px;color:#64748b;background:#f8fafc;border:1px dashed #cbd5e1;border-radius:9px;padding:10px 12px;margin:12px 0}
 .alb-err{margin-top:8px;background:#fef2f2;color:#b91c1c;border:1px solid #fecaca;border-radius:8px;padding:8px 12px;font-size:13px}

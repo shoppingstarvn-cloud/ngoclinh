@@ -3,6 +3,7 @@ import { createAdminClient } from '@/lib/supabase/admin';
 import { resolveHref, itemHref } from '@/lib/slug';
 import { getCurrentUser } from '@/lib/auth/user-session';
 import { isGatedCategoryName } from '@/lib/gate/gate';
+import { buildAlbumMatchKeys } from '@/lib/album/href-keys';
 
 /**
  * Trả về:
@@ -84,8 +85,14 @@ export async function GET(request: NextRequest) {
     const user = await getCurrentUser();
     const unlocked = !!user;
 
-    return NextResponse.json({ unlocked, targets, patterns });
+    const { data: albumRows } = await supabase
+      .from('album_pages')
+      .select('slug, class_slug')
+      .eq('is_active', true);
+    const albumMatchKeys = buildAlbumMatchKeys(albumRows ?? []);
+
+    return NextResponse.json({ unlocked, targets, patterns, albumMatchKeys });
   } catch {
-    return NextResponse.json({ unlocked: false, targets: [], patterns: [] });
+    return NextResponse.json({ unlocked: false, targets: [], patterns: [], albumMatchKeys: [] });
   }
 }

@@ -1,6 +1,6 @@
 # HỒ SƠ DỰ ÁN — NGOCLINH
 
-> Nguồn sự thật của workspace này. Cập nhật 18/08/2026 từ đường dẫn anh Linh gửi (Explorer + GitHub + Vercel + Supabase).
+> Nguồn sự thật của workspace này. Cập nhật 29/08/2026 (commit production `dc9880e`).
 > **Đây là website độc lập.** Không phải Cửa Âu / webbetonglammau.
 
 ---
@@ -14,7 +14,7 @@
 | **Chủ** | Bùi Ngọc Linh — ShopMartAI |
 | **Stack** | Next.js 15 (App Router) + Supabase (PostgreSQL + Storage) + Vercel |
 | **Nhánh deploy** | `main` |
-| **Commit production đang chạy** | `5554180` — *Doi dong mo ta khoi san pham trang chu* |
+| **Commit production đang chạy** | `dc9880e` — *Gate Hoạt động: chỉ đăng nhập, bỏ mật khẩu nội dung* |
 
 Khung code từng clone từ site bê tông, nhưng **hạ tầng đã tách hẳn**: repo riêng, Vercel riêng, Supabase riêng, domain riêng.
 
@@ -63,8 +63,8 @@ git remote -v
 | Project ID (nội bộ) | `prj_pyv7xfL7vOdMLvYrSUNUZJQV8xek` |
 | Domain chính | **https://ngoclinh.shopmartai.com** |
 | URL Vercel mặc định (tham chiếu) | `ngoclinh-three.vercel.app` |
-| Nguồn deploy | GitHub `ngoclinh` / nhánh `main` / commit `5554180` |
-| Trạng thái (18/08/2026) | Ready — đã có bản production |
+| Nguồn deploy | GitHub `ngoclinh` / nhánh `main` / commit `dc9880e` |
+| Trạng thái (29/08/2026) | Ready — production LIVE |
 
 DNS `shopmartai.com` quản lý tại **Vinahost**. Subdomain `ngoclinh` trỏ Vercel.
 
@@ -140,7 +140,24 @@ Push nhầm sang webbetonglammau ngày 18/08/2026 đã **revert** (`3039de7`). K
 
 ---
 
-## 8. Việc Cursor / em phải làm mỗi phiên
+## 8. Cổng nội dung menu **Hoạt động** (login-only, từ `dc9880e`)
+
+Danh mục/menu tên **Hoạt động** (`lib/gate/match.ts` → `isGatedCategoryName`) yêu cầu **đăng nhập**, không còn mật khẩu nội dung site-wide.
+
+| Thành phần | Vai trò |
+|---|---|
+| `GET /api/gate/context` | Trả `unlocked: true/false` theo session; kèm `targets` + `patterns` cho link gated |
+| `components/gate/ContentGate.tsx` | Chặn click link gated → mở **AuthModal** (đăng nhập/đăng ký) |
+| `lib/album/album.ts` | Album gated: chỉ xem khi `loggedIn` |
+| Admin tab `content_gate` | Chỉ hướng dẫn — không quản lý mật khẩu |
+
+**Đã gỡ (không tái tạo):** `POST /api/gate/verify`, `/api/admin/content-gate`, cột `users.content_unlocked` (legacy, không dùng). SQL `CONTENT_GATE.sql` = LEGACY.
+
+**Kiểm tra LIVE (29/08/2026):** `/api/gate/context` → 200; `/api/gate/verify` → 404.
+
+---
+
+## 9. Việc Cursor / em phải làm mỗi phiên
 
 1. Đọc file này trước khi sửa code.
 2. `git remote -v` = `ngoclinh.git` thì mới được commit/push.
