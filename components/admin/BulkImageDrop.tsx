@@ -2,7 +2,15 @@
 
 import { CSSProperties, DragEvent, useRef, useState } from 'react';
 import { uploadMediaFile } from '@/lib/client/upload-media';
-import { isAcceptedMediaFile, isVideoAsset, isVideoFile, tagIfVideo, videoThumbUrl } from '@/lib/media-url';
+import {
+  extractDriveFileId,
+  isAcceptedMediaFile,
+  isVideoAsset,
+  isVideoFile,
+  mediaDisplayUrl,
+  tagIfVideo,
+  videoThumbUrl,
+} from '@/lib/media-url';
 
 export type BulkImageTheme = 'dark' | 'light';
 export type BulkAcceptMode = 'image' | 'media';
@@ -233,7 +241,17 @@ export default function BulkImageDrop({
                   )
                 ) : (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={it.url} alt={it.name} style={thumbStyle} />
+                  <img
+                    src={mediaDisplayUrl(it.url, {
+                      driveFileId: extractDriveFileId(it.url),
+                      quality: 'thumb',
+                      thumbSize: 'w200',
+                    })}
+                    alt={it.name}
+                    style={thumbStyle}
+                    loading="lazy"
+                    decoding="async"
+                  />
                 )}
                 <button
                   type="button"

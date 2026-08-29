@@ -103,6 +103,37 @@ FROM (VALUES
 ) AS v(label, url, parent_label, ord)
 JOIN public.menus p ON p.label = v.parent_label AND p.parent_id IS NOT NULL;
 
+-- 4) Vá site_settings Cửa Âu còn sót (chỉ khi value còn giống Cửa Âu)
+UPDATE public.site_settings SET value = 'Hệ Sinh Thái AI — Bùi Ngọc Linh', updated_at = now()
+WHERE key = 'site_name'
+  AND (value ILIKE '%CỬA ÂU%' OR value ILIKE '%BÊ TÔNG%' OR value ILIKE '%cống%');
+
+UPDATE public.site_settings SET value = 'https://ngoclinh.shopmartai.com', updated_at = now()
+WHERE key = 'website_url'
+  AND (value ILIKE '%congbetongcuaau%' OR btrim(coalesce(value, '')) = '');
+
+UPDATE public.site_settings SET value = '0827416886', updated_at = now()
+WHERE key = 'hotline' AND value IN ('0934640601');
+
+UPDATE public.site_settings SET value = 'ngoclinh@shoppingstar.vn', updated_at = now()
+WHERE key = 'email' AND (value ILIKE '%cuaau%' OR value ILIKE '%congbetongcuaau%');
+
+UPDATE public.site_settings SET value = 'Dư Hàng, Phường Lê Chân, Hải Phòng, Việt Nam', updated_at = now()
+WHERE key = 'address'
+  AND (value ILIKE '%Pháp Cổ%' OR value ILIKE '%Việt Khê%' OR value ILIKE '%Yên Mỹ%');
+
+UPDATE public.site_settings SET value = 'BẢN QUYỀN THUỘC VỀ HỆ SINH THÁI AI — BÙI NGỌC LINH', updated_at = now()
+WHERE key = 'footer_copyright' AND (value ILIKE '%CỬA ÂU%' OR value ILIKE '%BÊ TÔNG%');
+
+UPDATE public.site_settings SET value = 'đào tạo AI, hệ sinh thái AI, Ngọc Linh, truyền thông, tổ chức sự kiện, thiết kế website app, luyện thi Toán Lý Hóa Sinh', updated_at = now()
+WHERE key = 'meta_keywords' AND (value ILIKE '%cống%' OR value ILIKE '%bê tông%');
+
+UPDATE public.site_settings SET value = 'Hệ Sinh Thái AI — Học AI cùng chuyên gia Mr Ngọc Linh. Truyền thông, sự kiện, đào tạo AI, thiết kế website/app, luyện thi.', updated_at = now()
+WHERE key = 'meta_description' AND (value ILIKE '%CỬA ÂU%' OR value ILIKE '%cống%' OR value ILIKE '%bê tông%');
+
+UPDATE public.site_settings SET value = '/logo/shopmartai-ai.png', updated_at = now()
+WHERE key = 'logo_url' AND (value ILIKE '%4174logo%' OR value ILIKE '%cuaau%');
+
 NOTIFY pgrst, 'reload schema';
 
 -- Kiểm chứng: không còn URL Cửa Âu; cây ngoclinh 3 cấp

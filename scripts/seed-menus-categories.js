@@ -6,9 +6,10 @@
  *
  * KHÔNG mặc định URL/key Cửa Âu. Cấm chạy nếu URL chứa bfruxinvvvaqufghtigw.
  *
- * An toàn: nếu bảng đã có dữ liệu thì BỎ QUA.
- *   Tab Menu đang là cây Cửa Âu → chạy SQL:
- *   sql/07_THAY_MENU_HEADER_NGOCLINH.sql trên SQL Editor ngoclinh.
+ * An toàn: nếu bảng đã có dữ liệu thì BỎ QUA (không ghi đè).
+ *   Tab Menu đang là cây Cửa Âu → chạy:
+ *     node scripts/replace-header-menus-ngoclinh.js
+ *     hoặc SQL sql/07_THAY_MENU_HEADER_NGOCLINH.sql trên kho ngoclinh.
  *   9 khối sandwich → sql/04_DONG_BO_9_KHOI_MENU_TRANG_CHU.sql
  *
  * Cách chạy (PowerShell, từ thư mục repo):

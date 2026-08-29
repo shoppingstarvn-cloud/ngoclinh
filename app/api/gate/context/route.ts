@@ -14,18 +14,23 @@ export async function GET(request: NextRequest) {
   try {
     const supabase = createAdminClient();
 
-    const { data: cats } = await supabase
-      .from('categories')
-      .select('id, name, slug, link_url')
-      .eq('is_active', true);
+    const [{ data: cats }, { data: menuRows }] = await Promise.all([
+      supabase.from('categories').select('id, name, slug, link_url').eq('is_active', true),
+      supabase.from('menus').select('label, url').eq('is_active', true),
+    ]);
     const gatedCats = (cats ?? []).filter((c) => isGatedCategoryName(c.name));
     const gatedIds = gatedCats.map((c) => c.id);
+    const gatedMenus = (menuRows ?? []).filter((m) => isGatedCategoryName(String(m.label || '')));
 
     const set = new Set<string>();
     // (1) Link CHUNG của khối "Hoạt động phong trào" — nơi menu con trỏ về khi
     //     chưa điền Link đích riêng. Chặn cả link này để mọi menu con đều bị hỏi mật khẩu.
     for (const c of gatedCats) {
       const h = itemHref({ slug: c.slug, link_url: c.link_url });
+      if (h && h !== '#') set.add(h);
+    }
+    for (const m of gatedMenus) {
+      const h = resolveHref(m.url || '');
       if (h && h !== '#') set.add(h);
     }
     // (2) Link đích RIÊNG của từng menu con (nếu admin đã điền).
@@ -44,11 +49,20 @@ export async function GET(request: NextRequest) {
 
     // Pattern nhận diện theo họ slug (2 từ đầu, vd "hoat-dong") — bắt được cả link
     // slug cũ còn kẹt trong HTML cache lẫn slug mới sau khi đổi tên khối.
+    const slugPrefix = (raw: string) =>
+      String(raw || '')
+        .toLowerCase()
+        .replace(/^\//, '')
+        .replace(/\.html?$/i, '')
+        .split('-')
+        .slice(0, 2)
+        .join('-');
     const patterns = Array.from(
       new Set(
-        gatedCats
-          .map((c) => String(c.slug || '').toLowerCase().split('-').slice(0, 2).join('-'))
-          .filter((p) => p.length >= 4),
+        [
+          ...gatedCats.map((c) => slugPrefix(c.slug || '')),
+          ...gatedMenus.map((m) => slugPrefix(String(m.url || '').split(/[?#]/)[0])),
+        ].filter((p) => p.length >= 4),
       ),
     );
 
@@ -60,6 +74,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({
         categories: (cats ?? []).map((c) => ({ id: c.id, name: c.name, slug: c.slug, link_url: c.link_url })),
         gatedIds,
+        gatedMenus: gatedMenus.map((m) => ({ label: m.label, url: m.url })),
         targets,
         patterns,
         submenus: allSubs ?? [],

@@ -69,9 +69,32 @@ WHERE id = 9
     name ILIKE '%KINH DOANH%'
     OR name ILIKE '%VLXD%'
     OR name ILIKE '%CỬA ÂU%'
+    OR name ILIKE '%TRỌNG TÂM%'
+    OR name ILIKE '%HOẠT ĐỘNG%'
+    OR slug ILIKE 'hoat-dong%'
     OR slug IN ('cong-tron-c53', 'cong-tron-c53-r2')
     OR coalesce(btrim(link_url), '') IN ('', '/cong-tron-c53.html')
     OR link_url ILIKE '%cong-tron%'
+  );
+
+-- 1b) Mọi khối HOẠT ĐỘNG… (kể cả clone *-r2 / tên Trọng tâm) → chữ header hiện tại
+UPDATE public.categories
+SET name = 'HOẠT ĐỘNG PHONG TRÀO',
+    slug = CASE
+      WHEN slug LIKE '%-r2' THEN 'hoat-dong-phong-trao-r2'
+      ELSE 'hoat-dong-phong-trao'
+    END,
+    link_url = '/hoat-dong-phong-trao.html',
+    updated_at = now()
+WHERE (parent_id IS NULL OR parent_id = 0)
+  AND (
+    name ILIKE '%HOẠT ĐỘNG%'
+    OR slug ILIKE 'hoat-dong%'
+  )
+  AND (
+    name IS DISTINCT FROM 'HOẠT ĐỘNG PHONG TRÀO'
+    OR slug NOT IN ('hoat-dong-phong-trao', 'hoat-dong-phong-trao-r2')
+    OR coalesce(btrim(link_url), '') IS DISTINCT FROM '/hoat-dong-phong-trao.html'
   );
 
 -- Vá sót: khối đã đúng tên nhưng vẫn dính URL cống tròn Cửa Âu

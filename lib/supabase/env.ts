@@ -10,12 +10,17 @@ function stripSlash(url: string) {
   return url.replace(/\/$/, '');
 }
 
+function isHttpUrl(url: string) {
+  return /^https?:\/\/[a-z0-9][a-z0-9.-]*\.[a-z]{2,}/i.test(url);
+}
+
 export function getSupabaseUrl(): string {
-  const url = stripSlash(
+  const raw = stripSlash(
     process.env.NEXT_PUBLIC_SUPABASE_URL ||
       process.env.SUPABASE_URL ||
       NGOCLINH_URL,
   );
+  const url = isHttpUrl(raw) ? raw : NGOCLINH_URL;
   if (url.includes(CUAAU_REF)) {
     console.error(
       '[ngoclinh] Chặn URL Supabase Cửa Âu. Chuyển sang kho pglbhoitmcflpvoasewr.',

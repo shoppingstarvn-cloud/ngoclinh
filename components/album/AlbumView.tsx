@@ -6,12 +6,17 @@ import AuthModal from '@/components/auth/AuthModal';
 import MediaAsset from '@/components/ui/MediaAsset';
 import VideoPlayer from '@/components/ui/VideoPlayer';
 import ReactionBar from '@/components/ui/ReactionBar';
-import { driveDownloadUrl, extractDriveFileId, isVideoAsset, videoThumbUrl } from '@/lib/media-url';
+import { driveDownloadUrl, extractDriveFileId, isVideoAsset, mediaDisplayUrl, videoThumbUrl } from '@/lib/media-url';
 import { isMediaFavorite, toggleMediaFavorite } from '@/lib/media-favorites';
 import { albumReactionTarget } from '@/lib/reactions';
 
 type Block = { id: number; title: string; cover_url: string; photos: number; videos: number };
-type Media = { id: number; kind: string; url: string; name: string };
+type Media = { id: number; kind: string; url: string; name: string; drive_file_id?: string | null };
+
+function mediaDriveId(m: { url: string; drive_file_id?: string | null }) {
+  const id = m.drive_file_id?.trim();
+  return id || extractDriveFileId(m.url);
+}
 type PageInfo = { slug: string; title: string; subtitle: string; bg_image_url: string; slide_urls: string[] };
 
 const GRADS = [
@@ -99,9 +104,14 @@ export default function AlbumView({ slug }: { slug: string }) {
   const slides = (page.slide_urls && page.slide_urls.length ? page.slide_urls
     : blocks.map((b) => b.cover_url).filter(Boolean));
   const bgIsVideo = isVideoAsset(page.bg_image_url);
+  const bgDriveId = extractDriveFileId(page.bg_image_url);
   const bgThumb = bgIsVideo ? videoThumbUrl(page.bg_image_url) : null;
-  const bgStyle: CSSProperties = page.bg_image_url && !bgIsVideo
-    ? { backgroundImage: `url(${page.bg_image_url})`, backgroundSize: 'cover', backgroundAttachment: 'fixed', backgroundPosition: 'center' }
+  const bgPhotoUrl =
+    page.bg_image_url && !bgIsVideo
+      ? mediaDisplayUrl(page.bg_image_url, { driveFileId: bgDriveId, quality: 'thumb', thumbSize: 'w1280' })
+      : null;
+  const bgStyle: CSSProperties = bgPhotoUrl
+    ? { backgroundImage: `url(${bgPhotoUrl})`, backgroundSize: 'cover', backgroundAttachment: 'fixed', backgroundPosition: 'center' }
     : {};
 
   return (
@@ -126,7 +136,15 @@ export default function AlbumView({ slug }: { slug: string }) {
           <div className="alb-slider"><div className="alb-track">
             {[...slides, ...slides].map((u, i) => (
               <div className="alb-tile" key={i} style={u ? {} : { background: GRADS[i % GRADS.length] }}>
-                {u ? <MediaAsset src={u} alt="" /> : '🖼️'}
+                {u ? (
+                  <MediaAsset
+                    src={u}
+                    alt=""
+                    displayQuality="thumb"
+                    thumbSize="w400"
+                    driveFileId={extractDriveFileId(u)}
+                  />
+                ) : '🖼️'}
               </div>
             ))}
           </div></div>
@@ -174,7 +192,15 @@ export default function AlbumView({ slug }: { slug: string }) {
                   <div className="alb-glo" />
                   <span className="alb-badge">📸 {b.photos.toLocaleString('vi-VN')} · 🎬 {b.videos}</span>
                   <div className="alb-ph" style={b.cover_url ? {} : { background: GRADS[i % GRADS.length] }}>
-                    {b.cover_url ? <MediaAsset src={b.cover_url} alt={b.title} /> : '🖼️'}
+                    {b.cover_url ? (
+                      <MediaAsset
+                        src={b.cover_url}
+                        alt={b.title}
+                        displayQuality="thumb"
+                        thumbSize="w400"
+                        driveFileId={extractDriveFileId(b.cover_url)}
+                      />
+                    ) : '🖼️'}
                   </div>
                   <div className="alb-cap"><h3>{b.title}</h3><div className="alb-meta">{b.photos.toLocaleString('vi-VN')} ảnh · {b.videos} video</div></div>
                 </div>
@@ -198,7 +224,14 @@ export default function AlbumView({ slug }: { slug: string }) {
                 <div className="alb-videos">
                   {videos.map((v) => (
                     <div className="alb-vth" key={v.id} onClick={() => setViewer(v)}>
-                      <MediaAsset src={v.url} alt={v.name} kind={v.kind} />
+                      <MediaAsset
+                        src={v.url}
+                        alt={v.name}
+                        kind={v.kind}
+                        driveFileId={mediaDriveId(v)}
+                        displayQuality="thumb"
+                        thumbSize="w200"
+                      />
                       <div className="alb-vplay">▶</div>
                     </div>
                   ))}
@@ -208,7 +241,14 @@ export default function AlbumView({ slug }: { slug: string }) {
               <div className="alb-grid">
                 {photos.map((m) => (
                   <div key={m.id} onClick={() => setViewer(m)}>
-                    <MediaAsset src={m.url} alt={m.name} kind={m.kind} />
+                    <MediaAsset
+                      src={m.url}
+                      alt={m.name}
+                      kind={m.kind}
+                      displayQuality="thumb"
+                      thumbSize="w200"
+                      driveFileId={mediaDriveId(m)}
+                    />
                   </div>
                 ))}
               </div>
@@ -249,8 +289,11 @@ function MediaViewer({ media, onClose }: { media: Media; onClose: () => void }) 
   }
 
   const isVideo = media.kind === 'video' || isVideoAsset(media.url);
-  const driveId = extractDriveFileId(media.url);
+  const driveId = mediaDriveId(media);
   const downloadHref = driveId ? driveDownloadUrl(driveId) : media.url;
+  const fullPhotoSrc = !isVideo
+    ? mediaDisplayUrl(media.url, { driveFileId: driveId, quality: 'full' })
+    : null;
   return (
     <div className="alb-lb" style={{ zIndex: 60 }} onClick={(e) => e.target === e.currentTarget && onClose()}>
       <div className="alb-lbbox" style={{ maxWidth: isVideo ? 1100 : 820 }}>
@@ -260,7 +303,13 @@ function MediaViewer({ media, onClose }: { media: Media; onClose: () => void }) 
             ? <VideoPlayer src={media.url} title={media.name} />
             : (
               <>
-                <img src={media.url} alt={media.name} style={{ width: '100%', borderRadius: 14, maxHeight: 520, objectFit: 'contain', background: '#f3f6f4' }} />
+                <img
+                  src={fullPhotoSrc || media.url}
+                  alt={media.name}
+                  loading="eager"
+                  decoding="async"
+                  style={{ width: '100%', borderRadius: 14, maxHeight: 520, objectFit: 'contain', background: '#f3f6f4' }}
+                />
                 <div style={{ marginTop: 10 }}>
                   <button
                     type="button"

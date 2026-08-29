@@ -1,6 +1,6 @@
 import { SignJWT, jwtVerify } from 'jose';
-import { noAccent } from '@/lib/slug';
 
+export { isGatedCategoryName } from '@/lib/gate/match';
 export const GATE_COOKIE = 'content_unlock';
 
 function secret() {
@@ -28,15 +28,4 @@ export async function verifyGate(token?: string): Promise<boolean> {
   } catch {
     return false;
   }
-}
-
-/**
- * Nhận diện khối/danh mục CẦN mật khẩu — khối "HOẠT ĐỘNG ..." (Phong trào /
- * Trọng tâm / ...). Khớp mọi tên bắt đầu bằng "Hoạt động" để đổi tên vẫn chạy.
- * So khớp không dấu, không phân biệt hoa thường.
- */
-export function isGatedCategoryName(name: string): boolean {
-  return noAccent(String(name || ''))
-    .toLowerCase()
-    .includes('hoat dong');
 }

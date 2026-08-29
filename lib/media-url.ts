@@ -96,6 +96,30 @@ export function driveDownloadUrl(fileId: string): string {
   return `https://drive.google.com/uc?export=download&id=${fileId}&confirm=t`;
 }
 
+/** Ảnh gốc chất lượng cao từ Drive (dùng trong lightbox/viewer). */
+export function driveFullImageUrl(fileId: string): string {
+  return `https://lh3.googleusercontent.com/d/${fileId}=s0`;
+}
+
+export type MediaDisplayQuality = 'thumb' | 'full';
+
+/** URL hiển thị ảnh: lưới/card = thumbnail nhẹ; viewer = full. */
+export function mediaDisplayUrl(
+  url?: string | null,
+  opts?: { driveFileId?: string | null; quality?: MediaDisplayQuality; thumbSize?: string },
+): string {
+  const raw = String(url || '').trim();
+  const quality = opts?.quality ?? 'full';
+  const fileId = opts?.driveFileId || extractDriveFileId(raw);
+  if (fileId) {
+    if (quality === 'thumb') {
+      return driveThumbnailUrl(fileId, opts?.thumbSize || 'w400');
+    }
+    return driveFullImageUrl(fileId);
+  }
+  return raw;
+}
+
 /** Cùng origin — HTTP Range 206, khúc ≤4MB (dưới trần function Vercel). `v=` phá cache 404 cũ trên CDN. */
 export function driveStreamApiUrl(fileId: string): string {
   return `/api/video/drive/${encodeURIComponent(fileId)}?v=3`;

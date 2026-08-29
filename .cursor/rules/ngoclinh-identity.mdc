@@ -1,0 +1,25 @@
+---
+description: Định danh dự án ngoclinh — cấm đụng webbetonglammau / Cửa Âu
+alwaysApply: true
+---
+
+# Đây là dự án NGOCLINH
+
+Đọc `HOSO_DU_AN_NGOCLINH.md` trước khi sửa hay push.
+
+- Local: `D:\SUPPER APP TRIEU DO\Truong-Phong-Truyen-Thong-Pho-Phong-Dao-Tao`
+- GitHub: `https://github.com/shoppingstarvn-cloud/ngoclinh.git`
+- LIVE: `https://ngoclinh.shopmartai.com`
+- Vercel: project `ngoclinh` (team `shoppingstarvn-8300s-projects`)
+- Supabase: `pglbhoitmcflpvoasewr` — `https://pglbhoitmcflpvoasewr.supabase.co`
+
+Trước mọi `git push`: `git remote -v` phải là **ngoclinh.git**. Sai thì dừng.
+
+## Cấm
+
+- Folder `D:\SUPPER APP TRIEU DO\webbetonglammau`
+- Repo `shoppingstarvn-cloud/webbetonglammau`
+- Vercel / domain `webbetonglammau.vercel.app`
+- Supabase `bfruxinvvvaqufghtigw` (chỉ đọc khi migrate)
+
+Không copy skill / remote / env của Cửa Âu sang đây.

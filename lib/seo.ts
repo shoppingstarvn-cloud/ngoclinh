@@ -1,9 +1,12 @@
 import type { Metadata } from 'next';
 
 /** Tên miền LIVE — thẻ Zalo/Facebook phải là URL tuyệt đối HTTPS. */
-export const SITE_URL = (
-  process.env.NEXT_PUBLIC_SITE_URL || 'https://ngoclinh.shopmartai.com'
-).replace(/\/$/, '');
+function resolveSiteUrl(): string {
+  const raw = (process.env.NEXT_PUBLIC_SITE_URL || '').trim().replace(/\/$/, '');
+  if (/^https?:\/\/[a-z0-9][a-z0-9.-]*\.[a-z]{2,}(\/.*)?$/i.test(raw)) return raw;
+  return 'https://ngoclinh.shopmartai.com';
+}
+export const SITE_URL = resolveSiteUrl();
 
 /** Copy giống trang Lovable (hesinhthaiai.lovable.app) — chỉ đổi domain. */
 export const SHARE_TITLE = 'Hệ Sinh Thái AI - Học AI cùng Chuyên Gia';
