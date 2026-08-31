@@ -1,4 +1,5 @@
 'use client';
+/* eslint-disable @next/next/no-img-element */
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Swal from 'sweetalert2';
@@ -86,6 +87,11 @@ export default function AlbumAdminPanel({ authHeader }: Props) {
     const c = await Swal.fire({ icon: 'warning', title: 'Xoá khối?', text: 'Xoá cả ảnh/video trong khối.', showCancelButton: true, confirmButtonText: 'XOÁ', ...swalDark });
     if (!c.isConfirmed) return;
     await fetch(`/api/admin/album/block?id=${id}`, { method: 'DELETE', headers: { Authorization: authHeader } });
+    await load();
+  }
+  // Thay/xoá ảnh bìa của 1 khối đã có
+  async function saveCover(blockId: number, cover_url: string) {
+    await fetch('/api/admin/album/block', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: authHeader }, body: JSON.stringify({ id: blockId, cover_url }) });
     await load();
   }
 
@@ -204,7 +210,12 @@ export default function AlbumAdminPanel({ authHeader }: Props) {
 
           <div className="mt-3" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(260px,1fr))', gap: 14 }}>
             {curBlocks.map((b) => (
-              <BlockCard key={b.id} block={b} onDrop={(files) => handleFiles(b.id, files)} onDelete={() => delBlock(b.id)} />
+              <BlockCard key={b.id} block={b} authHeader={authHeader}
+                onDrop={(files) => handleFiles(b.id, files)}
+                onDelete={() => delBlock(b.id)}
+                onReload={load}
+                uploadImageUrl={uploadImageUrl}
+                onSaveCover={(url) => saveCover(b.id, url)} />
             ))}
           </div>
           {curBlocks.length === 0 && <p className="text-muted mt-2">Chưa có khối nào. Thêm khối rồi kéo-thả ảnh/video vào.</p>}
@@ -214,28 +225,97 @@ export default function AlbumAdminPanel({ authHeader }: Props) {
   );
 }
 
-function BlockCard({ block, onDrop, onDelete }: { block: Block; onDrop: (files: FileList | File[]) => void; onDelete: () => void }) {
+type Media = { id: number; kind: string; url: string; name: string };
+
+function BlockCard({ block, authHeader, onDrop, onDelete, onReload, uploadImageUrl, onSaveCover }: {
+  block: Block; authHeader: string;
+  onDrop: (files: FileList | File[]) => void; onDelete: () => void; onReload: () => void;
+  uploadImageUrl: (f: File) => Promise<string>; onSaveCover: (url: string) => void;
+}) {
   const inputRef = useRef<HTMLInputElement>(null);
+  const coverRef = useRef<HTMLInputElement>(null);
   const [over, setOver] = useState(false);
+  const [openMedia, setOpenMedia] = useState(false);
+  const [media, setMedia] = useState<Media[]>([]);
+  const [total, setTotal] = useState(0);
+  const [offset, setOffset] = useState(0);
+  const [busyCover, setBusyCover] = useState(false);
+
+  async function loadMedia(off: number) {
+    const r = await fetch(`/api/admin/album/media?blockId=${block.id}&offset=${off}&limit=60`, { headers: { Authorization: authHeader } });
+    const d = await r.json();
+    const arr: Media[] = d.media || [];
+    setMedia((p) => (off === 0 ? arr : [...p, ...arr]));
+    setTotal(d.total || 0);
+    setOffset(off + arr.length);
+  }
+  function toggleMedia() {
+    const nx = !openMedia; setOpenMedia(nx);
+    if (nx && media.length === 0) loadMedia(0);
+  }
+  async function delMedia(id: number) {
+    if (!confirm('Xoá ảnh/video này khỏi khối?')) return;
+    await fetch(`/api/admin/album/media?id=${id}`, { method: 'DELETE', headers: { Authorization: authHeader } });
+    setMedia((p) => p.filter((m) => m.id !== id));
+    setTotal((t) => Math.max(0, t - 1));
+    onReload();
+  }
+  async function changeCover(file: File) {
+    setBusyCover(true);
+    try { const url = await uploadImageUrl(file); onSaveCover(url); } finally { setBusyCover(false); }
+  }
+
   return (
     <div className="border rounded p-2" style={{ background: '#fff' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <b style={{ fontSize: 14 }}>{block.title}</b>
         <button className="btn btn-sm btn-outline-danger" onClick={onDelete} title="Xoá khối"><i className="fas fa-trash" /></button>
       </div>
+
+      {/* Ảnh bìa khối: thay / xoá */}
+      <div style={{ display: 'flex', gap: 6, alignItems: 'center', margin: '6px 0', flexWrap: 'wrap' }}>
+        {block.cover_url
+          ? <img src={block.cover_url} alt="bìa" style={{ width: 54, height: 38, objectFit: 'cover', borderRadius: 6, border: '1px solid #ddd' }} />
+          : <span style={{ width: 54, height: 38, borderRadius: 6, background: '#eef', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 18 }}>🖼️</span>}
+        <button className="btn btn-sm btn-outline-primary" disabled={busyCover} onClick={() => coverRef.current?.click()}>{busyCover ? '...' : (block.cover_url ? 'Thay bìa' : 'Đặt bìa')}</button>
+        {block.cover_url && <button className="btn btn-sm btn-outline-secondary" onClick={() => onSaveCover('')}>Xoá bìa</button>}
+        <input ref={coverRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={(e) => { if (e.target.files?.[0]) changeCover(e.target.files[0]); e.currentTarget.value = ''; }} />
+      </div>
+
       <div style={{ fontSize: 12, color: '#678', margin: '4px 0 8px' }}>📸 {block.photos.toLocaleString('vi-VN')} ảnh · 🎬 {block.videos} video</div>
+
       <div
         onClick={() => inputRef.current?.click()}
         onDragOver={(e) => { e.preventDefault(); setOver(true); }}
         onDragLeave={() => setOver(false)}
         onDrop={(e) => { e.preventDefault(); setOver(false); if (e.dataTransfer.files?.length) onDrop(e.dataTransfer.files); }}
-        style={{ border: `2px dashed ${over ? '#00A651' : '#bcd'}`, background: over ? '#eafaf0' : '#f7fbf9', borderRadius: 10, padding: '18px 10px', textAlign: 'center', cursor: 'pointer', color: '#468' }}
+        style={{ border: `2px dashed ${over ? '#00A651' : '#bcd'}`, background: over ? '#eafaf0' : '#f7fbf9', borderRadius: 10, padding: '14px 10px', textAlign: 'center', cursor: 'pointer', color: '#468' }}
       >
-        <div style={{ fontSize: 26 }}>⬆️</div>
-        <div style={{ fontSize: 13, fontWeight: 800, color: '#046b38', textTransform: 'uppercase', marginBottom: 4 }}>Up ảnh &amp; video vào khối này</div>
-        <div style={{ fontSize: 12.5, fontWeight: 700 }}>Kéo-thả hoặc bấm để tải<br />ảnh &amp; video nhật ký (không giới hạn)</div>
+        <div style={{ fontSize: 22 }}>⬆️</div>
+        <div style={{ fontSize: 12.5, fontWeight: 700 }}>Kéo-thả / bấm để tải ảnh &amp; video (không giới hạn)</div>
       </div>
       <input ref={inputRef} type="file" multiple accept="image/*,video/*" style={{ display: 'none' }} onChange={(e) => { if (e.target.files?.length) onDrop(e.target.files); e.currentTarget.value = ''; }} />
+
+      {/* Quản lý ảnh/video ĐÃ CÓ */}
+      <button className="btn btn-sm btn-outline-success mt-2 w-100" onClick={toggleMedia}>
+        <i className="fas fa-photo-film" /> {openMedia ? 'Ẩn' : 'Quản lý'} ảnh/video đã có
+      </button>
+      {openMedia && (
+        <div style={{ marginTop: 8 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(54px,1fr))', gap: 5 }}>
+            {media.map((m) => (
+              <div key={m.id} style={{ position: 'relative' }}>
+                {m.kind === 'video'
+                  ? <div style={{ width: '100%', aspectRatio: '1/1', borderRadius: 6, background: 'linear-gradient(135deg,#5ee7df,#b490ca)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 16 }}>🎬</div>
+                  : <img src={m.url} alt="" loading="lazy" style={{ width: '100%', aspectRatio: '1/1', objectFit: 'cover', borderRadius: 6, background: '#eef' }} />}
+                <button onClick={() => delMedia(m.id)} title="Xoá" style={{ position: 'absolute', top: -6, right: -6, width: 18, height: 18, borderRadius: '50%', border: 'none', background: '#e11', color: '#fff', fontSize: 11, lineHeight: '18px', padding: 0, cursor: 'pointer' }}>×</button>
+              </div>
+            ))}
+          </div>
+          {media.length === 0 && <div style={{ fontSize: 12, color: '#889', padding: '6px 0' }}>Khối này chưa có ảnh/video.</div>}
+          {offset < total && <button className="btn btn-sm btn-light mt-2 w-100" onClick={() => loadMedia(offset)}>Tải thêm ({(total - offset).toLocaleString('vi-VN')} còn lại)</button>}
+        </div>
+      )}
     </div>
   );
 }
