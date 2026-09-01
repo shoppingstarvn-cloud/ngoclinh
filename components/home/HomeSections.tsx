@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { postHref, itemHref, assetUrl, resolveHref, isTrustedMediaUrl, isValidAssetUrl } from '@/lib/slug';
 import { useOwlCarousel } from '@/lib/hooks/useOwlCarousel';
 import MediaAsset from '@/components/ui/MediaAsset';
+import ShareBar from '@/components/ui/ShareBar';
 
 function hideBrokenMedia(e: SyntheticEvent<HTMLImageElement | HTMLVideoElement>) {
   const el = e.currentTarget;
@@ -578,6 +579,14 @@ export function VideoSection({ videos }: { videos: HomeVideo[] }) {
                 }
                 return null;
               })()}
+            </div>
+            <div style={{ background: '#fff', padding: '10px 14px' }}>
+              <ShareBar
+                sharePath={`/s/vd/${active.id}`}
+                title={active.title || 'Video hoạt động'}
+                isVideo
+                youtubeUrl={active.youtube_url}
+              />
             </div>
           </div>
         </div>

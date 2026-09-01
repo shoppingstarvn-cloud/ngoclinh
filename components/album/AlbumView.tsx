@@ -6,6 +6,7 @@ import AuthModal from '@/components/auth/AuthModal';
 import MediaAsset from '@/components/ui/MediaAsset';
 import VideoPlayer from '@/components/ui/VideoPlayer';
 import ReactionBar from '@/components/ui/ReactionBar';
+import ShareBar from '@/components/ui/ShareBar';
 import { driveDownloadUrl, extractDriveFileId, isVideoAsset, mediaDisplayUrl, videoThumbUrl } from '@/lib/media-url';
 import { isMediaFavorite, toggleMediaFavorite } from '@/lib/media-favorites';
 import { albumReactionTarget } from '@/lib/reactions';
@@ -297,6 +298,7 @@ function MediaViewer({ media, onClose }: { media: Media; onClose: () => void }) 
             target={albumReactionTarget(media.id)}
             extra={<a className="alb-btn soft" href={downloadHref} target="_blank" rel="noreferrer">⬇️ Tải về</a>}
           />
+          <ShareBar sharePath={`/s/am/${media.id}`} title={media.name || 'Ngọc Linh · Hệ sinh thái AI'} isVideo={isVideo} />
           <div className="alb-cmts">
             <div className="alb-cinput">
               <input placeholder="Viết bình luận…" value={text} onChange={(e) => setText(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && send()} />
