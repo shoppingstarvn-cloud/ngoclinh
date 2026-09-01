@@ -29,6 +29,7 @@ export async function getHomepageData() {
     categorySubmenus,
     links,
     activityImages,
+    videos,
     registerBlocks,
     settingsRows,
   ] = await Promise.all([
@@ -109,6 +110,13 @@ export async function getHomepageData() {
       .order('display_order')
       .limit(30),
     supabase
+      .from('videos')
+      .select('*')
+      .eq('is_active', true)
+      .order('display_order')
+      .order('id', { ascending: false })
+      .limit(30),
+    supabase
       .from('register_blocks')
       .select('*')
       .eq('is_active', true)
@@ -176,6 +184,10 @@ export async function getHomepageData() {
     links: links.data ?? [],
     // Hình ảnh hoạt động — ảnh/video hợp lệ (local/Supabase/Drive)
     activityImages: (activityImages.data ?? []).filter((a) => isValidAssetUrl(a.image_url)),
+    // Video hoạt động — chỉ giữ video có nguồn phát (YouTube / file tải lên / thumbnail)
+    videos: (videos.data ?? []).filter(
+      (v) => v && (v.youtube_url || v.embed_url || v.thumbnail_url),
+    ),
     // Bảng register_blocks chưa chạy SQL → data null, form vẫn hiện nội dung mặc định
     registerBlocks: registerBlocks.data ?? [],
     settings,

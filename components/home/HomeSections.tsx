@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import type { MouseEvent as ReactMouseEvent, ReactNode, SyntheticEvent } from 'react';
 import Link from 'next/link';
 import { postHref, itemHref, assetUrl, resolveHref, isTrustedMediaUrl, isValidAssetUrl } from '@/lib/slug';
@@ -370,6 +371,217 @@ export function ActivitySection({ images }: { images: ActivityImage[] }) {
           </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+interface HomeVideo {
+  id: number;
+  title?: string;
+  youtube_url?: string;
+  embed_url?: string;
+  thumbnail_url?: string;
+  description?: string;
+}
+
+function youTubeId(url?: string): string | null {
+  if (!url) return null;
+  const m = url.match(
+    /(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/|v\/))([A-Za-z0-9_-]{6,})/,
+  );
+  return m ? m[1] : null;
+}
+
+export function VideoSection({ videos }: { videos: HomeVideo[] }) {
+  const [active, setActive] = useState<HomeVideo | null>(null);
+  const list = (videos || []).filter(
+    (v) => v && (v.youtube_url || v.embed_url || v.thumbnail_url),
+  );
+  if (!list.length) return null;
+
+  function thumbOf(v: HomeVideo): string {
+    if (v.thumbnail_url && isValidAssetUrl(v.thumbnail_url)) return assetUrl(v.thumbnail_url);
+    const yid = youTubeId(v.youtube_url);
+    if (yid) return `https://img.youtube.com/vi/${yid}/hqdefault.jpg`;
+    return '';
+  }
+
+  return (
+    <div className="nl-video-section" style={{ padding: '40px 0' }}>
+      <div className="container">
+        <div style={{ textAlign: 'center', marginBottom: 28 }}>
+          <h2 style={{ fontSize: 30, fontWeight: 800, color: '#0b2b53', margin: 0 }}>
+            🎬 Video hoạt động
+          </h2>
+          <p style={{ color: '#64748b', marginTop: 8, fontSize: 15 }}>
+            Ghi lại những khoảnh khắc ý nghĩa
+          </p>
+        </div>
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fill,minmax(300px,1fr))',
+            gap: 22,
+          }}
+        >
+          {list.map((v) => {
+            const thumb = thumbOf(v);
+            return (
+              <button
+                key={v.id}
+                type="button"
+                onClick={() => setActive(v)}
+                style={{
+                  textAlign: 'left',
+                  border: 'none',
+                  padding: 0,
+                  background: '#fff',
+                  borderRadius: 14,
+                  overflow: 'hidden',
+                  boxShadow: '0 6px 20px rgba(2,32,71,.10)',
+                  cursor: 'pointer',
+                }}
+              >
+                <div
+                  style={{
+                    position: 'relative',
+                    width: '100%',
+                    aspectRatio: '16 / 9',
+                    background: '#0b2b53',
+                  }}
+                >
+                  {thumb ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={thumb}
+                      alt={v.title || 'Video'}
+                      loading="lazy"
+                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                    />
+                  ) : v.embed_url ? (
+                    <video
+                      src={assetUrl(v.embed_url)}
+                      muted
+                      playsInline
+                      preload="metadata"
+                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                    />
+                  ) : null}
+                  <span
+                    style={{
+                      position: 'absolute',
+                      inset: 0,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <span
+                      style={{
+                        width: 62,
+                        height: 62,
+                        borderRadius: '50%',
+                        background: 'rgba(255,255,255,.92)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        boxShadow: '0 4px 14px rgba(0,0,0,.3)',
+                      }}
+                    >
+                      <i className="fas fa-play" style={{ color: '#0b2b53', fontSize: 20, marginLeft: 3 }} />
+                    </span>
+                  </span>
+                </div>
+                <div style={{ padding: '14px 16px 18px' }}>
+                  <h3 style={{ fontSize: 16, fontWeight: 700, color: '#0b2b53', margin: 0 }}>
+                    {v.title || 'Video'}
+                  </h3>
+                  {v.description ? (
+                    <p style={{ color: '#64748b', fontSize: 13.5, margin: '6px 0 0' }}>{v.description}</p>
+                  ) : null}
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {active ? (
+        <div
+          onClick={() => setActive(null)}
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(0,0,0,.85)',
+            zIndex: 9999,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: 16,
+          }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              width: 'min(960px,100%)',
+              background: '#000',
+              borderRadius: 12,
+              overflow: 'hidden',
+              position: 'relative',
+            }}
+          >
+            <button
+              onClick={() => setActive(null)}
+              aria-label="Đóng"
+              style={{
+                position: 'absolute',
+                top: 8,
+                right: 8,
+                zIndex: 2,
+                width: 38,
+                height: 38,
+                borderRadius: '50%',
+                border: 'none',
+                background: 'rgba(255,255,255,.92)',
+                color: '#0b2b53',
+                fontSize: 22,
+                lineHeight: '38px',
+                cursor: 'pointer',
+              }}
+            >
+              ×
+            </button>
+            <div style={{ position: 'relative', width: '100%', aspectRatio: '16 / 9', background: '#000' }}>
+              {(() => {
+                const yid = youTubeId(active.youtube_url);
+                if (yid) {
+                  return (
+                    <iframe
+                      src={`https://www.youtube.com/embed/${yid}?autoplay=1&rel=0`}
+                      title={active.title || 'Video'}
+                      allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
+                      allowFullScreen
+                      style={{ width: '100%', height: '100%', border: 'none' }}
+                    />
+                  );
+                }
+                if (active.embed_url) {
+                  return (
+                    <video
+                      src={assetUrl(active.embed_url)}
+                      controls
+                      autoPlay
+                      playsInline
+                      style={{ width: '100%', height: '100%' }}
+                    />
+                  );
+                }
+                return null;
+              })()}
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }

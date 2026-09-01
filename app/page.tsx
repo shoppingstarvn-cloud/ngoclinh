@@ -19,6 +19,7 @@ import {
   ProjectSection,
   SlideCarousel,
   TestimonialSection,
+  VideoSection,
 } from '@/components/home/HomeSections';
 import { ServicesAndRegister } from '@/components/home/ServicesAndRegister';
 
@@ -60,6 +61,7 @@ export default async function HomePage() {
       />
       <ActivitySection images={data.activityImages} />
       <NewsSection posts={data.posts} />
+      <VideoSection videos={data.videos} />
       <ProjectSection projects={data.projects} />
       <PartnerSection partners={data.partners} />
       <TestimonialSection testimonials={data.testimonials} />
