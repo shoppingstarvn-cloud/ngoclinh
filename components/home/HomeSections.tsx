@@ -418,13 +418,24 @@ export function VideoSection({ videos }: { videos: HomeVideo[] }) {
             Ghi lại những khoảnh khắc ý nghĩa
           </p>
         </div>
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill,minmax(300px,1fr))',
-            gap: 22,
-          }}
-        >
+        <style jsx>{`
+          .nl-video-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 22px;
+          }
+          @media (max-width: 900px) {
+            .nl-video-grid {
+              grid-template-columns: repeat(2, 1fr);
+            }
+          }
+          @media (max-width: 600px) {
+            .nl-video-grid {
+              grid-template-columns: 1fr;
+            }
+          }
+        `}</style>
+        <div className="nl-video-grid">
           {list.map((v) => {
             const thumb = thumbOf(v);
             return (
