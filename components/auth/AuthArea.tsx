@@ -56,6 +56,9 @@ export default function AuthArea({ compact = false }: { compact?: boolean }) {
           {menuOpen && (
             <div className="autharea-menu">
               <div className="autharea-menu-email">{user.email}</div>
+              <Link href="/" onClick={() => setMenuOpen(false)}>
+                <i className="fa fa-home" /> Xem trang chủ
+              </Link>
               <a href="#" onClick={(e) => { e.preventDefault(); setMenuOpen(false); openReq('website'); }}>
                 <i className="fa fa-globe" /> Đề nghị mở Website
               </a>
