@@ -268,8 +268,8 @@ function BlockCard({ block, authHeader, onDrop, onDelete, onReload, uploadImageU
   return (
     <div className="border rounded p-2" style={{ background: '#fff' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <b style={{ fontSize: 14 }}>{block.title}</b>
-        <button className="btn btn-sm btn-outline-danger" onClick={onDelete} title="Xoá khối"><i className="fas fa-trash" /></button>
+        <b style={{ fontSize: 14, color: '#0f172a' }}>{block.title}</b>
+        <button className="btn btn-sm" style={{ background: '#fee2e2', color: '#b91c1c', border: '1px solid #fca5a5', borderRadius: 6, padding: '4px 9px', cursor: 'pointer' }} onClick={onDelete} title="Xoá khối"><i className="fas fa-trash" /></button>
       </div>
 
       {/* Ảnh bìa khối: thay / xoá */}
@@ -277,8 +277,8 @@ function BlockCard({ block, authHeader, onDrop, onDelete, onReload, uploadImageU
         {block.cover_url
           ? <img src={block.cover_url} alt="bìa" style={{ width: 54, height: 38, objectFit: 'cover', borderRadius: 6, border: '1px solid #ddd' }} />
           : <span style={{ width: 54, height: 38, borderRadius: 6, background: '#eef', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 18 }}>🖼️</span>}
-        <button className="btn btn-sm btn-outline-primary" disabled={busyCover} onClick={() => coverRef.current?.click()}>{busyCover ? '...' : (block.cover_url ? 'Thay bìa' : 'Đặt bìa')}</button>
-        {block.cover_url && <button className="btn btn-sm btn-outline-secondary" onClick={() => onSaveCover('')}>Xoá bìa</button>}
+        <button className="btn btn-sm" style={{ background: '#e0edff', color: '#1d4ed8', border: '1px solid #93c5fd', borderRadius: 6, padding: '4px 10px', fontWeight: 600, cursor: 'pointer' }} disabled={busyCover} onClick={() => coverRef.current?.click()}>{busyCover ? '...' : (block.cover_url ? 'Thay bìa' : 'Đặt bìa')}</button>
+        {block.cover_url && <button className="btn btn-sm" style={{ background: '#f1f5f9', color: '#334155', border: '1px solid #cbd5e1', borderRadius: 6, padding: '4px 10px', fontWeight: 600, cursor: 'pointer' }} onClick={() => onSaveCover('')}>Xoá bìa</button>}
         <input ref={coverRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={(e) => { if (e.target.files?.[0]) changeCover(e.target.files[0]); e.currentTarget.value = ''; }} />
       </div>
 
@@ -297,7 +297,7 @@ function BlockCard({ block, authHeader, onDrop, onDelete, onReload, uploadImageU
       <input ref={inputRef} type="file" multiple accept="image/*,video/*" style={{ display: 'none' }} onChange={(e) => { if (e.target.files?.length) onDrop(e.target.files); e.currentTarget.value = ''; }} />
 
       {/* Quản lý ảnh/video ĐÃ CÓ */}
-      <button className="btn btn-sm btn-outline-success mt-2 w-100" onClick={toggleMedia}>
+      <button className="btn btn-sm mt-2" style={{ width: '100%', background: '#dcfce7', color: '#046b38', border: '1px solid #86efac', borderRadius: 6, padding: '6px 10px', fontWeight: 700, cursor: 'pointer' }} onClick={toggleMedia}>
         <i className="fas fa-photo-film" /> {openMedia ? 'Ẩn' : 'Quản lý'} ảnh/video đã có
       </button>
       {openMedia && (
@@ -313,7 +313,7 @@ function BlockCard({ block, authHeader, onDrop, onDelete, onReload, uploadImageU
             ))}
           </div>
           {media.length === 0 && <div style={{ fontSize: 12, color: '#889', padding: '6px 0' }}>Khối này chưa có ảnh/video.</div>}
-          {offset < total && <button className="btn btn-sm btn-light mt-2 w-100" onClick={() => loadMedia(offset)}>Tải thêm ({(total - offset).toLocaleString('vi-VN')} còn lại)</button>}
+          {offset < total && <button className="btn btn-sm mt-2" style={{ width: '100%', background: '#f1f5f9', color: '#334155', border: '1px solid #cbd5e1', borderRadius: 6, padding: '6px 10px', fontWeight: 600, cursor: 'pointer' }} onClick={() => loadMedia(offset)}>Tải thêm ({(total - offset).toLocaleString('vi-VN')} còn lại)</button>}
         </div>
       )}
     </div>
