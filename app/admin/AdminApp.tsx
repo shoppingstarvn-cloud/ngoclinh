@@ -313,7 +313,20 @@ export default function AdminApp() {
         {activeTableDef && activeTab !== 'site_settings' && (
           <DataTable
             table={activeTableDef}
-            rows={allData[activeTableDef.name] || []}
+            rows={(() => {
+              const list = allData[activeTableDef.name] || [];
+              const hasOrder =
+                (activeTableDef.fields?.some((f) => f.key === 'display_order') ?? false) ||
+                activeTableDef.cols.some((c) => c.key === 'display_order');
+              if (!hasOrder) return list;
+              // Sắp theo THỨ TỰ (nhỏ trước); trùng số thì theo ID. Đổi số ở ô nào,
+              // dòng đó tự nhảy đến đúng vị trí trong toàn danh sách.
+              return [...list].sort(
+                (a, b) =>
+                  (Number(a.display_order) || 0) - (Number(b.display_order) || 0) ||
+                  (Number(a.id) || 0) - (Number(b.id) || 0),
+              );
+            })()}
             allData={allData}
             onAdd={() => openAddForm(activeTableDef.name)}
             onEdit={(row) => openEditForm(activeTableDef.name, row)}
